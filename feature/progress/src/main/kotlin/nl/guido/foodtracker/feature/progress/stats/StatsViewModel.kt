@@ -10,9 +10,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
-import nl.guido.foodtracker.core.data.repo.ProfileRepository
+import nl.guido.foodtracker.core.data.repo.EnergyRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
-import nl.guido.foodtracker.core.model.EnergyEstimator
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -32,8 +31,7 @@ internal sealed interface StatsUiState {
 internal class StatsViewModel @Inject constructor(
     session: SessionRepository,
     diary: DiaryRepository,
-    profiles: ProfileRepository,
-    energy: EnergyEstimator,
+    energy: EnergyRepository,
 ) : ViewModel() {
 
     val state: StateFlow<StatsUiState> = session.currentUser
@@ -44,11 +42,12 @@ internal class StatsViewModel @Inject constructor(
                 StatsMath.firstDayNeeded(today),
                 StatsMath.weekStart(today).plusDays(6),
             )
-            combine(entries, profiles.profile(user.userId), profiles.weighIns(user.userId)) { list, profile, weighIns ->
+            // The same daily target as Today and the target screen (stream 4), null until there's a profile.
+            combine(entries, energy.target) { list, target ->
                 StatsUiState.Ready(
                     week = StatsMath.week(list, today),
                     months = StatsMath.months(list, today),
-                    targetKcal = profile?.let { energy.dailyTarget(it, weighIns, StatsMath.intake(list)).targetKcal },
+                    targetKcal = target?.targetKcal,
                     today = today,
                 )
             }

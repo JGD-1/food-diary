@@ -15,9 +15,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -39,19 +36,13 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 @Composable
-internal fun WeightRoute(onSetTarget: () -> Unit, viewModel: WeightViewModel = hiltViewModel()) {
+internal fun WeightRoute(
+    onLogWeighIn: () -> Unit,
+    onSetTarget: () -> Unit,
+    viewModel: WeightViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var askWeight by rememberSaveable { mutableStateOf(false) }
-    WeightScreen(state = state, onLogWeighIn = { askWeight = true }, onSetTarget = onSetTarget)
-    if (askWeight) {
-        WeighInDialog(
-            onDismiss = { askWeight = false },
-            onSave = { kg ->
-                viewModel.logWeighIn(kg)
-                askWeight = false
-            },
-        )
-    }
+    WeightScreen(state = state, onLogWeighIn = onLogWeighIn, onSetTarget = onSetTarget)
 }
 
 @Composable

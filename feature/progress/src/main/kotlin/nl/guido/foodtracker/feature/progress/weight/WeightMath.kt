@@ -67,10 +67,6 @@ internal const val MAX_ETA_WEEKS = 104
 
 internal object WeightMath {
 
-    /** Reads a typed weight in kg; accepts "78.4" and "78,4". Null if it isn't a plausible body weight. */
-    fun parseKg(text: String): Double? =
-        text.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it in 20.0..400.0 }
-
     fun weekStart(date: LocalDate): LocalDate = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
     /** One point per week: the last weigh-in of that week. Extra weigh-ins in a week are ignored. */

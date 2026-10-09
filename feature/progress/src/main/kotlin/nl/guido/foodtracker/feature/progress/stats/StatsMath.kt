@@ -1,6 +1,5 @@
 package nl.guido.foodtracker.feature.progress.stats
 
-import nl.guido.foodtracker.core.model.DayTotal
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
@@ -120,10 +119,6 @@ internal object StatsMath {
             )
         }
     }
-
-    /** Day totals for the energy target calculation. */
-    fun intake(entries: List<LogEntry>): List<DayTotal> =
-        dayTotals(entries).map { (date, kcal) -> DayTotal(date, kcal) }.sortedBy { it.date }
 }
 
 internal fun Logged.displayName(): String = when (this) {

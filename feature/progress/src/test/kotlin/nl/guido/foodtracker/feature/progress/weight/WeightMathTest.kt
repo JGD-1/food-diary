@@ -143,12 +143,4 @@ class WeightMathTest {
     fun `summary keeps the weekday of the latest weigh-in`() {
         assertEquals(DayOfWeek.SUNDAY, WeightMath.summary(profile(), sundays(80.0)).weighInDay)
     }
-
-    @Test
-    fun `typed weights accept a comma or a dot`() {
-        assertEquals(78.4, WeightMath.parseKg("78,4")!!, 1e-9)
-        assertEquals(78.4, WeightMath.parseKg(" 78.4 ")!!, 1e-9)
-        assertNull(WeightMath.parseKg("7.84"))
-        assertNull(WeightMath.parseKg("abc"))
-    }
 }
