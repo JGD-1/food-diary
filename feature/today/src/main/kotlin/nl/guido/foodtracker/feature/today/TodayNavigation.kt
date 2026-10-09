@@ -1,18 +1,27 @@
 package nl.guido.foodtracker.feature.today
 
-import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import nl.guido.foodtracker.core.ui.PlaceholderScreen
+import androidx.navigation.navArgument
 import nl.guido.foodtracker.core.ui.Routes
 
 /** Screens owned by this module. The app calls this once when it builds the navigation. */
 fun NavGraphBuilder.todayScreens(navController: NavController) {
-    composable(Routes.TODAY) {
-        TodayScreen(onLogFood = { navController.navigate(Routes.LOG_FOOD) })
+    composable(Routes.TODAY) { entry ->
+        TodayRoute(navController, entry)
     }
-    composable(Routes.LOG_FOOD) {
-        PlaceholderScreen(stringResource(R.string.today_log_food_title), stringResource(R.string.today_log_food_body))
+    composable(
+        TodayRoutes.LOG_FOOD_PATTERN,
+        arguments = listOf(TodayRoutes.ARG_MEAL, TodayRoutes.ARG_FOOD_ID, TodayRoutes.ARG_GRAMS).map { name ->
+            navArgument(name) {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            }
+        },
+    ) { entry ->
+        LogFoodRoute(navController, entry)
     }
 }
