@@ -2,4 +2,25 @@
 <resources>
     <string name="food_eat_out_title">Eat out</string>
     <string name="food_eat_out_body">Type what you ate and get an estimate.</string>
+    <string name="food_eat_out_dish_label">What did you eat?</string>
+    <string name="food_eat_out_dish_hint">e.g. pizza margherita</string>
+    <string name="food_eat_out_estimate">Estimate</string>
+    <string name="food_eat_out_estimating">Looking at typical restaurant versions…</string>
+
+    <string name="food_meal_breakfast">Breakfast</string>
+    <string name="food_meal_lunch">Lunch</string>
+    <string name="food_meal_dinner">Dinner</string>
+    <string name="food_meal_snacks">Snacks</string>
+
+    <string name="food_estimate_badge">≈ estimate</string>
+    <string name="food_estimate_range">%1$d–%2$d kcal</string>
+    <string name="food_estimate_typical">Typical portion: about %1$d kcal</string>
+    <string name="food_estimate_explainer">Based on typical restaurant versions of this dish. Portions differ, so it is shown as a range.</string>
+    <string name="food_estimate_log">Log ≈ %1$d kcal</string>
+    <string name="food_estimate_not_set_up">Estimates aren\'t switched on yet. You can type your own number.</string>
+    <string name="food_estimate_offline">No internet right now. Try again, or type your own number.</string>
+    <string name="food_estimate_failed">That didn\'t work this time. Try again, or type your own number.</string>
+    <string name="food_estimate_type_kcal">kcal</string>
+    <string name="food_estimate_log_typed">Log as estimate</string>
+    <string name="food_estimate_retry">Try again</string>
 </resources>
