@@ -1,8 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="today_hello_title">Hello!</string>
-    <string name="today_hello_body">Food diary is installed and working. The real screens arrive soon.</string>
-    <string name="today_version">Version %1$s</string>
+    <!-- Language of dates on Today (e.g. "Friday 9 October"); the Dutch file sets "nl". -->
+    <string name="today_locale" translatable="false">en</string>
+    <string name="today_date_pattern" translatable="false">EEEE d MMMM</string>
+
+    <string name="today_title">Today</string>
+    <string name="today_profile">Profile and settings</string>
+
+    <!-- The ring -->
+    <string name="today_kcal_left">kcal left</string>
+    <string name="today_kcal_over">kcal over target</string>
+    <string name="today_kcal_eaten">kcal eaten</string>
+    <string name="today_ring_description_left">%1$s kcal left today</string>
+    <string name="today_ring_description_over">%1$s kcal over today\'s target</string>
+    <string name="today_ring_description_eaten">%1$s kcal eaten today</string>
+    <string name="today_sum">%1$s target − %2$s eaten</string>
+    <string name="today_sum_estimate">%1$s target − ≈ %2$s eaten</string>
+    <string name="today_sum_open">Tap to see how your target is calculated</string>
+    <string name="today_set_target">Set your daily target ›</string>
+    <string name="today_macros">%1$s g protein · %2$s g carbs · %3$s g fat ›</string>
+    <string name="today_macros_open">Tap for details</string>
+
+    <!-- Meals -->
+    <string name="today_meal_breakfast">Breakfast</string>
+    <string name="today_meal_lunch">Lunch</string>
+    <string name="today_meal_dinner">Dinner</string>
+    <string name="today_meal_snacks">Snacks</string>
+    <string name="today_meal_drinks">Drinks</string>
+    <string name="today_add_breakfast">+ Add breakfast</string>
+    <string name="today_add_lunch">+ Add lunch</string>
+    <string name="today_add_dinner">+ Add dinner</string>
+    <string name="today_add_snacks">+ Add a snack</string>
+    <string name="today_add_to_breakfast">Add to breakfast</string>
+    <string name="today_add_to_lunch">Add to lunch</string>
+    <string name="today_add_to_dinner">Add to dinner</string>
+    <string name="today_add_to_snacks">Add to snacks</string>
+    <string name="today_add_to_drinks">Add to drinks</string>
+    <string name="today_again">Again</string>
+    <string name="today_last_time">Last time: %1$s</string>
+    <string name="today_scan_drink">Scan a drink</string>
+    <string name="today_add_drink">Add a drink</string>
+    <string name="today_drinks_none">None yet</string>
+    <string name="today_amount_grams">%1$s g</string>
+    <string name="today_amount_ml">%1$s ml</string>
+    <string name="today_restaurant_item">%1$s · restaurant, %2$s–%3$s</string>
+    <string name="today_kcal_value">%1$s</string>
+    <string name="today_kcal_estimate">≈ %1$s</string>
+    <string name="today_kcal_unit">%1$s kcal</string>
+    <string name="today_estimate_range">Estimate, %1$s–%2$s kcal</string>
+
+    <!-- Bottom actions -->
     <string name="today_log_food_title">Log food</string>
-    <string name="today_log_food_body">Search, recent foods and favourites.</string>
+    <string name="today_scan">Scan</string>
+    <string name="today_weigh">Weigh</string>
+    <string name="today_eat_out">Eat out</string>
+
+    <!-- Messages with Undo -->
+    <string name="today_added_again">Added again to %1$s</string>
+    <string name="today_removed">Removed %1$s</string>
+    <string name="today_added">Added %1$s</string>
+    <string name="today_undo">Undo</string>
+    <string name="today_coming_soon">This part of the app is still being built</string>
+
+    <!-- Meal details -->
+    <string name="today_change_amount">Change amount of %1$s</string>
+    <string name="today_amount_label">Amount</string>
+    <string name="today_save">Save</string>
+    <string name="today_remove">Remove</string>
+    <string name="today_meal_empty">Nothing here yet.</string>
+
+    <!-- Macros sheet -->
+    <string name="today_macros_title">Protein, carbs and fat</string>
+    <string name="today_protein">Protein</string>
+    <string name="today_carbs">Carbs</string>
+    <string name="today_fat">Fat</string>
+    <string name="today_macro_share">%1$s%% of kcal</string>
+    <string name="today_macros_note">Nice to know. The main number is kcal left.</string>
+
+    <!-- Monday review -->
+    <string name="today_review_title">Your week in review</string>
+    <string name="today_review_average_target">Average %1$s kcal a day (target %2$s)</string>
+    <string name="today_review_days">Logged on %1$d of 7 days</string>
+    <string name="today_review_weight_change">Weigh-in: %1$s kg (%2$s kg since the one before)</string>
+    <string name="today_review_weight">Weigh-in: %1$s kg</string>
+    <string name="today_review_no_weight">No weigh-in last week</string>
+    <string name="today_review_goal_reached">You\'ve reached your target weight. You can switch to a target that keeps you there in your profile.</string>
+    <string name="today_review_log_more">Try logging on a few more days this week. A quick “Again” counts too.</string>
+    <string name="today_review_weigh_in">Step on the scale once this week, so your trend stays up to date.</string>
+    <string name="today_review_above">Last week came out a little above target. Planning one dinner ahead can make this week easier.</string>
+    <string name="today_review_below">You ate quite a bit under your target. Eating closer to it is easier to keep up.</string>
+    <string name="today_review_keep_going">You were close to your target. Same rhythm this week!</string>
+    <string name="today_review_dismiss">Got it</string>
+
+    <!-- Log food -->
+    <string name="today_back">Back</string>
+    <string name="today_done">Done</string>
+    <string name="today_search_hint">Search foods and drinks</string>
+    <string name="today_search_online">Search online for “%1$s”</string>
+    <string name="today_searching_online">Searching Open Food Facts…</string>
+    <string name="today_online_nothing">Nothing found online. Try other words, or scan the barcode.</string>
+    <string name="today_online_unreachable">Couldn\'t reach Open Food Facts. Check the internet, or scan the barcode.</string>
+    <string name="today_all_recipes">Recipes ›</string>
+    <string name="today_all_recipes_detail">Your recipes and batch meals</string>
+    <string name="today_section_favourites">Favourites</string>
+    <string name="today_section_pot">From the pot</string>
+    <string name="today_section_recent">Recent</string>
+    <string name="today_section_foods">Foods</string>
+    <string name="today_section_online">Online</string>
+    <string name="today_cooked_on">cooked %1$s</string>
+    <string name="today_empty_hint">Search for a food, or scan its barcode. Things you log show up here for next time.</string>
+    <string name="today_quick_add">Add</string>
+    <string name="today_quick_add_description">Add %1$s again</string>
+    <string name="today_per_100g">%1$s kcal per 100 g</string>
+    <string name="today_per_100ml">%1$s kcal per 100 ml</string>
+    <string name="today_source_nevo">NEVO</string>
+    <string name="today_source_off">Open Food Facts</string>
+    <string name="today_source_own">My food</string>
+    <string name="today_weigh_on_scale">Weigh on scale</string>
+    <string name="today_unit_g">g</string>
+    <string name="today_unit_ml">ml</string>
+    <string name="today_amount_total">= %1$s kcal</string>
 </resources>
