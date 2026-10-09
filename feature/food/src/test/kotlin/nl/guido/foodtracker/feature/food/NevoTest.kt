@@ -13,7 +13,7 @@ class NevoTest {
     private val all = File("src/main/assets/$NEVO_ASSET").bufferedReader().use { NevoParser.parse(it) }
 
     @Test fun bundledFileHasEveryFood() {
-        assertEquals(2328, all.size)
+        assertEquals(2275, all.size)
         assertEquals(all.size, all.map { it.id }.toSet().size)
         assertTrue(all.all { it.source == FoodOrigin.NEVO && it.ownerId == null && it.name.isNotBlank() })
     }
@@ -29,12 +29,19 @@ class NevoTest {
 
     @Test fun decimalCommaAndDrinks() {
         val parsed = NevoParser.parse(
-            "code|group|name_nl|name_en|per|kcal|protein|carbs|fat\n7|Alcoholic beverages|Bier|Beer|per 100ml|41|0,5|3,1|0\n".reader(),
+            "code|group|name_nl|name_en|per|kcal|protein|carbs|fat\n7|Alcoholic beverages|Bier|Beer|per 100g|41|0,5|3,1|0\n".reader(),
         ).single()
         assertEquals(0.5, parsed.per100g.protein, 0.0)
         assertEquals(3.1, parsed.per100g.carbs, 0.0)
         assertTrue(parsed.isDrink)
         assertEquals(nevoId("7"), parsed.id)
+    }
+
+    @Test fun per100mlRowsAreSkippedAndDutchNamesKept() {
+        val text = "1|Potatoes and tubers|Aardappelen rauw|Potatoes raw|per 100g|88|2|19|0\n" +
+            "9|Foods for special nutritional use|Zuigelingenvoeding|Infant formula|per 100ml|67|1,3|7|3,5\n"
+        assertEquals(listOf("Potatoes raw"), NevoParser.parse(text.reader()).map { it.name })
+        assertEquals(mapOf(nevoId("1") to "Aardappelen rauw"), NevoParser.dutchNames(text.reader()))
     }
 
     @Test fun idsAreNameBased() {
