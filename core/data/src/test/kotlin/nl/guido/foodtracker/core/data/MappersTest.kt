@@ -3,6 +3,7 @@ package nl.guido.foodtracker.core.data
 import nl.guido.foodtracker.core.data.db.toEntity
 import nl.guido.foodtracker.core.data.db.toModel
 import nl.guido.foodtracker.core.model.Estimate
+import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Ingredient
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Logged
@@ -35,5 +36,13 @@ class MappersTest {
             pinned = true, usualPortion = Portion(350.0, "1 bowl"),
         )
         assertEquals(recipe, recipe.toEntity(now = 5).toModel())
+    }
+
+    @Test
+    fun favouriteRoundTrip() {
+        val favourite = Favourite(id = "f1", userId = "u1", recipeId = "r1", usualPortion = Portion(350.0, "1 bowl"))
+        assertEquals(favourite, favourite.toEntity(now = 5).toModel())
+        val noPortion = favourite.copy(usualPortion = null)
+        assertEquals(noPortion, noPortion.toEntity(now = 5).toModel())
     }
 }

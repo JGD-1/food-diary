@@ -104,3 +104,13 @@ data class WeighInEntity(
     val updatedAt: Long,
     val deleted: Boolean = false,
 )
+
+@Entity(tableName = "favourite", indices = [Index("userId")])
+data class FavouriteEntity(
+    @PrimaryKey val id: String,
+    val userId: String,
+    val recipeId: String,
+    val usualPortionJson: String?,
+    val updatedAt: Long,
+    val deleted: Boolean = false,
+)
