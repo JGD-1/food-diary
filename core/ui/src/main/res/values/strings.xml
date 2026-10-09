@@ -3,4 +3,6 @@
     <string name="action_save">Save</string>
     <string name="action_cancel">Cancel</string>
     <string name="placeholder_body">This part is being built.</string>
+    <!-- NEVO licence: this exact line must be shown in the app (shown on Profile) -->
+    <string name="nevo_attribution">Based on data from NEVO online version 2025/9.0, RIVM, Bilthoven</string>
 </resources>

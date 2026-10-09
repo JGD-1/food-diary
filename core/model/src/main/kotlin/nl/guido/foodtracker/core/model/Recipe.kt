@@ -54,3 +54,11 @@ data class Batch(
     fun shareFor(portionGrams: Double): Nutrients =
         if (cookedWeightG <= 0.0) Nutrients.ZERO else total * (portionGrams / cookedWeightG)
 }
+
+/** One person's pinned recipe with their own usual portion. Private to that person. */
+data class Favourite(
+    val id: Id,
+    val userId: Id,
+    val recipeId: Id,
+    val usualPortion: Portion? = null,
+)

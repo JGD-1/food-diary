@@ -12,6 +12,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -20,6 +21,8 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import nl.guido.foodtracker.core.ui.Routes
 import nl.guido.foodtracker.feature.camera.cameraScreens
 import nl.guido.foodtracker.feature.energy.energyScreens
@@ -39,8 +42,12 @@ private val tabs = listOf(
 )
 
 @Composable
-fun FoodDiaryNavHost() {
+fun FoodDiaryNavHost(shouldOfferSignIn: Flow<Boolean>) {
     val navController = rememberNavController()
+    // Offer sign-in once at start-up. The sign-in screen has "Not now", so it never blocks the app.
+    LaunchedEffect(Unit) {
+        if (shouldOfferSignIn.first()) navController.navigate(Routes.SIGN_IN)
+    }
     val backStack by navController.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
     Scaffold(

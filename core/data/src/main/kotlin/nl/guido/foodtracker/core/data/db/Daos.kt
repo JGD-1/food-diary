@@ -69,6 +69,15 @@ interface RecipeDao {
 
     @Upsert
     suspend fun upsertBatch(batch: BatchEntity)
+
+    @Query("SELECT * FROM favourite WHERE userId = :userId AND deleted = 0")
+    fun favourites(userId: String): Flow<List<FavouriteEntity>>
+
+    @Upsert
+    suspend fun upsertFavourite(favourite: FavouriteEntity)
+
+    @Query("UPDATE favourite SET deleted = 1, updatedAt = :now WHERE id = :id")
+    suspend fun markFavouriteDeleted(id: String, now: Long)
 }
 
 @Dao
