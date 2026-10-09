@@ -89,4 +89,19 @@ class LogFoodLogicTest {
         assertEquals(Portion(350.0, "1 bowl"), pinned[1].usualPortion)
         assertTrue(pinned.all { it.pinned })
     }
+
+    @Test
+    fun `a scanned and weighed food is logged with the camera's amount`() {
+        val line = cameraEntry(cola, 330.0, "me", TODAY, Meal.DRINKS, Instant.EPOCH, id = "c")
+        assertEquals(138.6, line.nutrients.kcal, 0.001)
+        assertEquals(330.0, line.portion.grams, 0.0)
+        assertEquals(Meal.DRINKS, line.meal)
+        assertEquals(Logged.FoodRef("cola", "Cola"), line.what)
+    }
+
+    @Test
+    fun `recipes and batches open for the meal chosen in Log food`() {
+        assertEquals("recipe-log/r1?meal=BREAKFAST", TodayRoutes.withMeal("recipe-log/r1", Meal.BREAKFAST))
+        assertEquals("batch-portion/b1?meal=DINNER", TodayRoutes.withMeal("batch-portion/b1", Meal.DINNER))
+    }
 }

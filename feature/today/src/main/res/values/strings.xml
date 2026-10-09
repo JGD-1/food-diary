@@ -59,6 +59,7 @@
     <string name="today_added_again">Added again to %1$s</string>
     <string name="today_removed">Removed %1$s</string>
     <string name="today_added">Added %1$s</string>
+    <string name="today_added_to">Added %1$s to %2$s</string>
     <string name="today_undo">Undo</string>
     <string name="today_coming_soon">This part of the app is still being built</string>
 

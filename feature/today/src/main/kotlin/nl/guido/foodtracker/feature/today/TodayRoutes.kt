@@ -25,6 +25,9 @@ internal object TodayRoutes {
         )
         return if (args.isEmpty()) Routes.LOG_FOOD else Routes.LOG_FOOD + "?" + args.joinToString("&")
     }
+
+    /** A recipe or batch screen opened for the meal chosen here: `recipe-log/<id>?meal=DINNER`. */
+    fun withMeal(route: String, meal: Meal): String = "$route?$ARG_MEAL=${meal.name}"
 }
 
 /**

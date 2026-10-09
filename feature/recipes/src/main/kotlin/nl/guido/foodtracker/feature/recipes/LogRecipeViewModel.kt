@@ -69,7 +69,9 @@ internal class LogRecipeViewModel @Inject constructor(
     }
 
     private val recipeId: String = checkNotNull(savedState[RecipesRoutes.ARG_RECIPE_ID])
-    private val _state = MutableStateFlow(State(meal = mealAt(LocalTime.now())))
+    private val _state = MutableStateFlow(
+        State(meal = RecipesRoutes.mealArg(savedState[RecipesRoutes.ARG_MEAL]) ?: mealAt(LocalTime.now())),
+    )
     val state: StateFlow<State> = _state.asStateFlow()
 
     init {

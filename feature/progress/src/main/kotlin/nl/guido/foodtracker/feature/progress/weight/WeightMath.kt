@@ -57,6 +57,8 @@ internal data class WeightSummary(
 )
 
 internal const val MIN_WEIGH_INS_FOR_TREND = 3
+/** Within half a kilo counts as at target, the same margin the target calculation and Monday review use. */
+internal const val AT_TARGET_MARGIN_KG = 0.5
 internal const val STEADY_KG_PER_WEEK = 0.05
 internal const val GRAPH_WEEKS = 26
 internal const val CHANGE_BARS = 11
@@ -88,7 +90,7 @@ internal object WeightMath {
         val dir = direction(start, target)
         val moved = (current - start) * dir
         val total = abs(target - start)
-        val reached = (current - target) * dir >= 0
+        val reached = (current - target) * dir >= 0 || abs(current - target) <= AT_TARGET_MARGIN_KG
         val fraction = when {
             reached -> 1.0
             total == 0.0 -> 1.0

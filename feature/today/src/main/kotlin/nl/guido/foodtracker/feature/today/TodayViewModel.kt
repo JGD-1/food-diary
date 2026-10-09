@@ -41,6 +41,8 @@ internal data class TodayUiState(
 internal sealed interface TodayEvent {
     data class Added(val meal: Meal, val count: Int, val ids: List<Id>) : TodayEvent
     data class Removed(val entry: LogEntry) : TodayEvent
+    /** Something the camera scanned and weighed, logged straight away. */
+    data class Logged(val name: String, val meal: Meal, val id: Id) : TodayEvent
     data class Open(val route: String) : TodayEvent
 }
 
@@ -50,7 +52,7 @@ private data class Moment(val date: LocalDate, val meal: Meal)
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 internal class TodayViewModel @Inject constructor(
-    session: SessionRepository,
+    private val session: SessionRepository,
     private val diary: DiaryRepository,
     private val foods: FoodRepository,
     private val energy: EnergyRepository,
@@ -114,6 +116,7 @@ internal class TodayViewModel @Inject constructor(
             when (event) {
                 is TodayEvent.Added -> event.ids.forEach { diary.delete(it) }
                 is TodayEvent.Removed -> diary.save(event.entry)
+                is TodayEvent.Logged -> diary.delete(event.id)
                 is TodayEvent.Open -> Unit
             }
         }
@@ -129,17 +132,24 @@ internal class TodayViewModel @Inject constructor(
     }
 
     /**
-     * The camera came back with a food (Scan) and/or a weight (Weigh): continue in Log food,
-     * on the amount step for that food in the meal that fits (Drinks for a drink), ready to Add.
+     * The camera came back. A scanned food already has its amount (the camera asked "How much?"),
+     * so it is logged here at once, with Undo, in the meal that fits (Drinks for a drink).
+     * A weight on its own continues in Log food, to pick what was weighed.
      */
     fun onCameraResult(foodId: Id?, grams: Double?) {
         if (foodId == null && grams == null) return
         val forDrink = cameraForDrink
         cameraForDrink = false
         viewModelScope.launch {
-            val isDrink = foodId?.let { foods.get(it)?.isDrink } ?: false
-            val meal = mealForCameraResult(isDrink, forDrink, LocalTime.now())
-            events.send(TodayEvent.Open(TodayRoutes.logFood(meal, foodId, grams)))
+            val food = foodId?.let { foods.get(it) }
+            val meal = mealForCameraResult(food?.isDrink ?: false, forDrink, LocalTime.now())
+            if (food != null && grams != null && grams > 0) {
+                val line = cameraEntry(food, grams, session.currentUser.value.userId, LocalDate.now(), meal, Instant.now())
+                diary.save(line)
+                events.send(TodayEvent.Logged(line.displayName, meal, line.id))
+            } else {
+                events.send(TodayEvent.Open(TodayRoutes.logFood(meal, foodId, grams)))
+            }
         }
     }
 

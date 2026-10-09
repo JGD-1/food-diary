@@ -34,10 +34,14 @@ fun NavGraphBuilder.cameraScreens(navController: NavController) {
             },
             onLeave = { navController.popBackStack() },
             onSearchByName = {
-                val cameFromLogFood = navController.previousBackStackEntry?.destination?.route == Routes.LOG_FOOD
+                val cameFromLogFood = isLogFoodRoute(navController.previousBackStackEntry?.destination?.route)
                 navController.popBackStack()
                 if (!cameFromLogFood) navController.navigate(Routes.LOG_FOOD)
             },
         )
     }
 }
+
+/** Log food is registered with optional extras ("log-food?meal={meal}&…"), so match the start. */
+internal fun isLogFoodRoute(route: String?): Boolean =
+    route == Routes.LOG_FOOD || route?.startsWith(Routes.LOG_FOOD + "?") == true
