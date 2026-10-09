@@ -127,4 +127,12 @@ class TodayLogicTest {
         )
         assertEquals(listOf(150.0, 70.0), totals.map { it.kcal })
     }
+
+    @Test
+    fun `camera results go to Drinks for drinks, else to the meal for the time`() {
+        val evening = java.time.LocalTime.of(19, 0)
+        assertEquals(Meal.DINNER, mealForCameraResult(isDrink = false, fromDrinks = false, time = evening))
+        assertEquals(Meal.DRINKS, mealForCameraResult(isDrink = true, fromDrinks = false, time = evening))
+        assertEquals(Meal.DRINKS, mealForCameraResult(isDrink = false, fromDrinks = true, time = evening))
+    }
 }

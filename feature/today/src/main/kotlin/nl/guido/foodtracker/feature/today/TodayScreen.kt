@@ -127,9 +127,9 @@ internal fun TodayRoute(
                 onRemove = viewModel::remove,
                 onDismissReview = viewModel::dismissReview,
                 onLogFood = { open(TodayRoutes.logFood()) },
-                onScan = { open(Routes.CAMERA) },
-                onScanDrink = { open(Routes.CAMERA_DRINK, Routes.CAMERA) },
-                onWeigh = { open(Routes.CAMERA_SCALE, Routes.CAMERA) },
+                onScan = { viewModel.openingCamera(forDrink = false); open(Routes.CAMERA) },
+                onScanDrink = { viewModel.openingCamera(forDrink = true); open(Routes.CAMERA_DRINK, Routes.CAMERA) },
+                onWeigh = { viewModel.openingCamera(forDrink = false); open(Routes.CAMERA_SCALE, Routes.CAMERA) },
                 onEatOut = { open(Routes.EAT_OUT) },
             )
         }
