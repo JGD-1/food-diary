@@ -1,20 +1,18 @@
 package nl.guido.foodtracker.feature.recipes
 
-import android.content.Context
-import android.content.SharedPreferences
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.serialization.json.Json
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import nl.guido.foodtracker.core.data.repo.RecipeRepository
+import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Portion
+import nl.guido.foodtracker.core.model.newId
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /** A recipe someone pinned, with the portion they usually eat. Personal: never shared with the household. */
 data class PinnedRecipe(val recipeId: Id, val usualPortion: Portion?)
@@ -26,45 +24,30 @@ interface Favourites {
     suspend fun unpin(userId: Id, recipeId: Id)
 }
 
-/**
- * STAND-IN until the lead adds the per-person favourite table to core/data (decisions.md, 9 Oct):
- * keeps pins in a small file on this phone. Swapped for the database version once that lands.
- */
-@Singleton
-internal class LocalFavourites @Inject constructor(@ApplicationContext context: Context) : Favourites {
-    private val prefs = context.getSharedPreferences("recipes_favourites", Context.MODE_PRIVATE)
-    private val json = Json { ignoreUnknownKeys = true }
+/** Pins kept in the per-person favourite table (core/data), so they sync with the person's own account only. */
+internal class RoomFavourites @Inject constructor(private val recipes: RecipeRepository) : Favourites {
+    override fun pinned(userId: Id): Flow<List<PinnedRecipe>> =
+        recipes.favourites(userId).map { list -> list.map { PinnedRecipe(it.recipeId, it.usualPortion) } }
 
-    private fun prefix(userId: Id) = "$userId/"
-
-    private fun read(userId: Id): List<PinnedRecipe> =
-        prefs.all.entries
-            .filter { it.key.startsWith(prefix(userId)) }
-            .map { (key, value) ->
-                val portion = (value as? String)?.takeIf { it.isNotEmpty() }
-                    ?.let { runCatching { json.decodeFromString(Portion.serializer(), it) }.getOrNull() }
-                PinnedRecipe(key.removePrefix(prefix(userId)), portion)
-            }
-
-    override fun pinned(userId: Id): Flow<List<PinnedRecipe>> = callbackFlow {
-        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> trySend(read(userId)) }
-        prefs.registerOnSharedPreferenceChangeListener(listener)
-        send(read(userId))
-        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
-    }
-
+    /** Pins the recipe, or updates the usual portion if it is already pinned. */
     override suspend fun pin(userId: Id, recipeId: Id, usualPortion: Portion?) {
-        val value = usualPortion?.let { json.encodeToString(Portion.serializer(), it) } ?: ""
-        prefs.edit().putString(prefix(userId) + recipeId, value).apply()
+        val existing = find(userId, recipeId)
+        recipes.saveFavourite(
+            existing?.copy(usualPortion = usualPortion)
+                ?: Favourite(id = newId(), userId = userId, recipeId = recipeId, usualPortion = usualPortion),
+        )
     }
 
     override suspend fun unpin(userId: Id, recipeId: Id) {
-        prefs.edit().remove(prefix(userId) + recipeId).apply()
+        find(userId, recipeId)?.let { recipes.deleteFavourite(it.id) }
     }
+
+    private suspend fun find(userId: Id, recipeId: Id): Favourite? =
+        recipes.favourites(userId).first().firstOrNull { it.recipeId == recipeId }
 }
 
 @Module
 @InstallIn(SingletonComponent::class)
 internal abstract class RecipesModule {
-    @Binds abstract fun favourites(impl: LocalFavourites): Favourites
+    @Binds abstract fun favourites(impl: RoomFavourites): Favourites
 }

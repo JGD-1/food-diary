@@ -234,7 +234,14 @@ internal fun FoodPicker(onPick: (Food) -> Unit, onClose: () -> Unit) {
                 }
                 when {
                     state.searching -> Hint(stringResource(R.string.recipes_searching))
-                    state.searched && state.results.isEmpty() -> Hint(stringResource(R.string.recipes_nothing_found))
+                    state.searchedOnline && state.results.isEmpty() -> Hint(stringResource(R.string.recipes_nothing_found))
+                    state.searchedFor != null && state.results.isEmpty() -> Hint(stringResource(R.string.recipes_nothing_on_phone))
+                }
+                // Online search only once the person asks for it (Open Food Facts rules).
+                if (state.searchedFor != null && !state.searchedOnline && !state.searching) {
+                    OutlinedButton(onClick = vm::searchOnline, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.recipes_search_online))
+                    }
                 }
                 LazyColumn {
                     items(state.results, key = { it.id }) { food ->

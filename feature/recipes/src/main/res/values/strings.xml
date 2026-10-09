@@ -49,6 +49,8 @@
     <string name="recipes_search">Search</string>
     <string name="recipes_searching">Searching…</string>
     <string name="recipes_nothing_found">Nothing found. Try another word.</string>
+    <string name="recipes_nothing_on_phone">Not on your phone yet. Try searching online.</string>
+    <string name="recipes_search_online">Search online</string>
     <string name="recipes_close">Close</string>
 
     <!-- Logging a recipe -->
