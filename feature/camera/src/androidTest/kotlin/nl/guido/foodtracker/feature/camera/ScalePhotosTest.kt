@@ -38,8 +38,9 @@ class ScalePhotosTest {
             "${if (ok) "OK  " else "MISS"} $file read=${read.first} text=[${read.second}]".also { Log.i("ScalePhotos", it) } to ok
         }
         recognizer.close()
-        val summary = report.joinToString("\n") { it.first }
-        println(summary)
-        assertTrue("Scale photos read correctly:\n$summary", report.all { it.second })
+        // One line, so the build log shows every photo (it cuts failure messages after the first line).
+        val summary = report.joinToString("  ##  ") { it.first }
+        val okCount = report.count { it.second }
+        assertTrue("Scale photos read correctly: $okCount of ${report.size}  ##  $summary", okCount == report.size)
     }
 }
