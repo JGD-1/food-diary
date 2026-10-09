@@ -9,8 +9,10 @@ import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.RecipeVariant
+import nl.guido.foodtracker.core.model.TargetBreakdown
 import nl.guido.foodtracker.core.model.UserProfile
 import nl.guido.foodtracker.core.model.WeighIn
+import nl.guido.foodtracker.core.model.WeeklyReview
 import java.time.LocalDate
 
 /** Who is using the app on this phone. The sync stream provides the real one (Google sign-in). */
@@ -71,4 +73,11 @@ interface ProfileRepository {
  */
 interface SyncEntry {
     val shouldOfferSignIn: Flow<Boolean>
+}
+
+/** The current user's daily target and Monday review. Provided by the energy stream (feature/energy). */
+interface EnergyRepository {
+    /** Null until the profile is filled in. */
+    val target: Flow<TargetBreakdown?>
+    val weeklyReview: Flow<WeeklyReview?>
 }
