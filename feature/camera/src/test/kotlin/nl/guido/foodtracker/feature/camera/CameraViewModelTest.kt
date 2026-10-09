@@ -131,7 +131,7 @@ class CameraViewModelTest {
         assertTrue((vm.step.value as CameraStep.EditFood).draft.isDrink)
     }
 
-    @Test fun `weigh only: a steady scale reading is handed back as grams`() {
+    @Test fun `weigh only, a steady scale reading is handed back as grams`() {
         val vm = vm(args = mapOf(CameraViewModel.ARG_MODE to "scale"))
         vm.onScaleFrame(ScaleParse.Grams(245.0))
         vm.onScaleFrame(ScaleParse.Grams(245.0))
