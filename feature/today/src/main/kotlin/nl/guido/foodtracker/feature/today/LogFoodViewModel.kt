@@ -212,19 +212,35 @@ internal class LogFoodViewModel @Inject constructor(
     }
 
     fun openRecipe(recipe: Recipe) {
-        viewModelScope.launch { events.send(LogFoodEvent.Open(Routes.recipeLog(recipe.id))) }
+        viewModelScope.launch { events.send(LogFoodEvent.Open(TodayRoutes.withMeal(Routes.recipeLog(recipe.id), meal.value))) }
     }
 
     fun openBatch(batch: Batch) {
-        viewModelScope.launch { events.send(LogFoodEvent.Open(Routes.batchPortion(batch.id))) }
+        viewModelScope.launch { events.send(LogFoodEvent.Open(TodayRoutes.withMeal(Routes.batchPortion(batch.id), meal.value))) }
     }
 
-    /** The camera came back: a scanned food opens its amount step; a weight fills in the amount. */
+    /**
+     * The camera came back: a scanned food already has its amount (the camera asked "How much?"),
+     * so it is added at once with Undo; a weight on its own fills in the amount.
+     */
     fun onCameraResult(foodId: Id?, grams: Double?) {
         when {
+            foodId != null && grams != null && grams > 0 -> addScanned(foodId, grams)
             foodId != null -> openFood(foodId, grams)
             grams != null && amount.value != null -> setGrams(grams)
             grams != null -> weighedGrams = grams
+        }
+    }
+
+    private fun addScanned(foodId: Id, grams: Double) {
+        viewModelScope.launch {
+            val food = foods.get(foodId) ?: return@launch
+            val line = cameraEntry(
+                food, grams, user.value.userId, LocalDate.now(), mealFor(food.isDrink, meal.value), Instant.now(),
+            )
+            diary.save(line)
+            weighedGrams = null
+            events.send(LogFoodEvent.Added(line.displayName, line.meal, line.id))
         }
     }
 

@@ -5,6 +5,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import androidx.room.InvalidationTracker
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -159,7 +160,10 @@ class SyncManager @Inject constructor(
                 _state.update { it.copy(account = account, signingIn = false) }
                 start()
                 syncNow()
-            } catch (e: IOException) {
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Offline, or an answer the app didn't understand: never crash, just let them try again.
                 _state.update { it.copy(signingIn = false, problem = Problem.SIGN_IN_FAILED) }
             }
         }
@@ -210,7 +214,10 @@ class SyncManager @Inject constructor(
                 _state.update { it.copy(lastSyncedAt = now, offline = false) }
             } catch (e: SignedOutException) {
                 _state.update { it.copy(problem = Problem.SIGNED_OUT) }
-            } catch (e: IOException) {
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Offline, or an unexpected answer from the server: everything stays on the phone, try later.
                 _state.update { it.copy(offline = true) }
             } finally {
                 _state.update { it.copy(syncing = false) }

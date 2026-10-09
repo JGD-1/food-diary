@@ -20,6 +20,11 @@ fun NavGraphBuilder.recipesScreens(navController: NavController) {
             defaultValue = null
         },
     )
+    val optionalMeal = navArgument(RecipesRoutes.ARG_MEAL) {
+        type = NavType.StringType
+        nullable = true
+        defaultValue = null
+    }
 
     composable(RecipesRoutes.LIST) {
         RecipesScreen(
@@ -42,7 +47,7 @@ fun NavGraphBuilder.recipesScreens(navController: NavController) {
             },
         )
     }
-    composable(RecipesRoutes.LOG, arguments = listOf(navArgument(RecipesRoutes.ARG_RECIPE_ID) { type = NavType.StringType })) { entry ->
+    composable(RecipesRoutes.LOG, arguments = listOf(navArgument(RecipesRoutes.ARG_RECIPE_ID) { type = NavType.StringType }, optionalMeal)) { entry ->
         LogRecipeScreen(
             navController = navController,
             savedState = entry.savedStateHandle,
@@ -63,7 +68,7 @@ fun NavGraphBuilder.recipesScreens(navController: NavController) {
             },
         )
     }
-    composable(RecipesRoutes.BATCH_PORTION, arguments = listOf(navArgument(RecipesRoutes.ARG_BATCH_ID) { type = NavType.StringType })) { entry ->
+    composable(RecipesRoutes.BATCH_PORTION, arguments = listOf(navArgument(RecipesRoutes.ARG_BATCH_ID) { type = NavType.StringType }, optionalMeal)) { entry ->
         BatchPortionScreen(
             navController = navController,
             savedState = entry.savedStateHandle,

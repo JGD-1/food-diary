@@ -88,6 +88,7 @@ internal fun TodayRoute(
     val undo = stringResource(R.string.today_undo)
     val addedAgain = stringResource(R.string.today_added_again)
     val removed = stringResource(R.string.today_removed)
+    val addedTo = stringResource(R.string.today_added_to)
     val mealNames = Meal.entries.associateWith { stringResource(mealName(it)) }
 
     val scope = rememberCoroutineScope()
@@ -103,6 +104,7 @@ internal fun TodayRoute(
             val message = when (event) {
                 is TodayEvent.Added -> addedAgain.format(mealNames.getValue(event.meal).lowercase())
                 is TodayEvent.Removed -> removed.format(event.entry.displayName)
+                is TodayEvent.Logged -> addedTo.format(event.name, mealNames.getValue(event.meal).lowercase())
                 is TodayEvent.Open -> {
                     if (!navController.navigateSafely(event.route)) snackbar.showSnackbar(comingSoon)
                     null

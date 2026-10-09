@@ -81,6 +81,12 @@ class WeightMathTest {
     }
 
     @Test
+    fun `within half a kilo of the target counts as reached, like the target screen and review`() {
+        assertTrue(WeightMath.progress(profile(), WeightMath.weeklyPoints(sundays(80.0, 75.4))).reached)
+        assertFalse(WeightMath.progress(profile(), WeightMath.weeklyPoints(sundays(80.0, 75.6))).reached)
+    }
+
+    @Test
     fun `no weigh-ins yet uses the start weight`() {
         val p = WeightMath.progress(profile(), emptyList())
         assertEquals(80.1, p.currentKg, 1e-9)

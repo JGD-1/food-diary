@@ -111,3 +111,14 @@ internal fun pinnedRecipes(favourites: List<Favourite>, recipes: List<Recipe>): 
         byId[fav.recipeId]?.copy(pinned = true, usualPortion = fav.usualPortion)
     }.distinctBy { it.id }.sortedBy { it.name.lowercase() }
 }
+
+/** A food the camera scanned and weighed, as a diary line: the amount was already chosen there. */
+internal fun cameraEntry(
+    food: Food,
+    grams: Double,
+    userId: Id,
+    date: LocalDate,
+    meal: Meal,
+    now: Instant,
+    id: Id = newId(),
+): LogEntry = entryFromPick(pickFromFood(food, emptyList()), grams, userId, date, meal, now, id)

@@ -43,6 +43,7 @@
     <string name="today_drinks_none">None yet</string>
     <string name="today_amount_grams">%1$s g</string>
     <string name="today_amount_ml">%1$s ml</string>
+    <string name="today_restaurant_item_single">%1$s · restaurant, about %2$s</string>
     <string name="today_restaurant_item">%1$s · restaurant, %2$s–%3$s</string>
     <string name="today_kcal_value">%1$s</string>
     <string name="today_kcal_estimate">≈ %1$s</string>
@@ -59,6 +60,7 @@
     <string name="today_added_again">Added again to %1$s</string>
     <string name="today_removed">Removed %1$s</string>
     <string name="today_added">Added %1$s</string>
+    <string name="today_added_to">Added %1$s to %2$s</string>
     <string name="today_undo">Undo</string>
     <string name="today_coming_soon">This part of the app is still being built</string>
 
