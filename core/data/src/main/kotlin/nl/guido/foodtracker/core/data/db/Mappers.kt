@@ -21,7 +21,7 @@ import java.time.Instant
 import java.time.LocalDate
 
 internal val json = Json { ignoreUnknownKeys = true }
-private val ingredients = ListSerializer(Ingredient.serializer())
+private val ingredientList = ListSerializer(Ingredient.serializer())
 
 internal fun FoodEntity.toModel() = Food(
     id = id, name = name, brand = brand, barcode = barcode,
@@ -53,14 +53,14 @@ internal fun LogEntry.toEntity(now: Long) = LogEntryEntity(
 
 internal fun RecipeEntity.toModel() = Recipe(
     id = id, householdId = householdId, name = name,
-    ingredients = json.decodeFromString(ingredients, ingredientsJson),
+    ingredients = json.decodeFromString(ingredientList, ingredientsJson),
     pinned = pinned,
     usualPortion = usualPortionJson?.let { json.decodeFromString(Portion.serializer(), it) },
 )
 
 internal fun Recipe.toEntity(now: Long) = RecipeEntity(
     id = id, householdId = householdId, name = name,
-    ingredientsJson = json.encodeToString(ingredients, this.ingredients),
+    ingredientsJson = json.encodeToString(ingredientList, this.ingredients),
     pinned = pinned,
     usualPortionJson = usualPortion?.let { json.encodeToString(Portion.serializer(), it) },
     updatedAt = now,
@@ -68,23 +68,23 @@ internal fun Recipe.toEntity(now: Long) = RecipeEntity(
 
 internal fun RecipeVariantEntity.toModel() = RecipeVariant(
     id = id, baseRecipeId = baseRecipeId, name = name,
-    extras = json.decodeFromString(ingredients, extrasJson),
+    extras = json.decodeFromString(ingredientList, extrasJson),
 )
 
 internal fun RecipeVariant.toEntity(now: Long) = RecipeVariantEntity(
     id = id, baseRecipeId = baseRecipeId, name = name,
-    extrasJson = json.encodeToString(ingredients, extras), updatedAt = now,
+    extrasJson = json.encodeToString(ingredientList, extras), updatedAt = now,
 )
 
 internal fun BatchEntity.toModel() = Batch(
     id = id, householdId = householdId, recipeId = recipeId, name = name,
-    ingredients = json.decodeFromString(ingredients, ingredientsJson),
+    ingredients = json.decodeFromString(ingredientList, ingredientsJson),
     cookedWeightG = cookedWeightG, cookedOn = LocalDate.parse(cookedOn),
 )
 
 internal fun Batch.toEntity(now: Long) = BatchEntity(
     id = id, householdId = householdId, recipeId = recipeId, name = name,
-    ingredientsJson = json.encodeToString(ingredients, this.ingredients),
+    ingredientsJson = json.encodeToString(ingredientList, this.ingredients),
     cookedWeightG = cookedWeightG, cookedOn = cookedOn.toString(), updatedAt = now,
 )
 
