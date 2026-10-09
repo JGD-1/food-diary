@@ -4,7 +4,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import java.io.File
-import javax.imageio.ImageIO
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -48,14 +47,25 @@ class SevenSegmentReaderTest {
     @Test fun `an empty picture has no number`() =
         assertNull(SevenSegmentReader.read(Gray(300, 200, IntArray(300 * 200) { 12 })))
 
+    /**
+     * Decodes a JPEG with Java's own image reader. Reached by name because Android's build only
+     * lets tests compile against Android's classes; when the tests run, Java's reader is there.
+     */
     private fun load(file: File, maxShortSide: Int): Gray {
-        val img = ImageIO.read(file)
-        val step = maxOf(1, (minOf(img.width, img.height) + maxShortSide - 1) / maxShortSide)
-        val w = img.width / step
-        val h = img.height / step
+        val img = Class.forName("javax.imageio.ImageIO").getMethod("read", File::class.java).invoke(null, file)!!
+        val type = img.javaClass
+        val width = type.getMethod("getWidth").invoke(img) as Int
+        val height = type.getMethod("getHeight").invoke(img) as Int
+        val argb = type.getMethod(
+            "getRGB", Int::class.java, Int::class.java, Int::class.java, Int::class.java,
+            IntArray::class.java, Int::class.java, Int::class.java,
+        ).invoke(img, 0, 0, width, height, null, 0, width) as IntArray
+        val step = maxOf(1, (minOf(width, height) + maxShortSide - 1) / maxShortSide)
+        val w = width / step
+        val h = height / step
         return Gray(w, h, IntArray(w * h) { i ->
-            val rgb = img.getRGB((i % w) * step, (i / w) * step)
-            (((rgb shr 16) and 255) * 299 + ((rgb shr 8) and 255) * 587 + (rgb and 255) * 114) / 1000
+            val c = argb[(i / w) * step * width + (i % w) * step]
+            (((c shr 16) and 255) * 299 + ((c shr 8) and 255) * 587 + (c and 255) * 114) / 1000
         })
     }
 
