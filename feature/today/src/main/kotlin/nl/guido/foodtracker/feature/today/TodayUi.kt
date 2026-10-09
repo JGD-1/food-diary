@@ -98,10 +98,10 @@ internal fun addToMeal(meal: Meal): Int = when (meal) {
 internal fun entryText(entry: LogEntry): String {
     val what = entry.what
     if (what is Logged.Restaurant) {
-        return stringResource(
-            R.string.today_restaurant_item, what.dish,
-            formatKcal(what.estimate.low), formatKcal(what.estimate.high),
-        )
+        val e = what.estimate
+        // A kcal typed by hand is a "range" of one number: show it once, not as "600–600".
+        return if (e.low == e.high) stringResource(R.string.today_restaurant_item_single, what.dish, formatKcal(e.typical))
+        else stringResource(R.string.today_restaurant_item, what.dish, formatKcal(e.low), formatKcal(e.high))
     }
     return "${entry.displayName} ${amountText(entry)}"
 }
