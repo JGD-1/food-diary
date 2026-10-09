@@ -17,6 +17,7 @@ import androidx.navigation.NavBackStackEntry
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
+import nl.guido.foodtracker.core.ui.CameraResult
 import java.text.NumberFormat
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -127,13 +128,13 @@ internal fun kcalText(kcal: Int, estimate: Boolean): String =
 @Composable
 internal fun CameraResults(entry: NavBackStackEntry, onResult: (foodId: String?, grams: Double?) -> Unit) {
     val handle = entry.savedStateHandle
-    val foodId by handle.getStateFlow<String?>(TodayRoutes.RESULT_FOOD_ID, null).collectAsState()
-    val grams by handle.getStateFlow<Double?>(TodayRoutes.RESULT_GRAMS, null).collectAsState()
+    val foodId by handle.getStateFlow<String?>(CameraResult.FOOD_ID, null).collectAsState()
+    val grams by handle.getStateFlow<Double?>(CameraResult.GRAMS, null).collectAsState()
     LaunchedEffect(foodId, grams) {
         if (foodId != null || grams != null) {
             onResult(foodId, grams)
-            handle.remove<String>(TodayRoutes.RESULT_FOOD_ID)
-            handle.remove<Double>(TodayRoutes.RESULT_GRAMS)
+            handle.remove<String>(CameraResult.FOOD_ID)
+            handle.remove<Double>(CameraResult.GRAMS)
         }
     }
 }

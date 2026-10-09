@@ -34,6 +34,7 @@ import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Recipe
+import nl.guido.foodtracker.core.ui.Routes
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -109,7 +110,10 @@ internal class LogFoodViewModel @Inject constructor(
     }
 
     private val household = user.flatMapLatest { recipes.recipes(it.householdId) }
-    private val pinned = household.map { list -> list.filter { it.pinned } }
+
+    /** My favourites (per person), shown as their recipe with my usual portion. */
+    private val pinned = user.flatMapLatest { recipes.favourites(it.userId) }
+        .combine(household) { favourites, list -> pinnedRecipes(favourites, list) }
     private val batches = user.flatMapLatest { recipes.batches(it.householdId) }.map { list ->
         val since = LocalDate.now().minusDays(RECENT_BATCH_DAYS)
         list.filter { it.cookedOn >= since }
@@ -150,9 +154,8 @@ internal class LogFoodViewModel @Inject constructor(
         online.value = OnlineSearch.Searching
         viewModelScope.launch {
             online.value = try {
-                // Switches to FoodSource.searchOnline once that lands in core/model (lead).
                 val local = state.value?.found.orEmpty().map { it.id }.toSet()
-                val results = foodSource.search(text).filterNot { it.id in local }
+                val results = foodSource.searchOnline(text).filterNot { it.id in local }
                 if (results.isEmpty()) OnlineSearch.NothingFound else OnlineSearch.Found(results)
             } catch (e: CancellationException) {
                 throw e
@@ -209,11 +212,11 @@ internal class LogFoodViewModel @Inject constructor(
     }
 
     fun openRecipe(recipe: Recipe) {
-        viewModelScope.launch { events.send(LogFoodEvent.Open(TodayRoutes.recipeLog(recipe.id))) }
+        viewModelScope.launch { events.send(LogFoodEvent.Open(Routes.recipeLog(recipe.id))) }
     }
 
     fun openBatch(batch: Batch) {
-        viewModelScope.launch { events.send(LogFoodEvent.Open(TodayRoutes.batchPortion(batch.id))) }
+        viewModelScope.launch { events.send(LogFoodEvent.Open(Routes.batchPortion(batch.id))) }
     }
 
     /** The camera came back: a scanned food opens its amount step; a weight fills in the amount. */
@@ -247,6 +250,6 @@ internal class LogFoodViewModel @Inject constructor(
     private companion object {
         const val RECENT_LINES = 200
         const val SEARCH_DELAY_MS = 200L
-        const val RECENT_BATCH_DAYS = 5L
+        const val RECENT_BATCH_DAYS = 7L
     }
 }

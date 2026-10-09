@@ -65,6 +65,8 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Meal
+import nl.guido.foodtracker.core.model.ReviewSuggestion
+import nl.guido.foodtracker.core.model.WeeklyReview
 import nl.guido.foodtracker.core.ui.FoodColors
 import nl.guido.foodtracker.core.ui.Routes
 import java.time.LocalDate
@@ -126,7 +128,8 @@ internal fun TodayRoute(
                 onDismissReview = viewModel::dismissReview,
                 onLogFood = { open(TodayRoutes.logFood()) },
                 onScan = { open(Routes.CAMERA) },
-                onWeigh = { open(TodayRoutes.CAMERA_SCALE, Routes.CAMERA) },
+                onScanDrink = { open(Routes.CAMERA_DRINK, Routes.CAMERA) },
+                onWeigh = { open(Routes.CAMERA_SCALE, Routes.CAMERA) },
                 onEatOut = { open(Routes.EAT_OUT) },
             )
         }
@@ -146,6 +149,7 @@ private fun TodayContent(
     onDismissReview: (WeeklyReview) -> Unit,
     onLogFood: () -> Unit,
     onScan: () -> Unit,
+    onScanDrink: () -> Unit,
     onWeigh: () -> Unit,
     onEatOut: () -> Unit,
 ) {
@@ -179,6 +183,13 @@ private fun TodayContent(
                     kcal = kcalText(summary.drinks.kcal, summary.drinks.hasEstimate),
                     onClick = { if (summary.drinks.entries.isEmpty()) onAddTo(Meal.DRINKS) else openMeal = Meal.DRINKS },
                 ) {
+                    val scanLabel = stringResource(R.string.today_scan_drink)
+                    FilledTonalIconButton(
+                        onClick = onScanDrink,
+                        modifier = Modifier.size(40.dp).semantics { contentDescription = scanLabel },
+                    ) {
+                        Icon(TodayIcons.Scan, contentDescription = null, modifier = Modifier.size(18.dp))
+                    }
                     val label = stringResource(R.string.today_add_drink)
                     FilledTonalIconButton(
                         onClick = { onAddTo(Meal.DRINKS) },
@@ -414,22 +425,17 @@ private fun ReviewCard(review: WeeklyReview, onDismiss: () -> Unit) {
             )
             Spacer(Modifier.size(4.dp))
             val lines = buildList {
-                val avg = review.averageKcal
-                if (avg != null) {
-                    add(
-                        review.targetKcal?.let { stringResource(R.string.today_review_average_target, formatKcal(avg), formatKcal(it)) }
-                            ?: stringResource(R.string.today_review_average, formatKcal(avg)),
-                    )
+                review.averageKcal?.let { avg ->
+                    add(stringResource(R.string.today_review_average_target, formatKcal(avg), formatKcal(review.targetKcal)))
                 }
                 add(stringResource(R.string.today_review_days, review.daysLogged))
-                val weighIn = review.latestWeighIn
+                val kg = review.weighInKg
+                val change = review.changeKg
                 add(
                     when {
-                        weighIn == null -> stringResource(R.string.today_review_no_weight)
-                        review.weighInChangeKg != null -> stringResource(
-                            R.string.today_review_weight_change, formatAmount(weighIn.kg), formatChange(review.weighInChangeKg),
-                        )
-                        else -> stringResource(R.string.today_review_weight, formatAmount(weighIn.kg))
+                        kg == null -> stringResource(R.string.today_review_no_weight)
+                        change != null -> stringResource(R.string.today_review_weight_change, formatAmount(kg), formatChange(change))
+                        else -> stringResource(R.string.today_review_weight, formatAmount(kg))
                     },
                 )
             }
@@ -443,13 +449,13 @@ private fun ReviewCard(review: WeeklyReview, onDismiss: () -> Unit) {
     }
 }
 
-private fun suggestionText(s: Suggestion): Int = when (s) {
-    Suggestion.SET_TARGET -> R.string.today_review_set_target
-    Suggestion.LOG_MORE_DAYS -> R.string.today_review_log_more
-    Suggestion.WEIGH_IN -> R.string.today_review_weigh_in
-    Suggestion.ABOVE_TARGET -> R.string.today_review_above
-    Suggestion.WELL_BELOW_TARGET -> R.string.today_review_below
-    Suggestion.KEEP_GOING -> R.string.today_review_keep_going
+private fun suggestionText(s: ReviewSuggestion): Int = when (s) {
+    ReviewSuggestion.GOAL_REACHED -> R.string.today_review_goal_reached
+    ReviewSuggestion.LOG_MORE_DAYS -> R.string.today_review_log_more
+    ReviewSuggestion.WEIGH_IN -> R.string.today_review_weigh_in
+    ReviewSuggestion.PLAN_AHEAD -> R.string.today_review_above
+    ReviewSuggestion.EAT_ENOUGH -> R.string.today_review_below
+    ReviewSuggestion.KEEP_GOING -> R.string.today_review_keep_going
 }
 
 @Composable

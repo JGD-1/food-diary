@@ -15,15 +15,15 @@ internal class ReviewPrefs @Inject constructor(@ApplicationContext context: Cont
     private val prefs = context.getSharedPreferences("today", Context.MODE_PRIVATE)
     private val dismissed = MutableStateFlow(prefs.getString(KEY, null))
 
-    /** The Monday (ISO date) whose review was put away, if any. */
+    /** The reviewed week (its weekStart, ISO date) whose card was put away, if any. */
     val dismissedOn: StateFlow<String?> = dismissed.asStateFlow()
 
-    fun dismiss(monday: LocalDate) {
-        prefs.edit().putString(KEY, monday.toString()).apply()
-        dismissed.value = monday.toString()
+    fun dismiss(weekStart: LocalDate) {
+        prefs.edit().putString(KEY, weekStart.toString()).apply()
+        dismissed.value = weekStart.toString()
     }
 
     private companion object {
-        const val KEY = "review_dismissed_on"
+        const val KEY = "review_dismissed_week"
     }
 }

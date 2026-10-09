@@ -117,7 +117,7 @@ internal fun LogFoodRoute(
                 onMeal = viewModel::setMeal,
                 onQuery = viewModel::setQuery,
                 onSearchOnline = viewModel::searchOnline,
-                onScan = { open(if (ui.meal == Meal.DRINKS) TodayRoutes.CAMERA_DRINK else Routes.CAMERA, Routes.CAMERA) },
+                onScan = { open(if (ui.meal == Meal.DRINKS) Routes.CAMERA_DRINK else Routes.CAMERA, Routes.CAMERA) },
                 onChooseEntry = viewModel::choose,
                 onQuickAdd = viewModel::quickAdd,
                 onChooseFood = viewModel::choose,
@@ -130,7 +130,7 @@ internal fun LogFoodRoute(
                     step = step,
                     meal = mealFor(step.pick.isDrink, ui.meal),
                     onDismiss = viewModel::closeAmount,
-                    onWeigh = { open(TodayRoutes.CAMERA_SCALE, Routes.CAMERA) },
+                    onWeigh = { open(Routes.CAMERA_SCALE, Routes.CAMERA) },
                     onAdd = viewModel::add,
                 )
             }
@@ -273,7 +273,7 @@ private fun LogFoodContent(
                 if (shown.any { it.source == FoodOrigin.NEVO }) {
                     item(key = "nevo") {
                         Text(
-                            stringResource(R.string.today_nevo_credit), fontSize = 12.sp,
+                            stringResource(nl.guido.foodtracker.core.ui.R.string.nevo_attribution), fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp),
                         )
                     }

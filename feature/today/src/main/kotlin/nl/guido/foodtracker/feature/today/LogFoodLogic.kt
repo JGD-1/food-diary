@@ -1,5 +1,6 @@
 package nl.guido.foodtracker.feature.today
 
+import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
@@ -7,6 +8,7 @@ import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
 import nl.guido.foodtracker.core.model.Portion
+import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.newId
 import java.time.Instant
 import java.time.LocalDate
@@ -101,3 +103,11 @@ internal fun repeatEntry(
 
 /** Drinks always go to the Drinks section, so soft drinks and alcohol are counted together. */
 internal fun mealFor(isDrink: Boolean, chosen: Meal): Meal = if (isDrink) Meal.DRINKS else chosen
+
+/** Favourites are per person: each becomes its recipe with my usual portion, A to Z. Removed recipes drop out. */
+internal fun pinnedRecipes(favourites: List<Favourite>, recipes: List<Recipe>): List<Recipe> {
+    val byId = recipes.associateBy { it.id }
+    return favourites.mapNotNull { fav ->
+        byId[fav.recipeId]?.copy(pinned = true, usualPortion = fav.usualPortion)
+    }.distinctBy { it.id }.sortedBy { it.name.lowercase() }
+}

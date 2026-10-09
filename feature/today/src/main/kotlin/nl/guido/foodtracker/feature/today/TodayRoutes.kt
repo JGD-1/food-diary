@@ -25,16 +25,6 @@ internal object TodayRoutes {
         )
         return if (args.isEmpty()) Routes.LOG_FOOD else Routes.LOG_FOOD + "?" + args.joinToString("&")
     }
-
-    // Agreed with the lead; these move to core/ui Routes.kt once that change is merged.
-    const val CAMERA_SCALE = "camera?mode=scale"
-    const val CAMERA_DRINK = "camera?drink=true"
-    fun recipeLog(recipeId: Id) = "recipe-log/${Uri.encode(recipeId)}"
-    fun batchPortion(batchId: Id) = "batch-portion/${Uri.encode(batchId)}"
-
-    /** What the camera leaves behind for the screen that opened it. */
-    const val RESULT_FOOD_ID = "camera_food_id"
-    const val RESULT_GRAMS = "camera_grams"
 }
 
 /**

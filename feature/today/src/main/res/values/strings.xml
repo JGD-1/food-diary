@@ -38,6 +38,7 @@
     <string name="today_add_to_drinks">Add to drinks</string>
     <string name="today_again">Again</string>
     <string name="today_last_time">Last time: %1$s</string>
+    <string name="today_scan_drink">Scan a drink</string>
     <string name="today_add_drink">Add a drink</string>
     <string name="today_drinks_none">None yet</string>
     <string name="today_amount_grams">%1$s g</string>
@@ -79,12 +80,11 @@
     <!-- Monday review -->
     <string name="today_review_title">Your week in review</string>
     <string name="today_review_average_target">Average %1$s kcal a day (target %2$s)</string>
-    <string name="today_review_average">Average %1$s kcal a day</string>
     <string name="today_review_days">Logged on %1$d of 7 days</string>
     <string name="today_review_weight_change">Weigh-in: %1$s kg (%2$s kg since the one before)</string>
     <string name="today_review_weight">Weigh-in: %1$s kg</string>
     <string name="today_review_no_weight">No weigh-in last week</string>
-    <string name="today_review_set_target">Set your daily target, so the ring can show what\'s left.</string>
+    <string name="today_review_goal_reached">You\'ve reached your target weight. You can switch to a target that keeps you there in your profile.</string>
     <string name="today_review_log_more">Try logging on a few more days this week. A quick “Again” counts too.</string>
     <string name="today_review_weigh_in">Step on the scale once this week, so your trend stays up to date.</string>
     <string name="today_review_above">Last week came out a little above target. Planning one dinner ahead can make this week easier.</string>
@@ -116,7 +116,6 @@
     <string name="today_source_nevo">NEVO</string>
     <string name="today_source_off">Open Food Facts</string>
     <string name="today_source_own">My food</string>
-    <string name="today_nevo_credit">Based on data from NEVO online version 2025/9.0, RIVM, Bilthoven</string>
     <string name="today_weigh_on_scale">Weigh on scale</string>
     <string name="today_unit_g">g</string>
     <string name="today_unit_ml">ml</string>

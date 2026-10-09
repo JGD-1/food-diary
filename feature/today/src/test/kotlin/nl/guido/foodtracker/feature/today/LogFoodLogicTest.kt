@@ -1,10 +1,13 @@
 package nl.guido.foodtracker.feature.today
 
+import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.core.model.Portion
+import nl.guido.foodtracker.core.model.Recipe
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -69,5 +72,21 @@ class LogFoodLogicTest {
         assertEquals(Meal.DRINKS, mealFor(isDrink = true, chosen = Meal.LUNCH))
         assertEquals(Meal.LUNCH, mealFor(isDrink = false, chosen = Meal.LUNCH))
         assertEquals(Meal.DRINKS, mealFor(isDrink = cola.isDrink, chosen = Meal.DRINKS))
+    }
+
+    @Test
+    fun `favourites show their recipe with my usual portion, A to Z, skipping removed recipes`() {
+        val soup = Recipe("soup", "home", "Soup", emptyList())
+        val chili = Recipe("chili", "home", "chili", emptyList(), usualPortion = Portion(500.0))
+        val favourites = listOf(
+            Favourite("f1", "me", "soup", Portion(350.0, "1 bowl")),
+            Favourite("f2", "me", "chili"),
+            Favourite("f3", "me", "gone"),
+        )
+        val pinned = pinnedRecipes(favourites, listOf(soup, chili))
+        assertEquals(listOf("chili", "soup"), pinned.map { it.id })
+        assertNull(pinned[0].usualPortion)
+        assertEquals(Portion(350.0, "1 bowl"), pinned[1].usualPortion)
+        assertTrue(pinned.all { it.pinned })
     }
 }
