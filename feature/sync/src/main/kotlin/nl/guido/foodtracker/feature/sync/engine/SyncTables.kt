@@ -93,6 +93,10 @@ object SyncTables {
         "recipe_variant", "recipe_variants", Scope.HOUSEHOLD_VARIANT, "baseRecipeId",
         listOf(text("id"), text("baseRecipeId"), text("name"), text("extrasJson")) + stamps,
     )
+    val favourite = SyncTable(
+        "favourite", "favourites", Scope.USER, "userId",
+        listOf(text("id"), text("userId"), text("recipeId"), text("usualPortionJson")) + stamps,
+    )
     val batch = SyncTable(
         "batch", "batches", Scope.HOUSEHOLD, "householdId",
         listOf(
@@ -101,7 +105,7 @@ object SyncTables {
         ) + stamps,
     )
 
-    val all = listOf(profile, logEntry, weighIn, food, recipe, recipeVariant, batch)
+    val all = listOf(profile, logEntry, weighIn, food, recipe, recipeVariant, favourite, batch)
     val household = listOf(recipe, recipeVariant, batch)
 }
 

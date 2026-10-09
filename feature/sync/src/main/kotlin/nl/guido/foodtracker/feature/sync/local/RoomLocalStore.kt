@@ -93,9 +93,6 @@ class RoomLocalStore @Inject constructor(private val database: FoodDatabase) : L
                 }
                 db.execSQL("UPDATE ${table.local} SET ${table.ownerColumn} = ? WHERE ${table.ownerColumn} = ?", arrayOf(to, from))
             }
-            for (table in extraUserTables) {
-                if (tableExists(table)) db.execSQL("UPDATE $table SET userId = ? WHERE userId = ?", arrayOf(toUser, fromUser))
-            }
             db.setTransactionSuccessful()
         } finally {
             db.endTransaction()
@@ -117,11 +114,6 @@ class RoomLocalStore @Inject constructor(private val database: FoodDatabase) : L
         db.query("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", arrayOf(name)).use { it.moveToFirst() }
 
     private suspend fun <T> io(block: suspend () -> T): T = withContext(Dispatchers.IO) { block() }
-
-    private companion object {
-        /** Private tables that don't sync yet but are owned by a user id. */
-        val extraUserTables = listOf("favourite")
-    }
 }
 
 private fun Cursor.toRow(table: SyncTable): Row = table.columns.withIndex().associate { (i, col) ->

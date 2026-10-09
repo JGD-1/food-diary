@@ -56,7 +56,7 @@ class SupabaseApi(private val config: SupabaseConfig, private val http: Http) {
 
     private fun headers(accessToken: String?) = buildMap {
         put("apikey", config.publicKey)
-        put("Authorization", "Bearer ${accessToken ?: config.publicKey}")
+        if (accessToken != null) put("Authorization", "Bearer $accessToken")
         put("Accept", "application/json")
     }
 

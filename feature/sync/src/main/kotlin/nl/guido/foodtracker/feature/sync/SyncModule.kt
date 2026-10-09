@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import nl.guido.foodtracker.core.data.repo.CurrentUser
 import nl.guido.foodtracker.core.data.repo.SessionRepository
+import nl.guido.foodtracker.core.data.repo.SyncEntry
 import nl.guido.foodtracker.feature.sync.local.StoredAccount
 import nl.guido.foodtracker.feature.sync.remote.Http
 import nl.guido.foodtracker.feature.sync.remote.SupabaseApi
@@ -43,6 +44,7 @@ internal fun StoredAccount?.toCurrentUser(): CurrentUser =
 internal abstract class SyncModule {
     @Binds abstract fun session(impl: SyncSessionRepository): SessionRepository
     @Binds abstract fun http(impl: UrlConnectionHttp): Http
+    @Binds abstract fun entry(impl: SignInOffer): SyncEntry
 
     companion object {
         @Provides fun config() = SupabaseConfig(BuildConfig.SUPABASE_URL, BuildConfig.SUPABASE_KEY)

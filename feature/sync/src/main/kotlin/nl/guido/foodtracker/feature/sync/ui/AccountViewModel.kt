@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import nl.guido.foodtracker.feature.sync.AccountState
-import nl.guido.foodtracker.feature.sync.SyncEntry
+import nl.guido.foodtracker.feature.sync.SignInOffer
 import nl.guido.foodtracker.feature.sync.SyncManager
 import nl.guido.foodtracker.feature.sync.export.Exporter
 import javax.inject.Inject
@@ -20,7 +20,7 @@ enum class ExportResult { SAVED, FAILED }
 class AccountViewModel @Inject constructor(
     private val manager: SyncManager,
     private val exporter: Exporter,
-    private val entry: SyncEntry,
+    private val entry: SignInOffer,
 ) : ViewModel() {
     val state: StateFlow<AccountState> = manager.state
 

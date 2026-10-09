@@ -40,7 +40,7 @@ create policy "see my household members" on public.household_members for select 
 -- Sync stamp: newest change wins ---------------------------------------------------------------
 
 create or replace function public.sync_stamp() returns trigger
-language plpgsql as $$
+language plpgsql set search_path = public as $$
 begin
   if tg_op = 'UPDATE' and new.updated_at <= old.updated_at then
     return null; -- an older (or the same) change: keep what we have
@@ -209,7 +209,8 @@ end
 $$;
 
 -- Join someone's household with their code. If you were on your own, your recipes and batches
--- come with you; otherwise they stay with the household you leave.
+-- come with you; otherwise they stay with the household you leave. (No deletes: an emptied
+-- household simply stays behind, unused.)
 create or replace function public.join_household(code text)
 returns table (household_id uuid, invite_code text, member_count int, moved_from uuid)
 language plpgsql security definer set search_path = public as $$
@@ -223,19 +224,18 @@ begin
   if new_hid is null then raise exception 'code not found' using errcode = 'P0002'; end if;
   select m.household_id into old_hid from public.household_members m where m.user_id = auth.uid();
 
-  if old_hid is distinct from new_hid then
-    if old_hid is not null and (select count(*) from public.household_members m where m.household_id = old_hid) = 1 then
+  if old_hid is null then
+    insert into public.household_members (user_id, household_id) values (auth.uid(), new_hid);
+  elsif old_hid = new_hid then
+    old_hid := null;
+  else
+    if (select count(*) from public.household_members m where m.household_id = old_hid) = 1 then
       update public.recipes set household_id = new_hid, updated_at = greatest(updated_at + 1, now_ms) where recipes.household_id = old_hid;
       update public.batches set household_id = new_hid, updated_at = greatest(updated_at + 1, now_ms) where batches.household_id = old_hid;
-      delete from public.household_members where user_id = auth.uid();
-      delete from public.households where id = old_hid;
     else
-      delete from public.household_members where user_id = auth.uid();
       old_hid := null; -- nothing moved
     end if;
-    insert into public.household_members (user_id, household_id) values (auth.uid(), new_hid);
-  else
-    old_hid := null;
+    update public.household_members m set household_id = new_hid where m.user_id = auth.uid();
   end if;
 
   return query select i.household_id, i.invite_code, i.member_count, old_hid from public.household_info(new_hid) i;
@@ -246,3 +246,4 @@ revoke execute on function public.ensure_household() from public, anon;
 revoke execute on function public.join_household(text) from public, anon;
 grant execute on function public.ensure_household() to authenticated;
 grant execute on function public.join_household(text) to authenticated;
+revoke execute on function public.my_household() from public, anon;
