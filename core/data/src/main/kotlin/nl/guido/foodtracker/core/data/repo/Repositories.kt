@@ -3,13 +3,16 @@ package nl.guido.foodtracker.core.data.repo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.RecipeVariant
+import nl.guido.foodtracker.core.model.TargetBreakdown
 import nl.guido.foodtracker.core.model.UserProfile
 import nl.guido.foodtracker.core.model.WeighIn
+import nl.guido.foodtracker.core.model.WeeklyReview
 import java.time.LocalDate
 
 /** Who is using the app on this phone. The sync stream provides the real one (Google sign-in). */
@@ -37,7 +40,7 @@ interface FoodRepository {
     suspend fun saveAll(foods: List<Food>)
 }
 
-/** Recipes, variants and batch meals, shared within the household. */
+/** Recipes, variants and batch meals, shared within the household. Favourites are per person. */
 interface RecipeRepository {
     fun recipes(householdId: Id): Flow<List<Recipe>>
     suspend fun get(id: Id): Recipe?
@@ -49,6 +52,9 @@ interface RecipeRepository {
     fun batches(householdId: Id): Flow<List<Batch>>
     suspend fun getBatch(id: Id): Batch?
     suspend fun saveBatch(batch: Batch)
+    fun favourites(userId: Id): Flow<List<Favourite>>
+    suspend fun saveFavourite(f: Favourite)
+    suspend fun deleteFavourite(id: Id)
 }
 
 /** Profile and weigh-ins. Private to each person. */
@@ -58,4 +64,20 @@ interface ProfileRepository {
     fun weighIns(userId: Id): Flow<List<WeighIn>>
     suspend fun saveWeighIn(weighIn: WeighIn)
     suspend fun deleteWeighIn(id: Id)
+}
+
+/**
+ * Provided by the sync stream (feature/sync) with a Hilt @Binds. Optional: until it is bound,
+ * the app never offers sign-in. True while the sign-in screen should be shown at start-up;
+ * it must turn false after "Not now" so sign-in never blocks the app.
+ */
+interface SyncEntry {
+    val shouldOfferSignIn: Flow<Boolean>
+}
+
+/** The current user's daily target and Monday review. Provided by the energy stream (feature/energy). */
+interface EnergyRepository {
+    /** Null until the profile is filled in. */
+    val target: Flow<TargetBreakdown?>
+    val weeklyReview: Flow<WeeklyReview?>
 }

@@ -3,14 +3,16 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.room)
 }
 
 android {
     namespace = "nl.guido.foodtracker.core.data"
 }
 
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
+// Room writes the database layout here on every build; it is committed so migrations can be checked.
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {

@@ -13,6 +13,9 @@ interface WeightSource {
 interface FoodSource {
     suspend fun byBarcode(code: String): Food?
     suspend fun search(text: String): List<Food>
+
+    /** Search that may use the internet (Open Food Facts). Only on an explicit search, never per keystroke. */
+    suspend fun searchOnline(text: String): List<Food> = emptyList()
 }
 
 /** Gives a kcal range for a restaurant dish described in words. Swappable provider. */
