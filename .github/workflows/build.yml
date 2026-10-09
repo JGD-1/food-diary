@@ -21,6 +21,9 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
+        with:
+          # On pull requests, check out the branch itself so the schema step below can push to it.
+          ref: ${{ github.head_ref || github.ref }}
 
       - uses: actions/setup-java@v5
         with:
@@ -31,6 +34,17 @@ jobs:
 
       - name: Run tests
         run: .github/scripts/gradle-with-annotations.sh testDebugUnitTest :core:model:test
+
+      - name: Save the database layout (Room schema) to the branch
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          git add core/data/schemas
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898099+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Save Room database schema"
+            git push origin "HEAD:${GITHUB_HEAD_REF}"
+          fi
 
       - name: Build APK
         run: .github/scripts/gradle-with-annotations.sh :app:assembleRelease
