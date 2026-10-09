@@ -9,26 +9,28 @@ class Gray(val width: Int, val height: Int, val pixels: IntArray) {
 }
 
 /**
- * Prepares a kitchen scale display for text recognition.
- *
- * Scale digits are made of separate bars (segments) with small gaps between them. General text
- * recognition then misreads them: a 7 whose top bar stands apart becomes a 1, a 9 becomes a 3.
- * This keeps only thin bright marks (the lit segments, not the bright worktop around the scale),
- * then thickens them until the gaps close, giving solid dark digits on white.
- *
- * [thicken] is how much to thicken, as a share of the picture's short side; digits that fill
- * more of the picture need more. Plain Kotlin so it can be tested without a phone.
+ * Picks out small bright marks, such as the lit bars of a scale display, and ignores big bright
+ * areas such as the worktop around the scale. Plain Kotlin so it can be tested without a phone.
  */
-object SegmentJoiner {
-    fun join(image: Gray, thicken: Double): Gray {
-        val short = minOf(image.width, image.height)
-        val background = maxFilter(minFilter(image, odd(short * 0.028)), odd(short * 0.028))
-        val marks = IntArray(image.pixels.size) { (image.pixels[it] - background.pixels[it]).coerceAtLeast(0) }
-        val cut = max(40, (percentile(marks, 0.995) * 0.45).roundToInt())
-        var lit = Gray(image.width, image.height, IntArray(marks.size) { if (marks[it] >= cut) 255 else 0 })
-        lit = maxFilter(minFilter(lit, 3), 3) // drop single specks (dust, reflections)
-        val solid = maxFilter(lit, odd(short * thicken))
-        return Gray(image.width, image.height, IntArray(solid.pixels.size) { 255 - solid.pixels[it] })
+object BrightMarks {
+    /**
+     * How much brighter each pixel is than its surroundings, counting only marks narrower than
+     * [markSize] (a share of the picture's short side).
+     */
+    fun marks(image: Gray, markSize: Double): Gray {
+        val size = odd(minOf(image.width, image.height) * markSize)
+        val background = maxFilter(minFilter(image, size), size)
+        return Gray(image.width, image.height, IntArray(image.pixels.size) { (image.pixels[it] - background.pixels[it]).coerceAtLeast(0) })
+    }
+
+    /** How bright a mark must be to count: [share] of the brightest marks, and never very faint. */
+    fun cut(marks: Gray, share: Double): Int = max(25, (percentile(marks.pixels, 0.995) * share).roundToInt())
+
+    /** Which pixels are lit (true), without single specks of dust or reflections. */
+    fun lit(marks: Gray, cut: Int): BooleanArray {
+        val on = Gray(marks.width, marks.height, IntArray(marks.pixels.size) { if (marks.pixels[it] >= cut) 255 else 0 })
+        val cleaned = maxFilter(minFilter(on, 3), 3)
+        return BooleanArray(cleaned.pixels.size) { cleaned.pixels[it] > 0 }
     }
 
     private fun odd(v: Double) = max(3, v.roundToInt() or 1)

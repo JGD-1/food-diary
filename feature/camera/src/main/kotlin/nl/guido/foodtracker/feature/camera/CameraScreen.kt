@@ -115,7 +115,6 @@ internal fun CameraScreen(
         onDispose {
             controller.unbind()
             barcodeReader.close()
-            scaleReader.close()
             labelReader.close()
             analysisThread.shutdown()
         }
@@ -358,7 +357,6 @@ private fun ScalePanel(s: CameraStep.ReadScale, scale: ScaleView, vm: CameraView
     Title(stringResource(R.string.camera_scale_title))
     val grams = scale.grams
     when {
-        scale.otherUnit -> Body(stringResource(R.string.camera_scale_other_unit))
         grams == null -> Body(stringResource(if (showHint) R.string.camera_scale_hint else R.string.camera_scale_body))
         grams == 0.0 -> Body(stringResource(R.string.camera_scale_zero))
         else -> {

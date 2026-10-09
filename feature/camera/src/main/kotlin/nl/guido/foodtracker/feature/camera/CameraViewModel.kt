@@ -43,7 +43,7 @@ internal sealed interface CameraStep {
 }
 
 /** What the camera currently sees on the scale. */
-internal data class ScaleView(val grams: Double? = null, val otherUnit: Boolean = false)
+internal data class ScaleView(val grams: Double? = null)
 
 /** Handed back to the screen that opened the camera. */
 internal data class CameraOutcome(val foodId: String?, val grams: Double)
@@ -199,14 +199,7 @@ internal class CameraViewModel @Inject constructor(
 
     /** Called for every camera frame while the scale view is open. */
     fun onScaleFrame(parse: ScaleParse) {
-        when (parse) {
-            is ScaleParse.Grams -> {
-                _scale.update { it.copy(otherUnit = false) }
-                scaleSteady.offer(parse.grams)?.let { cameraReadings.publish(it) }
-            }
-            ScaleParse.OtherUnit -> _scale.update { it.copy(otherUnit = true) }
-            ScaleParse.Unreadable -> Unit
-        }
+        if (parse is ScaleParse.Grams) scaleSteady.offer(parse.grams)?.let { cameraReadings.publish(it) }
     }
 
     /** Listens to every weight source (camera now, Bluetooth later); the latest reading is shown. */
@@ -219,7 +212,7 @@ internal class CameraViewModel @Inject constructor(
                 launch {
                     while (isActive) {
                         val reading = source.readGrams()
-                        _scale.update { it.copy(grams = reading.grams, otherUnit = false) }
+                        _scale.update { it.copy(grams = reading.grams) }
                     }
                 }
             }

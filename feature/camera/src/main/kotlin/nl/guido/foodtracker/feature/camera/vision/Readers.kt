@@ -1,6 +1,5 @@
 package nl.guido.foodtracker.feature.camera.vision
 
-import android.graphics.Bitmap
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
@@ -13,14 +12,12 @@ import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import nl.guido.foodtracker.feature.camera.read.Gray
-import nl.guido.foodtracker.feature.camera.read.ScaleDisplayParser
-import nl.guido.foodtracker.feature.camera.read.SegmentJoiner
+import nl.guido.foodtracker.feature.camera.read.SevenSegmentReader
 import nl.guido.foodtracker.feature.camera.read.ScaleParse
 import nl.guido.foodtracker.feature.camera.read.TextLine
 import java.io.Closeable
-import java.util.concurrent.atomic.AtomicBoolean
 
-// All reading happens on the phone with Google ML Kit's built-in models. Nothing is uploaded.
+// All reading happens on the phone (Google ML Kit's built-in models, and our own scale reader). Nothing is uploaded.
 
 /** Looks for shop barcodes in each camera frame. */
 internal class BarcodeReader(private val onCode: (String) -> Unit) : ImageAnalysis.Analyzer, Closeable {
@@ -44,55 +41,31 @@ internal class BarcodeReader(private val onCode: (String) -> Unit) : ImageAnalys
 /**
  * Reads the number on the kitchen scale's display in each camera frame.
  *
- * Only the middle of the frame is used (where the aiming frame is). Scale digits are made of
- * separate bars, so the picture is first cleaned up into solid digits ([SegmentJoiner]); the plain
- * picture is tried too. People also hold the phone sideways or upside down to the scale. When a
- * frame shows no number, the next frame tries the next way ([ATTEMPTS]); a way that works is kept.
+ * Only the middle of the frame is used (where the aiming frame is). The digits are read straight
+ * from their lit bars ([SevenSegmentReader]), in any direction the phone is held. Frames that
+ * arrive while one is being read are dropped by the camera, so work never piles up.
  */
-internal class ScaleReader(private val onFrame: (ScaleParse) -> Unit) : ImageAnalysis.Analyzer, Closeable {
-    private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-    @Volatile private var attempt = 0
-    private val busy = AtomicBoolean(false)
-
+internal class ScaleReader(private val onFrame: (ScaleParse) -> Unit) : ImageAnalysis.Analyzer {
     override fun analyze(frame: ImageProxy) {
-        // Skip frames while the previous one is still being read, so work never piles up.
-        if (!busy.compareAndSet(false, true)) return frame.close()
-        val (prepare, turn) = ATTEMPTS[attempt]
-        val rotation = (frame.imageInfo.rotationDegrees + turn) % 360
-        val picture = try {
-            prepare(aimedGray(frame, frame.imageInfo.rotationDegrees)).toBitmap()
+        val grams = try {
+            SevenSegmentReader.read(aimedGray(frame, frame.imageInfo.rotationDegrees))
         } catch (e: RuntimeException) {
-            busy.set(false)
-            return
+            null
         } finally {
             frame.close()
         }
-        recognizer.process(InputImage.fromBitmap(picture, rotation))
-            .addOnSuccessListener { text ->
-                val parse = ScaleDisplayParser.parse(text.toLines())
-                if (parse == ScaleParse.Unreadable) attempt = (attempt + 1) % ATTEMPTS.size
-                onFrame(parse)
-            }
-            .addOnCompleteListener { busy.set(false) }
+        onFrame(if (grams != null && grams <= MAX_GRAMS) ScaleParse.Grams(grams.toDouble()) else ScaleParse.Unreadable)
     }
 
-    override fun close() = recognizer.close()
-
-    companion object {
-        /** Ways to prepare the picture, best first. Shared with the photo test. */
-        val PREPARE: List<(Gray) -> Gray> = listOf(
-            { SegmentJoiner.join(it, thicken = 0.021) },
-            { SegmentJoiner.join(it, thicken = 0.035) },
-            { it },
-        )
-        val TURNS = intArrayOf(0, 90, 270, 180)
-        val ATTEMPTS = TURNS.flatMap { turn -> PREPARE.map { it to turn } }
+    private companion object {
+        /** More than a kitchen scale can weigh: a misreading. */
+        const val MAX_GRAMS = 15_000
     }
 }
 
 /**
  * The middle of a camera frame (the aiming frame: 80% wide, 45% high when upright) as a grey
- * picture, made smaller so cleaning it up stays quick.
+ * picture, made smaller so reading it stays quick.
  */
 internal fun aimedGray(frame: ImageProxy, rotationDegrees: Int, maxShortSide: Int = 400): Gray {
     val plane = frame.planes[0] // brightness (Y) plane
@@ -111,18 +84,6 @@ internal fun aimedGray(frame: ImageProxy, rotationDegrees: Int, maxShortSide: In
         buffer.get(y * plane.rowStride + x * plane.pixelStride).toInt() and 0xFF
     }
     return Gray(w, h, pixels)
-}
-
-internal fun Gray.toBitmap(): Bitmap =
-    Bitmap.createBitmap(IntArray(pixels.size) { val v = pixels[it]; (0xFF shl 24) or (v shl 16) or (v shl 8) or v }, width, height, Bitmap.Config.ARGB_8888)
-
-internal fun Bitmap.toGray(): Gray {
-    val argb = IntArray(width * height)
-    getPixels(argb, 0, width, 0, 0, width, height)
-    return Gray(width, height, IntArray(argb.size) { i ->
-        val c = argb[i]
-        (((c shr 16) and 255) * 299 + ((c shr 8) and 255) * 587 + (c and 255) * 114) / 1000
-    })
 }
 
 /** Reads all text on one photo (the nutrition label). */
