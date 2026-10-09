@@ -4,6 +4,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import nl.guido.foodtracker.core.model.ActivityLevel
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.Ingredient
@@ -104,3 +105,14 @@ internal fun WeighInEntity.toModel() = WeighIn(id = id, userId = userId, date = 
 
 internal fun WeighIn.toEntity(now: Long) =
     WeighInEntity(id = id, userId = userId, date = date.toString(), kg = kg, updatedAt = now)
+
+internal fun FavouriteEntity.toModel() = Favourite(
+    id = id, userId = userId, recipeId = recipeId,
+    usualPortion = usualPortionJson?.let { json.decodeFromString(Portion.serializer(), it) },
+)
+
+internal fun Favourite.toEntity(now: Long) = FavouriteEntity(
+    id = id, userId = userId, recipeId = recipeId,
+    usualPortionJson = usualPortion?.let { json.encodeToString(Portion.serializer(), it) },
+    updatedAt = now,
+)

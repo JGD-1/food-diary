@@ -1,7 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Shared -->
+    <string name="progress_kg">%1$s kg</string>
+    <string name="progress_kg_unit">kg</string>
+    <string name="progress_kcal">%1$s kcal</string>
+    <string name="progress_action_save">Save</string>
+    <string name="progress_action_cancel">Cancel</string>
+
+    <!-- Weight tab -->
     <string name="progress_weight_title">Weight</string>
-    <string name="progress_weight_body">Your weekly weigh-ins and trend.</string>
+    <string name="progress_weight_every">Weigh-in every %1$s</string>
+    <string name="progress_weight_weekly">Weigh in once a week</string>
+    <string name="progress_weight_to_go">%1$s kg to %2$s kg</string>
+    <string name="progress_weight_reached">Target %1$s kg reached</string>
+    <string name="progress_weight_start_on">Start %1$s kg · %2$s</string>
+    <string name="progress_weight_start">Start %1$s kg</string>
+    <string name="progress_weight_down">%1$s kg down</string>
+    <string name="progress_weight_up">%1$s kg up</string>
+    <string name="progress_weight_same">Same as at the start</string>
+    <string name="progress_weight_over_time">Over time</string>
+    <string name="progress_weight_goal">Goal %1$s kg</string>
+    <string name="progress_weight_graph_desc">Weekly weigh-ins from %1$s kg to %2$s kg, goal %3$s kg</string>
+    <string name="progress_weight_graph_empty">Your weekly weigh-ins will appear here.</string>
+    <string name="progress_weight_week_to_week">Week to week</string>
+    <string name="progress_weight_last_change">last: %1$s kg</string>
+    <string name="progress_weight_changes_desc">Change between weigh-ins over %1$d weeks, latest %2$s kg</string>
+    <string name="progress_weight_changes_empty">The change from week to week will appear here.</string>
+    <plurals name="progress_weight_trend_not_enough">
+        <item quantity="one">After %d more weigh-in you\'ll see your trend here. Small ups and downs are normal.</item>
+        <item quantity="other">After %d more weigh-ins you\'ll see your trend here. Small ups and downs are normal.</item>
+    </plurals>
+    <string name="progress_weight_trend_losing">Small ups and downs are normal. On average you\'re losing %1$s kg a week, which reaches %2$s kg around %3$s.</string>
+    <string name="progress_weight_trend_gaining">Small ups and downs are normal. On average you\'re gaining %1$s kg a week, which reaches %2$s kg around %3$s.</string>
+    <string name="progress_weight_trend_steady">Small ups and downs are normal. Lately your weight is about the same from week to week.</string>
+    <string name="progress_weight_trend_away_up">Small ups and downs are normal. Lately it has gone up about %1$s kg a week.</string>
+    <string name="progress_weight_trend_away_down">Small ups and downs are normal. Lately it has gone down about %1$s kg a week.</string>
+    <string name="progress_weight_trend_reached">You\'ve reached your target weight. Small ups and downs are normal.</string>
+    <string name="progress_weight_log">Log weigh-in</string>
+    <string name="progress_weigh_in_label">Today\'s weight</string>
+    <string name="progress_weight_no_profile_title">Your target weight</string>
+    <string name="progress_weight_no_profile_body">Add your start and target weight to see your progress here.</string>
+    <string name="progress_weight_set_target">Set target weight</string>
+
+    <!-- Stats tab -->
     <string name="progress_stats_title">Stats</string>
-    <string name="progress_stats_body">Your weekly and monthly averages.</string>
+    <string name="progress_stats_kicker">Calories</string>
+    <string name="progress_stats_this_week">This week</string>
+    <string name="progress_stats_average_target">kcal a day on average · target %1$s</string>
+    <string name="progress_stats_average">kcal a day on average</string>
+    <string name="progress_stats_week_empty">Nothing logged yet this week.</string>
+    <string name="progress_stats_today">Today</string>
+    <string name="progress_stats_week_note_target">Dashed line: your daily target. Today\'s bar fills up as you log.</string>
+    <string name="progress_stats_week_note">Today\'s bar fills up as you log.</string>
+    <string name="progress_stats_week_desc">Calories per day this week: %1$s</string>
+    <string name="progress_stats_by_month">By month</string>
+    <string name="progress_stats_per_day">average per day</string>
+    <string name="progress_stats_no_value">–</string>
+    <string name="progress_stats_days_logged">%1$s: %2$d of %3$d days logged.</string>
+    <string name="progress_stats_drinks_title">Drinks this week</string>
+    <string name="progress_stats_drinks_none">No drinks logged this week.</string>
+    <string name="progress_stats_drinks_one">%1$d%% of all calories · mostly %2$s</string>
+    <string name="progress_stats_drinks_two">%1$d%% of all calories · mostly %2$s and %3$s</string>
 </resources>

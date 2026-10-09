@@ -9,6 +9,7 @@ import nl.guido.foodtracker.core.data.db.RecipeDao
 import nl.guido.foodtracker.core.data.db.toEntity
 import nl.guido.foodtracker.core.data.db.toModel
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
@@ -57,6 +58,10 @@ internal class RoomRecipeRepository @Inject constructor(private val dao: RecipeD
         dao.batches(householdId).map { rows -> rows.map { it.toModel() } }
     override suspend fun getBatch(id: Id) = dao.getBatch(id)?.toModel()
     override suspend fun saveBatch(batch: Batch) = dao.upsertBatch(batch.toEntity(now()))
+    override fun favourites(userId: Id): Flow<List<Favourite>> =
+        dao.favourites(userId).map { rows -> rows.map { it.toModel() } }
+    override suspend fun saveFavourite(f: Favourite) = dao.upsertFavourite(f.toEntity(now()))
+    override suspend fun deleteFavourite(id: Id) = dao.markFavouriteDeleted(id, now())
 }
 
 internal class RoomProfileRepository @Inject constructor(private val dao: ProfileDao) : ProfileRepository {

@@ -1,5 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Recipes list -->
     <string name="recipes_recipes_title">Recipes</string>
-    <string name="recipes_recipes_body">Your shared recipes and batch meals.</string>
+    <string name="recipes_back">Back</string>
+    <string name="recipes_new_recipe">New recipe</string>
+    <string name="recipes_cook_batch">Cook a batch</string>
+    <string name="recipes_batches_section">Cooked this week</string>
+    <string name="recipes_batch_cooked">Cooked %1$s</string>
+    <string name="recipes_weigh_my_portion">Weigh my portion</string>
+    <string name="recipes_pinned_section">My favourites</string>
+    <string name="recipes_all_section">All recipes</string>
+    <string name="recipes_empty">No recipes yet. Save one once, and next time it takes two taps to log.</string>
+    <string name="recipes_recipe_detail">%1$d kcal in %2$s g</string>
+    <string name="recipes_usual_portion">Usually %1$s g, %2$d kcal</string>
+    <string name="recipes_edit">Edit</string>
+    <string name="recipes_not_found">This is no longer here. It may have been deleted.</string>
+
+    <!-- Recipe editing -->
+    <string name="recipes_edit_recipe">Edit recipe</string>
+    <string name="recipes_name">Name</string>
+    <string name="recipes_ingredients">Ingredients</string>
+    <string name="recipes_ingredients_empty">Add what goes into it, with grams.</string>
+    <string name="recipes_add_ingredient">Add ingredient</string>
+    <string name="recipes_save">Save</string>
+    <string name="recipes_delete_recipe">Delete recipe</string>
+    <string name="recipes_delete_question">Delete this recipe? It is removed for everyone in your household. Meals you already logged stay in your diary.</string>
+    <string name="recipes_delete">Delete</string>
+    <string name="recipes_keep">Keep it</string>
+    <string name="recipes_cancel">Cancel</string>
+
+    <!-- Shared bits -->
+    <string name="recipes_grams">Grams</string>
+    <string name="recipes_grams_unit">g</string>
+    <string name="recipes_weigh">Weigh</string>
+    <string name="recipes_remove">Remove</string>
+    <string name="recipes_kcal">%1$d kcal</string>
+    <string name="recipes_kcal_per_100g">%1$d kcal per 100 g</string>
+    <string name="recipes_macros">Protein %1$d g · Carbs %2$d g · Fat %3$d g</string>
+    <string name="recipes_meal_breakfast">Breakfast</string>
+    <string name="recipes_meal_lunch">Lunch</string>
+    <string name="recipes_meal_dinner">Dinner</string>
+    <string name="recipes_meal_snacks">Snacks</string>
+    <string name="recipes_meal_drinks">Drinks</string>
+
+    <!-- Finding a food -->
+    <string name="recipes_find_food">Find a food</string>
+    <string name="recipes_find_food_hint">Type a food, then Search</string>
+    <string name="recipes_search">Search</string>
+    <string name="recipes_searching">Searching…</string>
+    <string name="recipes_nothing_found">Nothing found. Try another word.</string>
+    <string name="recipes_nothing_on_phone">Not on your phone yet. Try searching online.</string>
+    <string name="recipes_search_online">Search online</string>
+    <string name="recipes_close">Close</string>
+
+    <!-- Logging a recipe -->
+    <string name="recipes_variant">Variant</string>
+    <string name="recipes_variant_plain">As saved</string>
+    <string name="recipes_extras">Extras this time</string>
+    <string name="recipes_extras_hint">Only for this meal. Your saved recipe stays the same.</string>
+    <string name="recipes_add_extra">Add extra</string>
+    <string name="recipes_save_as_variant">Save as variant</string>
+    <string name="recipes_variant_hint">Keeps these extras as a variant of the recipe, so you can pick it next time.</string>
+    <string name="recipes_variant_example">e.g. extra cheese</string>
+    <string name="recipes_how_much">How much</string>
+    <string name="recipes_whole">All of it (%1$s g)</string>
+    <string name="recipes_usual">Usual (%1$s g)</string>
+    <string name="recipes_my_portion">My portion</string>
+    <string name="recipes_remember_portion">Remember %1$s g as my usual portion</string>
+    <string name="recipes_log_it">Log it</string>
+    <string name="recipes_pin">Pin to my favourites</string>
+    <string name="recipes_unpin">Unpin</string>
+    <string name="recipes_cook_batch_of_this">Cook a batch of this</string>
+
+    <!-- Batch meals -->
+    <string name="recipes_batch_step_in">1. Weigh what goes in</string>
+    <string name="recipes_batch_step_in_hint">Weigh each ingredient as it goes into the pot.</string>
+    <string name="recipes_batch_raw_total">Everything in the pot: %1$d kcal</string>
+    <string name="recipes_batch_step_cooked">2. Weigh the cooked batch</string>
+    <string name="recipes_batch_step_cooked_hint">When it\'s done, weigh all of the food, without the pan.</string>
+    <string name="recipes_batch_cooked_weight">Cooked batch</string>
+    <string name="recipes_batch_save">Save batch, then weigh my portion</string>
+    <string name="recipes_batch_summary">Cooked %1$s · %2$s g in total, %3$d kcal</string>
+    <string name="recipes_batch_step_portion">3. Weigh my portion</string>
+    <string name="recipes_batch_step_portion_hint">Put your plate on the scale, set it to zero, then add your portion.</string>
+    <string name="recipes_log_my_portion">Log my portion</string>
 </resources>
