@@ -53,6 +53,9 @@ object ScaleDisplayParser {
 
     private fun candidatesIn(line: TextLine): List<Candidate> {
         val tokens = line.text.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+        // Printed words on the scale ("KitchenBrothers", "TARE"): a number on that line is a logo
+        // or model number, not the weight. The display itself only ever shows digits and a unit.
+        if (tokens.any { isWord(it) }) return emptyList()
         val out = mutableListOf<Candidate>()
         for ((i, raw) in tokens.withIndex()) {
             if (raw.startsWith("-")) continue // below zero: the scale is being tared
@@ -68,6 +71,11 @@ object ScaleDisplayParser {
             out += Candidate(value, unit, line.height, digitCount)
         }
         return out
+    }
+
+    private fun isWord(token: String): Boolean {
+        val letters = token.count { it.isLetter() }
+        return letters >= 3 && token.lowercase().trimEnd('.') !in unitWords && letters > token.length / 2 && !isNumberish(token)
     }
 
     private fun isNumberish(s: String) = s.isNotEmpty() && s.all { it.isDigit() || it in lookalikes || it == '.' || it == ',' }

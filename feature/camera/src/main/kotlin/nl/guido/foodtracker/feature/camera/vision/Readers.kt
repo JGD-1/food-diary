@@ -40,7 +40,7 @@ internal class BarcodeReader(private val onCode: (String) -> Unit) : ImageAnalys
 /**
  * Reads the number on the kitchen scale's display in each camera frame.
  * People often hold the phone sideways to the scale, so when a frame shows no number the
- * next frames are also tried turned a quarter left and right; once a number is found that turn is kept.
+ * next frames are also tried turned a quarter left, right and upside down; once a number is found that turn is kept.
  */
 internal class ScaleReader(private val onFrame: (ScaleParse) -> Unit) : ImageAnalysis.Analyzer, Closeable {
     private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
@@ -62,7 +62,7 @@ internal class ScaleReader(private val onFrame: (ScaleParse) -> Unit) : ImageAna
     override fun close() = recognizer.close()
 
     companion object {
-        val EXTRA_TURNS = intArrayOf(0, 90, 270)
+        val EXTRA_TURNS = intArrayOf(0, 90, 270, 180)
     }
 }
 

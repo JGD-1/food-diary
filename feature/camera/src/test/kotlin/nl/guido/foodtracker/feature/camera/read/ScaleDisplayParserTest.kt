@@ -24,6 +24,10 @@ class ScaleDisplayParserTest {
             parse(line("SALTER 1066", 20f, 0f), line("1250", 120f, 50f), line("TARE ON/OFF", 15f, 200f)),
         )
 
+    @Test fun `logo read as a digit next to the brand name is ignored`() =
+        // Seen on Guido's scale: the "B" logo before "KitchenBrothers" read as a 3, in bigger letters.
+        assertEquals(ScaleParse.Grams(130.0), parse(line("3 KitchenBrothers", 60f, 200f), line("130", 50f, 0f)))
+
     @Test fun `seven segment lookalikes are fixed`() {
         assertEquals(ScaleParse.Grams(150.0), parse(line("l5O g")))
         assertEquals(ScaleParse.Grams(258.0), parse(line("2SB")))
