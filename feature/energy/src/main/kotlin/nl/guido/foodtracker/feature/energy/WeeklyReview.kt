@@ -2,53 +2,16 @@ package nl.guido.foodtracker.feature.energy
 
 import nl.guido.foodtracker.core.model.DayTotal
 import nl.guido.foodtracker.core.model.LogEntry
+import nl.guido.foodtracker.core.model.ReviewSuggestion
 import nl.guido.foodtracker.core.model.UserProfile
 import nl.guido.foodtracker.core.model.WeighIn
+import nl.guido.foodtracker.core.model.WeeklyReview
 import java.time.DayOfWeek
 import java.time.LocalDate
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-/**
- * The Monday review: last week's average, the weigh-in result, and one suggestion.
- * Stream 5 shows it as a card on Today.
- */
-data class WeeklyReview(
-    /** Monday of the week being reviewed. */
-    val weekStart: LocalDate,
-    /** Average kcal over the days that had food logged, or null when nothing was logged. */
-    val averageKcal: Int?,
-    val daysLogged: Int,
-    val targetKcal: Int,
-    /** The latest weigh-in from last Monday up to today (a Monday-morning weigh-in counts). */
-    val weighInKg: Double?,
-    /** Change since the weekly weigh-in before it (negative = lighter). Null without two weigh-ins. */
-    val changeKg: Double?,
-    val targetWeightKg: Double,
-    val suggestion: ReviewSuggestion,
-)
-
-/** One suggestion for the week ahead. Supportive and neutral; the texts live with the card. */
-enum class ReviewSuggestion {
-    /** At (or past) the target weight: maybe switch to a maintenance target. */
-    GOAL_REACHED,
-
-    /** Fewer than 4 days logged: logging most days makes the target more accurate. */
-    LOG_MORE_DAYS,
-
-    /** No weigh-in since last Monday: a weigh-in this week shows the trend. */
-    WEIGH_IN,
-
-    /** Average more than 10% over target: planning one meal ahead can help. */
-    PLAN_AHEAD,
-
-    /** Average more than 15% under target: eating enough helps you keep going. */
-    EAT_ENOUGH,
-
-    /** Close to target: keep the same rhythm. */
-    KEEP_GOING,
-}
-
+/** Builds the Monday review (core.model.WeeklyReview); stream 5 shows it as a card on Today. */
 internal object WeeklyReviews {
     const val MIN_DAYS_LOGGED = 4
     const val ABOVE_SHARE = 1.10

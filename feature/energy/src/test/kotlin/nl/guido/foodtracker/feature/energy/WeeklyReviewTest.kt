@@ -1,6 +1,7 @@
 package nl.guido.foodtracker.feature.energy
 
 import nl.guido.foodtracker.core.model.DayTotal
+import nl.guido.foodtracker.core.model.ReviewSuggestion
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull

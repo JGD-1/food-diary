@@ -61,7 +61,6 @@
     <string name="energy_form_save">Save</string>
     <string name="energy_account_sync">Account and sync</string>
     <string name="energy_data_sources">Data sources</string>
-    <string name="energy_data_sources_nevo">Based on data from NEVO online version 2025/9.0, RIVM, Bilthoven</string>
 
     <!-- Weekly weigh-in -->
     <string name="energy_weigh_in_title">Weekly weigh-in</string>

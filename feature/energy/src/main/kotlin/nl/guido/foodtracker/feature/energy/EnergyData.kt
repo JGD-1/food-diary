@@ -3,16 +3,19 @@ package nl.guido.foodtracker.feature.energy
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import nl.guido.foodtracker.core.data.repo.CurrentUser
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
+import nl.guido.foodtracker.core.data.repo.EnergyRepository
 import nl.guido.foodtracker.core.data.repo.ProfileRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
 import nl.guido.foodtracker.core.model.TargetBreakdown
 import nl.guido.foodtracker.core.model.UserProfile
 import nl.guido.foodtracker.core.model.WeighIn
+import nl.guido.foodtracker.core.model.WeeklyReview
 import nl.guido.foodtracker.core.model.newId
 import java.time.LocalDate
 import javax.inject.Inject
@@ -32,7 +35,7 @@ internal data class EnergyState(
 
 /**
  * Reads profile, weigh-ins and diary for the current user and works out the target and the
- * Monday review. Today (stream 5) gets the same numbers once the lead adds a shared interface for it.
+ * Monday review. Today and Stats read the same numbers through EnergyRepository.
  */
 @Singleton
 internal class EnergyData @Inject constructor(
@@ -41,7 +44,7 @@ internal class EnergyData @Inject constructor(
     private val diary: DiaryRepository,
     private val estimator: AdaptiveEnergyEstimator,
     private val today: Today,
-) {
+) : EnergyRepository {
     @OptIn(ExperimentalCoroutinesApi::class)
     val state: Flow<EnergyState> = session.currentUser.flatMapLatest { user ->
         combine(profiles.profile(user.userId), profiles.weighIns(user.userId)) { profile, weighIns -> profile to weighIns }
@@ -61,6 +64,10 @@ internal class EnergyData @Inject constructor(
                 }
             }
     }
+
+    override val target: Flow<TargetBreakdown?> = state.map { it.target }.distinctUntilChanged()
+
+    override val weeklyReview: Flow<WeeklyReview?> = state.map { it.review }.distinctUntilChanged()
 
     suspend fun saveProfile(profile: UserProfile, isNew: Boolean) {
         profiles.save(profile)

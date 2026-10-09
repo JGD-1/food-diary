@@ -101,7 +101,7 @@ internal fun ProfileScreen(
         }
         SectionTitle(R.string.energy_data_sources)
         Text(
-            stringResource(R.string.energy_data_sources_nevo),
+            stringResource(nl.guido.foodtracker.core.ui.R.string.nevo_attribution),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
