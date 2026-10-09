@@ -3,6 +3,6 @@
     <style name="Theme.FoodDiary" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/background</item>
     </style>
-    <color name="background">#F3F0FF</color>
-    <color name="accent">#5B3FD9</color>
+    <color name="background">#EEF4EF</color>
+    <color name="accent">#1F6F50</color>
 </resources>
