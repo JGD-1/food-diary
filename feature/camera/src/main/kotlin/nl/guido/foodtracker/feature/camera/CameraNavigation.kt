@@ -5,17 +5,15 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import nl.guido.foodtracker.core.ui.CameraResult
 import nl.guido.foodtracker.core.ui.Routes
-
-// Result keys and modes, as agreed with the lead (decisions.md). Callers read the result from
-// their own back stack entry's savedStateHandle after the camera screen closes.
-internal const val RESULT_FOOD_ID = "camera_food_id" // String: the food, already saved in FoodRepository
-internal const val RESULT_GRAMS = "camera_grams"     // Double: grams weighed or typed
 
 /**
  * Screens owned by this module. The app calls this once when it builds the navigation.
- * Opened as Routes.CAMERA (barcode), "camera?mode=scale" (weigh only), "camera?mode=label"
- * or "camera?drink=true" (from Drinks: a new food from a label defaults to a drink).
+ * Opened as Routes.CAMERA (barcode), Routes.CAMERA_SCALE (weigh only) or Routes.CAMERA_DRINK
+ * (from Drinks: a new food from a label defaults to a drink). When done it hands back
+ * CameraResult.FOOD_ID (String, already saved in FoodRepository; null when only weighing) and
+ * CameraResult.GRAMS (Double) on the opener's savedStateHandle, then closes.
  */
 fun NavGraphBuilder.cameraScreens(navController: NavController) {
     composable(
@@ -29,8 +27,8 @@ fun NavGraphBuilder.cameraScreens(navController: NavController) {
         CameraScreen(
             onFinished = { outcome ->
                 navController.previousBackStackEntry?.savedStateHandle?.apply {
-                    set(RESULT_FOOD_ID, outcome.foodId)
-                    set(RESULT_GRAMS, outcome.grams)
+                    set(CameraResult.FOOD_ID, outcome.foodId)
+                    set(CameraResult.GRAMS, outcome.grams)
                 }
                 navController.popBackStack()
             },

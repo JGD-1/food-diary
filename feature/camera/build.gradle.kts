@@ -21,7 +21,5 @@ dependencies {
     implementation(libs.mlkit.barcode.scanning)
     implementation(libs.mlkit.text.recognition)
 
-    // ScalePhotosTest: the scale reader on real photos, on a phone or emulator
-    androidTestImplementation(libs.androidx.test.runner)
-    androidTestImplementation(libs.androidx.test.ext.junit)
+    // ScalePhotosTest (src/androidTest) gets its test-runner libraries once the lead adds them.
 }
