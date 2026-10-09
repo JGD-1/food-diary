@@ -1,0 +1,174 @@
+# Eat out dish list: kcal for one usual restaurant or takeaway portion, as eaten (with the sides that normally come with it).
+# These are the app's own rough estimates (not NEVO), shown as a range and always logged as an estimate.
+# name|other names (;)|low|typical|high
+Pizza margherita|pizza|700|850|1050
+Pizza pepperoni|pizza salami;pizza salame|850|1000|1250
+Pizza quattro formaggi|pizza four cheese;pizza 4 kazen|900|1050|1300
+Pizza tonno|pizza tuna|800|950|1150
+Pizza hawaii|pizza hawaiian|800|950|1150
+Pizza funghi|pizza mushroom|750|900|1100
+Pizza vegetariana|pizza veggie;pizza vegetarian|750|900|1100
+Pizza calzone|calzone|900|1100|1350
+Pizza slice|pizza punt|250|300|400
+Spaghetti bolognese|pasta bolognese|650|800|1000
+Spaghetti carbonara|pasta carbonara|750|950|1200
+Lasagne|lasagna|650|800|1000
+Penne arrabbiata|pasta arrabbiata|550|700|850
+Pasta pesto|spaghetti pesto|700|850|1050
+Pasta alfredo|fettuccine alfredo|850|1050|1300
+Risotto|risotto funghi|600|750|950
+Gnocchi|gnocchi in sauce|600|750|950
+Hamburger|burger|500|650|800
+Cheeseburger|burger with cheese|550|700|850
+Double cheeseburger|double burger|750|900|1100
+Restaurant burger with fries|burger met friet;gourmet burger|1000|1250|1550
+Chicken burger|kipburger|500|650|800
+Veggie burger|vegetarian burger;vegaburger|450|600|750
+Big Mac|mcdonalds big mac|500|550|600
+Quarter Pounder with cheese|mcdonalds quarter pounder|480|520|560
+McChicken|mcdonalds mcchicken|380|420|460
+Chicken nuggets 6 pieces|nuggets 6;mcnuggets 6|240|270|300
+Chicken nuggets 9 pieces|nuggets 9;mcnuggets 9|370|410|450
+Whopper|burger king whopper|600|660|720
+Fries small|patat klein;friet klein;kleine friet|250|300|350
+Fries medium|patat;friet;patatje;frites|350|420|500
+Fries large|patat groot;friet groot;grote friet|450|550|650
+Fries with mayonnaise|patatje mayo;friet mayo;patat met|450|550|650
+Patatje oorlog|friet oorlog;patat oorlog|550|700|850
+Frikandel|frikadel|200|240|280
+Frikandel speciaal|frikadel speciaal|280|330|380
+Kroket|croquette;rundvleeskroket|200|240|280
+Broodje kroket|croquette roll|330|380|450
+Bitterballen 6 pieces|bitterbal|300|350|420
+Kaassoufflé|cheese souffle|250|300|350
+Kipcorn|kip corn|260|300|340
+Bamischijf|bami schijf|220|260|300
+Mexicano|mexicano snack|250|300|350
+Loempia|spring roll large|350|450|550
+Kapsalon|kapsalon shoarma|1100|1350|1700
+Shoarma broodje|shawarma sandwich;broodje shoarma;shawarma|600|750|900
+Shoarma schotel|shawarma plate;shoarma met friet|900|1150|1400
+Döner kebab|doner;kebab broodje;broodje doner|600|750|900
+Dürüm|durum;durum kebab;wrap kebab|650|800|950
+Falafel wrap|falafel pita;broodje falafel|550|700|850
+Falafel plate|falafel schotel|750|900|1100
+Gyros plate|gyros schotel;gyros met friet|900|1100|1350
+Souvlaki plate|souvlaki|800|950|1150
+Moussaka|mousaka|600|750|900
+Fried rice|nasi goreng|650|800|950
+Fried noodles|bami goreng|650|800|950
+Babi pangang with rice|babi pangang|900|1100|1300
+Foe yong hai with rice|fu yong hai;foe yong hai|800|950|1150
+Sweet and sour chicken with rice|koe lo yuk;koe loe kai;sweet sour chicken|850|1000|1200
+Tjap tjoy with rice|tjaptjoy;chop suey|600|750|900
+Chicken satay with rice|kipsaté;kip sate;sate ajam|800|1000|1200
+Saté with fries|sate met friet;kipsaté met friet|900|1100|1300
+Rijsttafel|rice table|1100|1400|1800
+Nasi rames|nasi rames bord|800|950|1150
+Pad thai|phad thai|650|800|1000
+Green curry with rice|thai green curry|700|850|1050
+Red curry with rice|thai red curry|700|850|1050
+Massaman curry with rice|massaman|800|950|1150
+Chicken tikka masala with rice|tikka masala|800|950|1200
+Butter chicken with rice|murgh makhani|850|1000|1250
+Korma with rice|chicken korma|850|1000|1250
+Biryani|chicken biryani|700|850|1050
+Naan|naan bread;garlic naan|260|320|400
+Samosas 2 pieces|samosa|250|300|380
+Dal with rice|daal;dhal|550|650|800
+Sushi 8 pieces|sushi;maki|300|380|480
+Sushi 12 pieces|sushi box|450|570|700
+Sushi all you can eat|unlimited sushi|1000|1300|1700
+Salmon nigiri 2 pieces|nigiri|110|130|150
+California roll 8 pieces|california roll|250|300|350
+Poke bowl|poké bowl|550|700|850
+Ramen|ramen bowl|550|700|900
+Pho|pho bo;vietnamese noodle soup|400|500|650
+Gyoza 6 pieces|dumplings;gyoza|250|300|360
+Burrito|burrito chicken;burrito beef|800|950|1150
+Burrito bowl|bowl mexican|650|800|950
+Tacos 3 pieces|taco|500|600|750
+Nachos with cheese|nachos|700|900|1100
+Quesadilla|quesadilla chicken|600|750|900
+Fish and chips|fish chips|800|1000|1250
+Kibbeling|kibbeling met saus|450|550|650
+Lekkerbekje|lekkerbek|350|420|500
+Broodje haring|haring broodje|300|350|400
+Haring|herring|180|200|220
+Steak with fries|biefstuk met friet;steak frites|900|1100|1350
+Schnitzel with fries|schnitzel friet;wiener schnitzel|1000|1200|1450
+Spareribs|spare ribs|1100|1400|1700
+Saté plate restaurant|sate schotel|900|1100|1300
+Chicken wings 6 pieces|wings;kippenvleugels|450|550|700
+Grilled chicken with fries|halve kip;half chicken|900|1100|1300
+Salmon with vegetables|zalm met groente|550|700|850
+Caesar salad|caesar salade|450|600|800
+Salad with goat cheese|salade geitenkaas;geitenkaassalade|500|650|800
+Greek salad|griekse salade|350|450|600
+Tomato soup|tomatensoep|150|200|280
+Pea soup|erwtensoep;snert|300|380|480
+Pumpkin soup|pompoensoep|180|250|330
+Club sandwich|clubsandwich|550|700|850
+Tosti ham kaas|toastie;ham cheese toastie|300|370|450
+Uitsmijter|uitsmijter ham kaas|550|650|800
+Broodje gezond|healthy sandwich|350|430|520
+Broodje kaas|cheese sandwich|300|360|430
+Croissant|croissant butter|230|270|320
+Pancake|pannenkoek|300|380|480
+Pancake with bacon|pannenkoek spek|500|600|750
+Poffertjes|poffertjes with butter|350|450|550
+Stroopwafel||130|150|170
+Appeltaart with whipped cream|apple pie;appeltaart met slagroom|450|550|650
+Appeltaart|apple pie slice|300|350|420
+Tiramisu|tiramisu dessert|350|450|550
+Cheesecake|cheesecake slice|350|450|550
+Chocolate cake|chocolate fudge cake|400|500|600
+Ice cream 2 scoops|ijs 2 bolletjes;gelato|200|260|330
+Dame blanche|dame blanche ijs|450|550|700
+McFlurry|mcflurry oreo|330|380|430
+Waffle with toppings|wafel;belgian waffle|450|550|700
+Brownie|chocolate brownie|300|380|450
+Muffin|blueberry muffin|350|420|500
+Cappuccino||90|110|140
+Latte|caffe latte;koffie verkeerd|130|170|220
+Hot chocolate with whipped cream|warme chocolademelk met slagroom|250|320|400
+Beer|pils;biertje|130|150|180
+Wine glass|wijn;glass of wine|100|120|150
+Cocktail|mojito;cocktail glas|180|250|350
+Milkshake|shake|400|550|750
+Smoothie|smoothie bowl|200|280|380
+Breakfast buffet|hotel breakfast;ontbijtbuffet|600|850|1200
+Full English breakfast|english breakfast|800|1000|1250
+Eggs Benedict|eggs benny|550|700|850
+Avocado toast|avo toast|350|450|550
+Granola bowl|yoghurt granola|350|450|550
+Bagel with salmon|bagel zalm|400|500|600
+Wrap chicken|kip wrap|450|550|650
+Subway sandwich 15 cm|subway 6 inch|300|400|500
+Subway sandwich 30 cm|subway footlong|600|800|1000
+KFC bucket share 3 pieces|kfc 3 pieces;kfc kip|600|750|900
+KFC Zinger burger|zinger|420|480|540
+Kebab plate with rice|kebab schotel|900|1100|1350
+Lahmacun|turkish pizza|350|450|550
+Pide|turkish pide|700|850|1000
+Mezze platter|meze|500|700|900
+Hummus with bread|hummus pita|400|500|650
+Paella|paella mixta|600|750|900
+Tapas 4 dishes|tapas|700|900|1150
+Patatas bravas|bravas|400|500|600
+Bao buns 2 pieces|bao|350|450|550
+Peking duck|pekingeend|700|900|1100
+Dim sum 6 pieces|dimsum|350|450|550
+Wok noodles with chicken|wok noedels|650|800|950
+Teriyaki chicken with rice|teriyaki|650|800|950
+Bibimbap|korean rice bowl|550|650|800
+Korean fried chicken|kfc korean|800|1000|1250
+Poutine|poutine fries|700|900|1100
+Hot dog|hotdog|300|400|500
+Stamppot with sausage|boerenkool met worst;hutspot met worst;stamppot|700|850|1000
+Hachee with potatoes|hachee|650|800|950
+Spaghetti at a restaurant|pasta restaurant|700|850|1050
+Pasta salad|pastasalade|450|600|750
+Quiche|quiche lorraine|450|550|650
+Omelette|omelet|300|400|500
+Bowl buddha|buddha bowl|500|650|800

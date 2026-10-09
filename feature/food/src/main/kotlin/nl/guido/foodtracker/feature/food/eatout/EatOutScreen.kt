@@ -1,20 +1,22 @@
 package nl.guido.foodtracker.feature.food.eatout
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -24,7 +26,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -33,14 +34,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.guido.foodtracker.core.model.Estimate
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.feature.food.R
-import nl.guido.foodtracker.feature.food.estimate.EstimateFailure
+import nl.guido.foodtracker.feature.food.dishes.Dish
 
-/** "Eat out": type the dish, get a kcal range, log it as an estimate. Opened via Routes.EAT_OUT. */
+/** "Eat out": pick a dish from the list (or type kcal yourself) and log it as an estimate. Routes.EAT_OUT. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EatOutScreen(onDone: () -> Unit, viewModel: EatOutViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(state.logged) { if (state.logged) onDone() }
+    val picked = state.picked
+    val typing = picked == null && state.dish.isNotBlank()
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
@@ -54,21 +57,14 @@ fun EatOutScreen(onDone: () -> Unit, viewModel: EatOutViewModel = hiltViewModel(
             label = { Text(stringResource(R.string.food_eat_out_dish_label)) },
             placeholder = { Text(stringResource(R.string.food_eat_out_dish_hint)) },
             singleLine = true,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { viewModel.estimate() }),
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             modifier = Modifier.fillMaxWidth(),
         )
-        Button(
-            onClick = viewModel::estimate,
-            enabled = state.dish.isNotBlank() && !state.loading,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(stringResource(if (state.loading) R.string.food_eat_out_estimating else R.string.food_eat_out_estimate))
-        }
 
-        state.estimate?.let { EstimateCard(it) }
-        state.failure?.let { reason ->
-            Text(stringResource(failureText(reason)), style = MaterialTheme.typography.bodyLarge)
+        if (typing && state.suggestions.isNotEmpty()) Suggestions(state.suggestions, viewModel::pick)
+        if (picked != null) EstimateCard(picked)
+        if (typing) {
+            Text(stringResource(R.string.food_eat_out_not_listed), style = MaterialTheme.typography.bodyLarge)
             OutlinedTextField(
                 value = state.typedKcal,
                 onValueChange = viewModel::setTypedKcal,
@@ -79,9 +75,7 @@ fun EatOutScreen(onDone: () -> Unit, viewModel: EatOutViewModel = hiltViewModel(
             )
         }
 
-        val canLog = state.dish.isNotBlank() &&
-            (state.estimate != null || (state.failure != null && typedKcal(state.typedKcal) != null))
-        if (state.estimate != null || state.failure != null) {
+        if (picked != null || (typing && typedKcal(state.typedKcal) != null)) {
             Text(stringResource(R.string.food_eat_out_meal), style = MaterialTheme.typography.titleMedium)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(Meal.BREAKFAST, Meal.LUNCH, Meal.DINNER, Meal.SNACKS).forEach { meal ->
@@ -92,7 +86,7 @@ fun EatOutScreen(onDone: () -> Unit, viewModel: EatOutViewModel = hiltViewModel(
                     )
                 }
             }
-            Button(onClick = viewModel::log, enabled = canLog, modifier = Modifier.fillMaxWidth()) {
+            Button(onClick = viewModel::log, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.food_eat_out_log))
             }
         }
@@ -103,27 +97,47 @@ fun EatOutScreen(onDone: () -> Unit, viewModel: EatOutViewModel = hiltViewModel(
 }
 
 @Composable
-private fun EstimateCard(estimate: Estimate) {
+private fun Suggestions(dishes: List<Dish>, onPick: (Dish) -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        dishes.forEachIndexed { i, dish ->
+            if (i > 0) HorizontalDivider()
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth().clickable { onPick(dish) }.padding(horizontal = 16.dp, vertical = 14.dp),
+            ) {
+                Text(dish.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                Text(rangeText(dish.estimate), style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+    }
+}
+
+@Composable
+private fun EstimateCard(dish: Dish) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(rangeText(dish.estimate), style = MaterialTheme.typography.headlineSmall)
+            if (!dish.own) {
+                Text(stringResource(R.string.food_eat_out_typical, dish.estimate.typical), style = MaterialTheme.typography.bodyLarge)
+            }
             Text(
-                stringResource(R.string.food_eat_out_range, estimate.low, estimate.high),
-                style = MaterialTheme.typography.headlineSmall,
+                stringResource(if (dish.own) R.string.food_eat_out_own_dish else R.string.food_eat_out_is_estimate),
+                style = MaterialTheme.typography.bodyMedium,
             )
-            Text(stringResource(R.string.food_eat_out_typical, estimate.typical), style = MaterialTheme.typography.bodyLarge)
-            Text(stringResource(R.string.food_eat_out_is_estimate), style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
 
-private fun failureText(reason: EstimateFailure.Reason) = when (reason) {
-    EstimateFailure.Reason.OFFLINE -> R.string.food_eat_out_offline
-    EstimateFailure.Reason.NOT_SET_UP -> R.string.food_eat_out_not_set_up
-    EstimateFailure.Reason.FAILED -> R.string.food_eat_out_failed
-}
+@Composable
+private fun rangeText(e: Estimate) =
+    if (e.low == e.high) stringResource(R.string.food_eat_out_kcal, e.typical)
+    else stringResource(R.string.food_eat_out_range, e.low, e.high)
 
 private fun mealText(meal: Meal) = when (meal) {
     Meal.BREAKFAST -> R.string.food_meal_breakfast

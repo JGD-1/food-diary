@@ -3,6 +3,7 @@ package nl.guido.foodtracker.feature.food.eatout
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,10 +11,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
-import nl.guido.foodtracker.core.model.Estimate
 import nl.guido.foodtracker.core.model.Meal
-import nl.guido.foodtracker.core.model.RestaurantEstimator
-import nl.guido.foodtracker.feature.food.estimate.EstimateFailure
+import nl.guido.foodtracker.feature.food.dishes.Dish
+import nl.guido.foodtracker.feature.food.dishes.DishRepository
+import nl.guido.foodtracker.feature.food.dishes.dishKey
+import nl.guido.foodtracker.feature.food.dishes.matchDishes
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -22,66 +24,51 @@ import javax.inject.Inject
 data class EatOutState(
     val dish: String = "",
     val meal: Meal = mealAt(LocalTime.now()),
-    val loading: Boolean = false,
-    /** The estimate for [estimatedDish]; cleared when the dish text changes. */
-    val estimate: Estimate? = null,
-    val estimatedDish: String = "",
-    val failure: EstimateFailure.Reason? = null,
+    /** Dishes from the list that match what was typed. */
+    val suggestions: List<Dish> = emptyList(),
+    /** The dish picked from the list; cleared when the text changes. */
+    val picked: Dish? = null,
     val typedKcal: String = "",
     val logged: Boolean = false,
 )
 
 @HiltViewModel
 class EatOutViewModel @Inject constructor(
-    private val estimator: RestaurantEstimator,
+    private val dishes: DishRepository,
     private val diary: DiaryRepository,
     private val session: SessionRepository,
 ) : ViewModel() {
     private val _state = MutableStateFlow(EatOutState())
     val state: StateFlow<EatOutState> = _state.asStateFlow()
+    private var matching: Job? = null
 
-    fun setDish(text: String) = _state.update {
-        if (text.trim() == it.estimatedDish) it.copy(dish = text)
-        else it.copy(dish = text, estimate = null, failure = null)
+    fun setDish(text: String) {
+        _state.update { if (it.picked != null && dishKey(text) == dishKey(it.picked.name)) it.copy(dish = text) else it.copy(dish = text, picked = null) }
+        matching?.cancel()
+        matching = viewModelScope.launch {
+            val found = matchDishes(text, dishes.all())
+            _state.update { it.copy(suggestions = found) }
+        }
     }
+
+    fun pick(dish: Dish) = _state.update { it.copy(dish = dish.name, picked = dish, suggestions = emptyList()) }
 
     fun setMeal(meal: Meal) = _state.update { it.copy(meal = meal) }
 
     fun setTypedKcal(text: String) = _state.update { it.copy(typedKcal = text.filter(Char::isDigit).take(4)) }
 
-    fun estimate() {
-        val dish = _state.value.dish.trim()
-        if (dish.isEmpty() || _state.value.loading) return
-        _state.update { it.copy(loading = true, failure = null, estimate = null) }
-        viewModelScope.launch {
-            val result = try {
-                Result.success(estimator.estimate(dish))
-            } catch (e: EstimateFailure) {
-                Result.failure(e)
-            } catch (e: Exception) {
-                Result.failure(EstimateFailure(EstimateFailure.Reason.FAILED))
-            }
-            _state.update { s ->
-                s.copy(
-                    loading = false,
-                    estimate = result.getOrNull(),
-                    estimatedDish = dish,
-                    failure = (result.exceptionOrNull() as? EstimateFailure)?.reason,
-                )
-            }
-        }
-    }
-
-    /** Logs the estimate, or the typed kcal when there is no estimate. */
+    /** Logs the picked dish's range, or the typed kcal (and remembers that dish for next time). */
     fun log() {
         val s = _state.value
-        val dish = s.dish.trim()
-        val estimate = s.estimate ?: typedKcal(s.typedKcal)?.let(::typedEstimate) ?: return
-        if (dish.isEmpty() || s.logged) return
+        val name = s.dish.trim()
+        if (name.isEmpty() || s.logged) return
+        val typed = if (s.picked == null) typedKcal(s.typedKcal) ?: return else null
+        val estimate = s.picked?.estimate ?: typedEstimate(typed!!)
         _state.update { it.copy(logged = true) }
         viewModelScope.launch {
+            if (typed != null) dishes.saveOwn(name, typed)
             val user = session.currentUser.value
-            diary.save(restaurantEntry(user.userId, LocalDate.now(), s.meal, dish, estimate, Instant.now()))
+            diary.save(restaurantEntry(user.userId, LocalDate.now(), s.meal, name, estimate, Instant.now()))
         }
     }
 }

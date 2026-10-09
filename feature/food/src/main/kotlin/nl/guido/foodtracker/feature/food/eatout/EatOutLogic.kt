@@ -20,7 +20,7 @@ internal fun mealAt(time: LocalTime): Meal = when {
     else -> Meal.SNACKS
 }
 
-/** Kcal typed by hand when no estimate is available, read as a whole positive number. */
+/** Kcal typed by hand for a dish that isn't in the list, read as a whole positive number. */
 internal fun typedKcal(text: String): Int? = text.trim().toIntOrNull()?.takeIf { it in 1..5000 }
 
 /** A typed number becomes a "range" of one value, so it's still shown as an estimate. */
