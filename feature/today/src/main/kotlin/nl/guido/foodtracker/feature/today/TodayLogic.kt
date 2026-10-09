@@ -24,6 +24,10 @@ internal fun mealForTime(time: LocalTime): Meal = when {
     else -> Meal.SNACKS
 }
 
+/** Where a camera result goes: Drinks for a drink or a scan started from Drinks, else the meal for the time. */
+internal fun mealForCameraResult(isDrink: Boolean, fromDrinks: Boolean, time: LocalTime): Meal =
+    if (isDrink || fromDrinks) Meal.DRINKS else mealForTime(time)
+
 internal data class MealSummary(val meal: Meal, val entries: List<LogEntry>) {
     val kcal: Int get() = entries.sumOf { it.nutrients.kcal }.roundToInt()
     val hasEstimate: Boolean get() = entries.any { it.isEstimate }

@@ -121,12 +121,24 @@ internal class TodayViewModel @Inject constructor(
 
     fun dismissReview(review: WeeklyReview) = reviewPrefs.dismiss(review.weekStart)
 
-    /** The camera came back with a food (Scan) and/or a weight (Weigh): continue in Log food. */
+    /** True while the camera was opened from Drinks, so what comes back is logged as a drink. */
+    private var cameraForDrink = false
+
+    fun openingCamera(forDrink: Boolean) {
+        cameraForDrink = forDrink
+    }
+
+    /**
+     * The camera came back with a food (Scan) and/or a weight (Weigh): continue in Log food,
+     * on the amount step for that food in the meal that fits (Drinks for a drink), ready to Add.
+     */
     fun onCameraResult(foodId: Id?, grams: Double?) {
         if (foodId == null && grams == null) return
+        val forDrink = cameraForDrink
+        cameraForDrink = false
         viewModelScope.launch {
             val isDrink = foodId?.let { foods.get(it)?.isDrink } ?: false
-            val meal = if (isDrink) Meal.DRINKS else mealForTime(LocalTime.now())
+            val meal = mealForCameraResult(isDrink, forDrink, LocalTime.now())
             events.send(TodayEvent.Open(TodayRoutes.logFood(meal, foodId, grams)))
         }
     }
