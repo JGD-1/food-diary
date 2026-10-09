@@ -38,12 +38,18 @@ jobs:
       - name: Save the database layout (Room schema) to the branch
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         run: |
+          if [ ! -d core/data/schemas ]; then
+            echo "::error title=Schema::Room did not write core/data/schemas"
+            find . -path '*/schemas/*' -name '*.json' | head -5 | sed 's/^/::error title=Schema found::/'
+            exit 1
+          fi
           git add core/data/schemas
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898099+github-actions[bot]@users.noreply.github.com"
             git commit -m "Save Room database schema"
-            git push origin "HEAD:${GITHUB_HEAD_REF}"
+            git push origin "HEAD:${GITHUB_HEAD_REF}" 2>&1 | sed 's/^/::error title=Push::/'
+            exit "${PIPESTATUS[0]}"
           fi
 
       - name: Build APK
