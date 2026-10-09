@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="food_eat_out_title">Eat out</string>
+    <string name="food_eat_out_body">Type what you ate and get an estimate.</string>
+</resources>
