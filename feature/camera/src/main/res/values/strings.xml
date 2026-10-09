@@ -1,5 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="camera_camera_title">Scan</string>
-    <string name="camera_camera_body">Barcodes, labels and your kitchen scale.</string>
+    <string name="camera_back">Back</string>
+
+    <!-- Camera permission -->
+    <string name="camera_permission_body">To scan barcodes, labels and your scale, the app needs to use the camera. Pictures stay on your phone.</string>
+    <string name="camera_permission_allow">Allow camera</string>
+
+    <!-- Light -->
+    <string name="camera_light_on">Light on</string>
+    <string name="camera_light_off">Light off</string>
+
+    <!-- Barcode -->
+    <string name="camera_barcode_title">Scan a barcode</string>
+    <string name="camera_barcode_body">Point the camera at the barcode on the packet or bottle.</string>
+    <string name="camera_barcode_hint">Hold the barcode flat and close, so it fills the frame. More light can help.</string>
+    <string name="camera_barcode_type">Type the barcode</string>
+    <string name="camera_barcode_type_field">Barcode number</string>
+    <string name="camera_barcode_type_go">Look it up</string>
+    <string name="camera_barcode_type_invalid">That number doesn\'t look like a full barcode. Check the digits under the stripes.</string>
+    <string name="camera_looking_up">Looking up %1$s…</string>
+    <string name="camera_not_found_title">We don\'t know this product yet</string>
+    <string name="camera_not_found_body">Scan its nutrition label and we\'ll remember it next time.</string>
+    <string name="camera_offline_title">We couldn\'t look this up right now</string>
+    <string name="camera_offline_body">There may be no internet. You can scan the nutrition label instead.</string>
+    <string name="camera_scan_again">Scan again</string>
+
+    <!-- Alternatives, offered whenever a scan doesn't work -->
+    <string name="camera_alt_label">Scan the label</string>
+    <string name="camera_alt_search">Search by name</string>
+    <string name="camera_alt_type_food">Type it in</string>
+    <string name="camera_alt_type_grams">Type grams</string>
+
+    <!-- Label -->
+    <string name="camera_label_title">Photo of the nutrition label</string>
+    <string name="camera_label_body">Fit the whole table with the \"per 100 g\" column in the frame, then take the photo.</string>
+    <string name="camera_label_take">Take photo</string>
+    <string name="camera_label_reading">Reading the label…</string>
+    <string name="camera_food_title">New food</string>
+    <string name="camera_food_read">We read %1$d of 4 values. Please check them against the packet.</string>
+    <string name="camera_food_unread">We couldn\'t read the label this time. Try another photo, or type the numbers from the packet.</string>
+    <string name="camera_food_typed">Type the values from the packet.</string>
+    <string name="camera_food_retake">Take another photo</string>
+    <string name="camera_food_name">Name</string>
+    <string name="camera_food_brand">Brand (optional)</string>
+    <string name="camera_food_per100g">Per 100 g</string>
+    <string name="camera_food_per100ml">Per 100 ml</string>
+    <string name="camera_food_kcal">kcal</string>
+    <string name="camera_food_protein">Protein (g)</string>
+    <string name="camera_food_carbs">Carbs (g)</string>
+    <string name="camera_food_fat">Fat (g)</string>
+    <string name="camera_food_is_drink">This is a drink</string>
+    <string name="camera_food_save">Save food</string>
+
+    <!-- How much -->
+    <string name="camera_amount_title">How much?</string>
+    <string name="camera_amount_per100g">%1$d kcal per 100 g</string>
+    <string name="camera_amount_per100ml">%1$d kcal per 100 ml</string>
+    <string name="camera_amount_grams">Grams</string>
+    <string name="camera_amount_ml">Millilitres</string>
+    <string name="camera_amount_total">That\'s %1$d kcal</string>
+    <string name="camera_amount_read_scale">Read the scale</string>
+    <string name="camera_amount_done">Done</string>
+
+    <!-- Scale -->
+    <string name="camera_scale_title">Read the scale</string>
+    <string name="camera_scale_body">Point the camera at your scale\'s display.</string>
+    <string name="camera_scale_reading">%1$s g</string>
+    <string name="camera_scale_zero">The scale shows 0. Put the food on it.</string>
+    <string name="camera_scale_use">Use %1$s g</string>
+    <string name="camera_scale_other_unit">Your scale shows ounces or pounds. Switch it to grams, or type the grams.</string>
+    <string name="camera_scale_hint">Can\'t read it yet. Move closer, avoid reflections on the display, or turn on the light.</string>
+    <string name="camera_scale_type_field">Grams on the scale</string>
+    <string name="camera_scale_type_use">Use these grams</string>
 </resources>
