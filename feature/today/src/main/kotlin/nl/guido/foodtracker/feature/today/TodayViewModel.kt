@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -21,9 +20,7 @@ import kotlinx.coroutines.launch
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.EnergyRepository
 import nl.guido.foodtracker.core.data.repo.FoodRepository
-import nl.guido.foodtracker.core.data.repo.ProfileRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
-import nl.guido.foodtracker.core.model.EnergyEstimator
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Meal
@@ -31,7 +28,6 @@ import nl.guido.foodtracker.core.model.WeeklyReview
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.Optional
 import javax.inject.Inject
 
 internal data class TodayUiState(
@@ -57,10 +53,8 @@ internal class TodayViewModel @Inject constructor(
     session: SessionRepository,
     private val diary: DiaryRepository,
     private val foods: FoodRepository,
-    profiles: ProfileRepository,
-    private val energy: EnergyEstimator,
+    private val energy: EnergyRepository,
     private val reviewPrefs: ReviewPrefs,
-    energyRepository: Optional<EnergyRepository>,
 ) : ViewModel() {
 
     private val moment: Flow<Moment> = flow {
@@ -73,23 +67,13 @@ internal class TodayViewModel @Inject constructor(
     private val events = Channel<TodayEvent>(Channel.BUFFERED)
     val eventFlow: Flow<TodayEvent> = events.receiveAsFlow()
 
-    private val energyRepo: EnergyRepository? = energyRepository.orElse(null)
-
     val state: StateFlow<TodayUiState?> = combine(session.currentUser, moment) { user, now -> user to now }
         .flatMapLatest { (user, now) ->
-            val history = diary.entriesBetween(user.userId, now.date.minusDays(HISTORY_DAYS), now.date.minusDays(1))
-            // The energy part provides the target and Monday review; until it is in the app,
-            // the target is worked out here from the profile and the review stays hidden.
-            val target: Flow<Int?> = energyRepo?.target?.map { it?.targetKcal }
-                ?: combine(profiles.profile(user.userId), profiles.weighIns(user.userId), history) { profile, weighIns, days ->
-                    profile?.let { energy.dailyTarget(it, weighIns, dayTotals(days)).targetKcal }
-                }
-            val review: Flow<WeeklyReview?> = energyRepo?.weeklyReview ?: flowOf(null)
             combine(
                 diary.entries(user.userId, now.date),
-                history,
-                target,
-                review,
+                diary.entriesBetween(user.userId, now.date.minusDays(HISTORY_DAYS), now.date.minusDays(1)),
+                energy.target.map { it?.targetKcal },
+                energy.weeklyReview,
                 reviewPrefs.dismissedOn,
             ) { todayEntries, days, targetKcal, weekly, dismissedWeek ->
                 TodayUiState(
