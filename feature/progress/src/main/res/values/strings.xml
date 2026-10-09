@@ -2,10 +2,7 @@
 <resources>
     <!-- Shared -->
     <string name="progress_kg">%1$s kg</string>
-    <string name="progress_kg_unit">kg</string>
     <string name="progress_kcal">%1$s kcal</string>
-    <string name="progress_action_save">Save</string>
-    <string name="progress_action_cancel">Cancel</string>
 
     <!-- Weight tab -->
     <string name="progress_weight_title">Weight</string>
@@ -37,7 +34,6 @@
     <string name="progress_weight_trend_away_down">Small ups and downs are normal. Lately it has gone down about %1$s kg a week.</string>
     <string name="progress_weight_trend_reached">You\'ve reached your target weight. Small ups and downs are normal.</string>
     <string name="progress_weight_log">Log weigh-in</string>
-    <string name="progress_weigh_in_label">Today\'s weight</string>
     <string name="progress_weight_no_profile_title">Your target weight</string>
     <string name="progress_weight_no_profile_body">Add your start and target weight to see your progress here.</string>
     <string name="progress_weight_set_target">Set target weight</string>

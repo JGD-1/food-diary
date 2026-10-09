@@ -7,14 +7,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import nl.guido.foodtracker.core.data.repo.ProfileRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
-import nl.guido.foodtracker.core.model.WeighIn
-import nl.guido.foodtracker.core.model.newId
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -28,8 +24,8 @@ internal sealed interface WeightUiState {
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 internal class WeightViewModel @Inject constructor(
-    private val session: SessionRepository,
-    private val profiles: ProfileRepository,
+    session: SessionRepository,
+    profiles: ProfileRepository,
 ) : ViewModel() {
 
     val state: StateFlow<WeightUiState> = session.currentUser
@@ -43,17 +39,4 @@ internal class WeightViewModel @Inject constructor(
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), WeightUiState.Loading)
-
-    /**
-     * STAND-IN weigh-in entry, used until stream 4's weigh-in screen has a route.
-     * One weigh-in per day: a second one today replaces the first.
-     */
-    fun logWeighIn(kg: Double) {
-        viewModelScope.launch {
-            val userId = session.currentUser.value.userId
-            val today = LocalDate.now()
-            val existing = profiles.weighIns(userId).first().firstOrNull { it.date == today }
-            profiles.saveWeighIn(WeighIn(existing?.id ?: newId(), userId, today, kg))
-        }
-    }
 }
