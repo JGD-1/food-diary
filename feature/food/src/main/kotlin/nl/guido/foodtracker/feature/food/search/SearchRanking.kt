@@ -2,33 +2,39 @@ package nl.guido.foodtracker.feature.food.search
 
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
+import nl.guido.foodtracker.core.model.Id
 
 /** Splits what was typed into words, ignoring case and punctuation. */
 internal fun searchWords(text: String): List<String> =
     text.lowercase().split(Regex("[^\\p{L}\\p{N}]+")).filter { it.isNotEmpty() }
 
 /**
- * Keeps foods that contain every typed word (in any order, so "brown bread" finds "Bread brown")
- * and puts the best matches first: exact name, name starting with the text, a word starting with
+ * Keeps foods that contain every typed word (in any order, so "brown bread" finds "Bread brown"),
+ * in the name, brand or [otherNames] (Dutch NEVO names), and puts the best matches first: exact name, name starting with the text, a word starting with
  * the first typed word; own foods before Open Food Facts before NEVO; then shorter names.
  */
-internal fun rankFoods(text: String, candidates: List<Food>, limit: Int = 50): List<Food> {
+internal fun rankFoods(
+    text: String,
+    candidates: List<Food>,
+    limit: Int = 50,
+    otherNames: Map<Id, String> = emptyMap(),
+): List<Food> {
     val words = searchWords(text)
     if (words.isEmpty()) return emptyList()
     val phrase = words.joinToString(" ")
     return candidates
         .filter { food ->
-            val hay = haystack(food)
+            val hay = haystack(food) + " " + (otherNames[food.id]?.lowercase() ?: "")
             words.all { it in hay }
         }
         .sortedWith(
             compareBy<Food>(
                 { food ->
-                    val name = searchWords(food.name).joinToString(" ")
+                    val names = listOfNotNull(food.name, otherNames[food.id]).map { searchWords(it).joinToString(" ") }
                     when {
-                        name == phrase -> 0
-                        name.startsWith(phrase) -> 1
-                        searchWords(food.name).any { it.startsWith(words.first()) } -> 2
+                        names.any { it == phrase } -> 0
+                        names.any { it.startsWith(phrase) } -> 1
+                        names.any { name -> name.split(' ').any { it.startsWith(words.first()) } } -> 2
                         else -> 3
                     }
                 },

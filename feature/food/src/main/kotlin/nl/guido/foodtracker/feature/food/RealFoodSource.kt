@@ -7,7 +7,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.model.Food
+import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.FoodSource
+import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.feature.food.nevo.NevoImporter
 import nl.guido.foodtracker.feature.food.off.OpenFoodFacts
 import nl.guido.foodtracker.feature.food.search.rankFoods
@@ -26,10 +28,12 @@ internal class RealFoodSource(
     private val off: OpenFoodFacts,
     /** Makes sure NEVO is in the food table; a plain function so tests need no Android. */
     private val ensureNevo: suspend () -> Unit,
+    /** NEVO food id to Dutch name; also tells which NEVO rows the app uses. */
+    private val dutchNames: suspend () -> Map<Id, String>,
     private val clock: () -> Long = System::currentTimeMillis,
 ) : FoodSource {
     @Inject constructor(foods: FoodRepository, off: OpenFoodFacts, nevo: NevoImporter) :
-        this(foods, off, { nevo.ensureImported() }) {
+        this(foods, off, { nevo.ensureImported() }, { nevo.dutchNames() }) {
         // Import NEVO in the background as soon as anything needs foods, so the first search is quick.
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { runCatching { nevo.ensureImported() } }
     }
@@ -59,9 +63,16 @@ internal class RealFoodSource(
         val words = searchWords(text)
         if (words.isEmpty()) return emptyList()
         runCatching { ensureNevo() }
+        val dutch = runCatching { dutchNames() }.getOrDefault(emptyMap())
         // The database can match one word; the longest one narrows it down the most.
-        val candidates = foods.search(words.maxBy { it.length }, limit = 400).first()
-        return rankFoods(text, candidates)
+        val found = foods.search(words.maxBy { it.length }, limit = 400).first()
+        // Add NEVO foods whose Dutch name matches (the table holds the English name).
+        val known = found.mapTo(HashSet()) { it.id }
+        val byDutch = dutch.filter { (id, name) -> id !in known && words.all { it in name.lowercase() } }
+            .keys.take(60).mapNotNull { foods.get(it) }
+        // NEVO rows the app doesn't use (per 100 ml) may still be on phones from an older version.
+        val candidates = (found + byDutch).filter { it.source != FoodOrigin.NEVO || dutch.isEmpty() || it.id in dutch }
+        return rankFoods(text, candidates, otherNames = dutch)
     }
 
     override suspend fun searchOnline(text: String): List<Food> {
