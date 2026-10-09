@@ -6,20 +6,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 /**
- * Colours from the chosen design (design canvas, top row).
+ * Colours: "Forest green", chosen in the design review (decisions.md, 9 Oct 2026).
  * One accent colour, and no red anywhere: even Material's "error" colour is the accent,
  * so nothing in the app ever reads as a warning.
  */
 object FoodColors {
-    val Accent = Color(0xFF5B3FD9)
-    val AccentStrong = Color(0xFF3A2699)   // text on soft accent backgrounds
-    val AccentSoft = Color(0xFFECE8FF)     // "Again" button, selected tab
-    val AccentTrack = Color(0xFFDCD5FF)    // empty part of the ring
-    val AccentOutline = Color(0xFFB9AEF0)  // dashed "Add dinner" outline
-    val Background = Color(0xFFF3F0FF)
-    val Surface = Color(0xFFFFFFFF)
+    val Accent = Color(0xFF1F6F50)         // buttons, ring, graphs
+    val AccentStrong = Color(0xFF164F39)   // text on tinted backgrounds
+    val AccentSoft = Color(0xFFE0EDE4)     // tint: "Again" chips, selected tab
+    val AccentTrack = Color(0xFFCFE2D5)    // empty part of the ring
+    val AccentOutline = Color(0xFF9CC4AA)  // dashed "Add dinner" outline
+    val Background = Color(0xFFEEF4EF)
+    val Surface = Color(0xFFFFFFFF)        // cards
     val Text = Color(0xFF1A1A1A)
-    val TextSecondary = Color(0xFF4A4560)
+    val TextSecondary = Color(0xFF45544B)
 }
 
 private val colors = lightColorScheme(
