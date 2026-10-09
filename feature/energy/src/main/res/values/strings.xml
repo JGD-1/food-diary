@@ -1,7 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="energy_energy_target_title">Your daily target</string>
-    <string name="energy_energy_target_body">How your target is calculated.</string>
-    <string name="energy_profile_title">Profile</string>
-    <string name="energy_profile_body">Your details and settings.</string>
+    <string name="energy_back">Back</string>
+    <string name="energy_kcal">%1$s kcal</string>
+    <string name="energy_times">× %1$s</string>
+
+    <!-- How is my target calculated -->
+    <string name="energy_target_title">How your target is calculated</string>
+    <string name="energy_target_daily">Your daily target</string>
+    <string name="energy_manual_note">You set your own target of %1$s kcal. The calculation below (%2$s kcal) is just for reference.</string>
+    <string name="energy_line_resting_title">Resting energy</string>
+    <string name="energy_line_resting_body">What your body uses at complete rest, worked out from your age (%1$d), sex (%2$s), height and weight (%3$s kg). This is the Mifflin-St Jeor formula.</string>
+    <string name="energy_line_activity_title">Activity: about %1$s kcal a day</string>
+    <string name="energy_line_activity_body">Your everyday activity on top of resting energy. Together this is roughly what keeps your weight the same.</string>
+    <string name="energy_line_lose_title">Towards your target weight</string>
+    <string name="energy_line_lose_body">To lose about %1$s kg a week.</string>
+    <string name="energy_line_gain_title">Towards your target weight</string>
+    <string name="energy_line_gain_body">To gain about %1$s kg a week.</string>
+    <string name="energy_line_maintain_title">At your target weight</string>
+    <string name="energy_line_maintain_body">You\'re within half a kilo of your target weight, so the aim is to stay where you are.</string>
+    <string name="energy_line_adjust_title">Learned from your weigh-ins</string>
+    <string name="energy_line_adjust_body">Based on your weekly weigh-ins and what you logged. It changes by at most 100 kcal a week, and weeks with little logging are skipped.</string>
+    <string name="energy_line_adjust_waiting">Starts after 3 weekly weigh-ins. %1$d more to go.</string>
+    <string name="energy_line_total_title">Daily target</string>
+    <string name="energy_line_minimum">Kept at %1$s kcal, a sensible minimum.</string>
+    <string name="energy_weight_from_weigh_in">Weight used: %1$s kg, from your weigh-in on %2$s.</string>
+    <string name="energy_weight_from_start">Weight used: %1$s kg, your starting weight.</string>
+    <string name="energy_log_weigh_in">Log weigh-in</string>
+    <string name="energy_change_inputs">Change your details</string>
+
+    <!-- Profile -->
+    <string name="energy_profile_title">Your details</string>
+    <string name="energy_profile_intro">Tell the app a little about yourself, and it works out a daily target for you.</string>
+    <string name="energy_form_birth_year">Year of birth</string>
+    <string name="energy_form_sex">Sex (the formula differs a little)</string>
+    <string name="energy_sex_female">Female</string>
+    <string name="energy_sex_male">Male</string>
+    <string name="energy_sex_female_lower">female</string>
+    <string name="energy_sex_male_lower">male</string>
+    <string name="energy_form_height">Height (cm)</string>
+    <string name="energy_form_weight">Weight now (kg)</string>
+    <string name="energy_form_activity">How active are you on a normal day?</string>
+    <string name="energy_activity_sedentary">Mostly sitting</string>
+    <string name="energy_activity_sedentary_body">Desk work, little walking.</string>
+    <string name="energy_activity_light">Lightly active</string>
+    <string name="energy_activity_light_body">Some walking, or light exercise 1 to 3 days a week.</string>
+    <string name="energy_activity_moderate">Moderately active</string>
+    <string name="energy_activity_moderate_body">On your feet a lot, or exercise 3 to 5 days a week.</string>
+    <string name="energy_activity_active">Very active</string>
+    <string name="energy_activity_active_body">Physical work, or hard exercise 6 to 7 days a week.</string>
+    <string name="energy_activity_very_active">Extremely active</string>
+    <string name="energy_activity_very_active_body">Hard physical work plus daily training.</string>
+    <string name="energy_form_target_weight">Target weight (kg)</string>
+    <string name="energy_form_pace">Pace</string>
+    <string name="energy_pace_option">%1$s kg a week</string>
+    <string name="energy_form_own_target">Use my own daily target</string>
+    <string name="energy_form_own_target_body">Type your own number instead of the calculated one.</string>
+    <string name="energy_form_own_target_kcal">Daily target (kcal)</string>
+    <string name="energy_form_check">Please fill in every field. Year of birth, height (100 to 250 cm) and weights (30 to 300 kg) need a number.</string>
+    <string name="energy_form_saved">Saved. Your target is up to date.</string>
+    <string name="energy_form_save">Save</string>
+    <string name="energy_account_sync">Account and sync</string>
+    <string name="energy_data_sources">Data sources</string>
+
+    <!-- Weekly weigh-in -->
+    <string name="energy_weigh_in_title">Weekly weigh-in</string>
+    <string name="energy_weigh_in_tip">Once a week is enough. Weigh yourself at the same moment each time, for example Monday morning before breakfast.</string>
+    <string name="energy_weigh_in_last">Last time: %1$s kg on %2$s.</string>
+    <string name="energy_weigh_in_replaces">You already weighed in this week (%1$s kg). Saving replaces it.</string>
+    <string name="energy_weigh_in_field">Weight (kg)</string>
+    <string name="energy_weigh_in_check">Type your weight in kilos, for example 82.4.</string>
+    <string name="energy_weigh_in_save">Save weigh-in</string>
+    <string name="energy_weigh_in_saved">Saved: %1$s kg</string>
+    <string name="energy_weigh_in_less">%1$s kg less than the week before.</string>
+    <string name="energy_weigh_in_more">%1$s kg more than the week before.</string>
+    <string name="energy_weigh_in_same">The same as the week before.</string>
+    <string name="energy_weigh_in_first">Your first weigh-in. The trend shows after a few weeks.</string>
+    <string name="energy_weigh_in_normal">Weight goes up and down by about a kilo from day to day, mostly water and salt. The trend over the weeks is what counts.</string>
+    <string name="energy_done">Done</string>
 </resources>
