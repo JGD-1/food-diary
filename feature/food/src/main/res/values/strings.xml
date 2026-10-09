@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="food_eat_out_title">Eat out</string>
-    <string name="food_eat_out_body">Type what you ate and get an estimate.</string>
+    <string name="food_eat_out_body">Pick your dish from the list, or type the kcal yourself.</string>
     <string name="food_eat_out_dish_label">What did you eat?</string>
     <string name="food_eat_out_dish_hint">For example: pizza margherita</string>
-    <string name="food_eat_out_estimate">Estimate</string>
-    <string name="food_eat_out_estimating">Estimating…</string>
     <string name="food_eat_out_range">%1$d–%2$d kcal</string>
-    <string name="food_eat_out_typical">Usually about %1$d kcal</string>
+    <string name="food_eat_out_kcal">%1$d kcal</string>
+    <string name="food_eat_out_typical">Usually about %1$d kcal. This is what gets counted.</string>
     <string name="food_eat_out_is_estimate">≈ This is an estimate. It is logged as one, so it stays apart from weighed food.</string>
-    <string name="food_eat_out_offline">No estimate right now, because there is no internet. You can type the kcal yourself, or try again later.</string>
-    <string name="food_eat_out_not_set_up">Estimates aren\'t switched on yet. You can type the kcal yourself.</string>
-    <string name="food_eat_out_failed">No estimate for this one. Try other words, or type the kcal yourself.</string>
+    <string name="food_eat_out_own_dish">You typed this one in before.</string>
+    <string name="food_eat_out_not_listed">Not in the list? Type the kcal yourself. The app remembers this dish for next time.</string>
     <string name="food_eat_out_type_kcal">Kcal (your own guess)</string>
     <string name="food_eat_out_meal">Which meal?</string>
     <string name="food_eat_out_log">Log as estimate</string>

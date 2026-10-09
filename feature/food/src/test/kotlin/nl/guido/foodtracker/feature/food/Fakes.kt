@@ -30,7 +30,6 @@ internal class FakeFoods(vararg start: Food) : FoodRepository {
 internal class FakeWeb(var reply: (String) -> WebResponse = { WebResponse(404, "") }) : WebClient {
     val urls = mutableListOf<String>()
     val headers = mutableListOf<Map<String, String>>()
-    val bodies = mutableListOf<String>()
     var offline = false
 
     override suspend fun get(url: String, headers: Map<String, String>): WebResponse {
@@ -38,11 +37,6 @@ internal class FakeWeb(var reply: (String) -> WebResponse = { WebResponse(404, "
         urls += url
         this.headers += headers
         return reply(url)
-    }
-
-    override suspend fun postJson(url: String, headers: Map<String, String>, json: String): WebResponse {
-        bodies += json
-        return get(url, headers)
     }
 }
 
