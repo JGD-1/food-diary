@@ -37,19 +37,33 @@ internal class BarcodeReader(private val onCode: (String) -> Unit) : ImageAnalys
     override fun close() = scanner.close()
 }
 
-/** Reads the number on the kitchen scale's display in each camera frame. */
+/**
+ * Reads the number on the kitchen scale's display in each camera frame.
+ * People often hold the phone sideways to the scale, so when a frame shows no number the
+ * next frames are also tried turned a quarter left and right; once a number is found that turn is kept.
+ */
 internal class ScaleReader(private val onFrame: (ScaleParse) -> Unit) : ImageAnalysis.Analyzer, Closeable {
     private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    private var turn = 0
 
     @OptIn(ExperimentalGetImage::class)
     override fun analyze(frame: ImageProxy) {
         val image = frame.image ?: return frame.close()
-        recognizer.process(InputImage.fromMediaImage(image, frame.imageInfo.rotationDegrees))
-            .addOnSuccessListener { text -> onFrame(ScaleDisplayParser.parse(text.toLines())) }
+        val rotation = (frame.imageInfo.rotationDegrees + EXTRA_TURNS[turn]) % 360
+        recognizer.process(InputImage.fromMediaImage(image, rotation))
+            .addOnSuccessListener { text ->
+                val parse = ScaleDisplayParser.parse(text.toLines())
+                if (parse == ScaleParse.Unreadable) turn = (turn + 1) % EXTRA_TURNS.size
+                onFrame(parse)
+            }
             .addOnCompleteListener { frame.close() }
     }
 
     override fun close() = recognizer.close()
+
+    companion object {
+        val EXTRA_TURNS = intArrayOf(0, 90, 270)
+    }
 }
 
 /** Reads all text on one photo (the nutrition label). */
@@ -69,7 +83,7 @@ internal class LabelReader : Closeable {
     override fun close() = recognizer.close()
 }
 
-private fun Text.toLines(): List<TextLine> = textBlocks.flatMap { block ->
+internal fun Text.toLines(): List<TextLine> = textBlocks.flatMap { block ->
     block.lines.mapNotNull { line ->
         line.boundingBox?.let { box ->
             TextLine(line.text, box.left.toFloat(), box.top.toFloat(), box.right.toFloat(), box.bottom.toFloat())

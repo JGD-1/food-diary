@@ -5,6 +5,9 @@ plugins {
 
 android {
     namespace = "nl.guido.foodtracker.feature.camera"
+    defaultConfig {
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
 }
 
 dependencies {
@@ -17,4 +20,8 @@ dependencies {
     // Reading barcodes and text on the phone (bundled models: work offline, nothing uploaded)
     implementation(libs.mlkit.barcode.scanning)
     implementation(libs.mlkit.text.recognition)
+
+    // ScalePhotosTest: the scale reader on real photos, on a phone or emulator
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
 }
