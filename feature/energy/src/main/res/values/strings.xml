@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="energy_energy_target_title">Your daily target</string>
+    <string name="energy_energy_target_body">How your target is calculated.</string>
+    <string name="energy_profile_title">Profile</string>
+    <string name="energy_profile_body">Your details and settings.</string>
+</resources>

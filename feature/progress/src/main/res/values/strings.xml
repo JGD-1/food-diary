@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="progress_weight_title">Weight</string>
+    <string name="progress_weight_body">Your weekly weigh-ins and trend.</string>
+    <string name="progress_stats_title">Stats</string>
+    <string name="progress_stats_body">Your weekly and monthly averages.</string>
+</resources>

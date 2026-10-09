@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Food diary</string>
+    <string name="tab_today">Today</string>
+    <string name="tab_weight">Weight</string>
+    <string name="tab_stats">Stats</string>
+</resources>

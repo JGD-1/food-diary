@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="today_hello_title">Hello!</string>
+    <string name="today_hello_body">Food diary is installed and working. The real screens arrive soon.</string>
+    <string name="today_version">Version %1$s</string>
+    <string name="today_log_food_title">Log food</string>
+    <string name="today_log_food_body">Search, recent foods and favourites.</string>
+</resources>

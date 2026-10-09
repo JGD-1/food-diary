@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="recipes_recipes_title">Recipes</string>
+    <string name="recipes_recipes_body">Your shared recipes and batch meals.</string>
+</resources>
