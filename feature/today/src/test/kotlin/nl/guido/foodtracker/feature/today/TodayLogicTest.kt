@@ -59,6 +59,15 @@ class TodayLogicTest {
     }
 
     @Test
+    fun `earlier empty meals are offered as small lines`() {
+        val today = listOf(line("Soup", 300.0, Meal.LUNCH))
+        val evening = todaySummary(today, emptyList(), 2000, Meal.SNACKS)
+        assertEquals(listOf(Meal.BREAKFAST, Meal.DINNER), evening.earlierEmptyMeals)
+        assertEquals(Meal.SNACKS, evening.nextEmptyMeal)
+        assertEquals(emptyList<Meal>(), todaySummary(today, emptyList(), 2000, Meal.BREAKFAST).earlierEmptyMeals)
+    }
+
+    @Test
     fun `again on an empty meal repeats the most recent earlier day`() {
         val history = listOf(
             line("Pasta", 600.0, Meal.DINNER, TODAY.minusDays(3)),
