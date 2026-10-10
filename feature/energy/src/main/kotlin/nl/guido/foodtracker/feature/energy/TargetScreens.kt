@@ -87,6 +87,7 @@ internal fun ProfileScreen(
     onBack: () -> Unit,
     onOpenTarget: () -> Unit,
     onAccount: () -> Unit,
+    onReminders: () -> Unit,
     viewModel: EnergyViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -97,6 +98,9 @@ internal fun ProfileScreen(
         }
         ProfileFormFields(current, viewModel, onSaved = if (current.profile == null) onOpenTarget else ({}))
         HorizontalDivider()
+        OutlinedButton(onClick = onReminders, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+            Text(stringResource(R.string.energy_reminders))
+        }
         OutlinedButton(onClick = onAccount, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
             Text(stringResource(R.string.energy_account_sync))
         }
@@ -345,6 +349,9 @@ private fun ProfileFormFields(state: EnergyState, viewModel: EnergyViewModel, on
     if (form.useOwnTarget) {
         NumberField(form.ownTargetKcal, R.string.energy_form_own_target_kcal, decimal = false) { form = form.copy(ownTargetKcal = it) }
     }
+
+    NumberField(form.proteinGoalG, R.string.energy_form_protein_goal, decimal = false) { form = form.copy(proteinGoalG = it) }
+    Note(stringResource(R.string.energy_form_protein_goal_body))
 
     if (showCheck) Note(stringResource(R.string.energy_form_check))
     if (saved) Note(stringResource(R.string.energy_form_saved))

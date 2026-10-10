@@ -35,5 +35,19 @@ internal class EnergyViewModel @Inject constructor(
         viewModelScope.launch { onSaved(data.saveWeighIn(kg)) }
     }
 
+    fun changeWeighIn(id: String, kg: Double, onSaved: () -> Unit) {
+        viewModelScope.launch {
+            data.changeWeighIn(id, kg)
+            onSaved()
+        }
+    }
+
+    fun deleteWeighIn(id: String, onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            data.deleteWeighIn(id)
+            onDeleted()
+        }
+    }
+
     fun today() = today.date()
 }

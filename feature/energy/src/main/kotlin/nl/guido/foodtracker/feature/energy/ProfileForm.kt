@@ -17,6 +17,8 @@ internal data class ProfileForm(
     val weeklyPaceKg: Double = DEFAULT_PACE,
     val useOwnTarget: Boolean = false,
     val ownTargetKcal: String = "",
+    /** Optional daily protein goal in grams; empty = no goal. */
+    val proteinGoalG: String = "",
 ) {
     /** The profile to save, or null while something is missing or out of range. */
     fun toProfile(userId: String, name: String, today: LocalDate, existing: UserProfile?): UserProfile? {
@@ -24,6 +26,7 @@ internal data class ProfileForm(
         val height = heightCm.trim().toIntOrNull()?.takeIf { it in 100..250 } ?: return null
         val start = existing?.startWeightKg ?: parseKg(weightKg) ?: return null
         val target = parseKg(targetWeightKg) ?: return null
+        val protein = proteinGoalG.trim().ifEmpty { null }?.let { it.toIntOrNull()?.takeIf { g -> g in 10..400 } ?: return null }
         val own = if (useOwnTarget) ownTargetKcal.trim().toIntOrNull()?.takeIf { it in 800..6000 } ?: return null else null
         return UserProfile(
             id = userId,
@@ -36,6 +39,7 @@ internal data class ProfileForm(
             targetWeightKg = target,
             weeklyPaceKg = weeklyPaceKg,
             manualTargetKcal = own,
+            proteinGoalG = protein,
         )
     }
 
@@ -53,6 +57,7 @@ internal data class ProfileForm(
             weeklyPaceKg = profile.weeklyPaceKg,
             useOwnTarget = profile.manualTargetKcal != null,
             ownTargetKcal = profile.manualTargetKcal?.toString().orEmpty(),
+            proteinGoalG = profile.proteinGoalG?.toString().orEmpty(),
         )
     }
 }

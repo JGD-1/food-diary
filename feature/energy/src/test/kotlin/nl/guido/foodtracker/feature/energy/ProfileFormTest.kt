@@ -55,4 +55,22 @@ class ProfileFormTest {
         assertEquals(84.2, parseKg(" 84.2 ")!!, 0.0)
         assertNull(parseKg("8"))
     }
+
+    @Test
+    fun proteinGoalIsOptional() {
+        assertNull(filled.toProfile("u", "G", MONDAY, null)!!.proteinGoalG)
+        assertEquals(120, filled.copy(proteinGoalG = " 120 ").toProfile("u", "G", MONDAY, null)!!.proteinGoalG)
+    }
+
+    @Test
+    fun oddProteinGoalMakesNothing() {
+        assertNull(filled.copy(proteinGoalG = "5").toProfile("u", "G", MONDAY, null))
+        assertNull(filled.copy(proteinGoalG = "900").toProfile("u", "G", MONDAY, null))
+    }
+
+    @Test
+    fun proteinGoalComesBackInTheForm() {
+        val profile = filled.copy(proteinGoalG = "95").toProfile("u", "G", MONDAY, null)!!
+        assertEquals("95", ProfileForm.from(profile).proteinGoalG)
+    }
 }

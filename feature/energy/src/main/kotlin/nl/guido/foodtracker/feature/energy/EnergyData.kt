@@ -75,6 +75,15 @@ internal class EnergyData @Inject constructor(
         if (isNew) saveWeighIn(profile.startWeightKg)
     }
 
+    /** Changes the weight of an earlier weigh-in; its date stays the same. */
+    suspend fun changeWeighIn(id: String, kg: Double) {
+        val user = session.currentUser.value
+        val existing = profiles.weighIns(user.userId).first().firstOrNull { it.id == id } ?: return
+        profiles.saveWeighIn(existing.copy(kg = kg))
+    }
+
+    suspend fun deleteWeighIn(id: String) = profiles.deleteWeighIn(id)
+
     /** Saves a weigh-in for today. One per week: a second one in the same week replaces the first. */
     suspend fun saveWeighIn(kg: Double): WeighIn {
         val user = session.currentUser.value
