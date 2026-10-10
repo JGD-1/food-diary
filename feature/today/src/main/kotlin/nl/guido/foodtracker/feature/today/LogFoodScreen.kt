@@ -121,6 +121,8 @@ internal fun LogFoodRoute(
                 onChooseEntry = viewModel::choose,
                 onQuickAdd = viewModel::quickAdd,
                 onChooseFood = viewModel::choose,
+                onChoosePin = viewModel::choose,
+                onTypeKcal = { open(Routes.eatOut(ui.date, ui.query.trim()), Routes.EAT_OUT) },
                 onRecipe = viewModel::openRecipe,
                 onBatch = viewModel::openBatch,
                 onAllRecipes = { open(Routes.RECIPES) },
@@ -129,9 +131,13 @@ internal fun LogFoodRoute(
                 AmountSheet(
                     step = step,
                     meal = mealFor(step.pick.isDrink, ui.meal),
+                    pin = ui.amountPin,
                     onDismiss = viewModel::closeAmount,
                     onWeigh = { open(Routes.CAMERA_SCALE, Routes.CAMERA) },
                     onAdd = viewModel::add,
+                    onPin = viewModel::pin,
+                    onUnpin = viewModel::unpin,
+                    onEditFood = { foodId -> viewModel.closeAmount(); open(Routes.foodEdit(foodId)) },
                 )
             }
         }
@@ -150,6 +156,8 @@ private fun LogFoodContent(
     onChooseEntry: (LogEntry) -> Unit,
     onQuickAdd: (LogEntry) -> Unit,
     onChooseFood: (Food) -> Unit,
+    onChoosePin: (PinnedFood) -> Unit,
+    onTypeKcal: () -> Unit,
     onRecipe: (Recipe) -> Unit,
     onBatch: (Batch) -> Unit,
     onAllRecipes: () -> Unit,
@@ -230,7 +238,7 @@ private fun LogFoodContent(
                     )
                 }
             }
-            if (ui.pinned.isNotEmpty()) {
+            if (ui.pinned.isNotEmpty() || ui.pinnedFoods.isNotEmpty()) {
                 section(R.string.today_section_favourites)
                 items(ui.pinned, key = { "pin-" + it.id }) { recipe ->
                     ItemRow(
@@ -239,16 +247,24 @@ private fun LogFoodContent(
                         onClick = { onRecipe(recipe) },
                     )
                 }
+                items(ui.pinnedFoods, key = { "pin-food-" + it.favourite.id }) { pin ->
+                    val unit = if (pin.food.isDrink) R.string.today_amount_ml else R.string.today_amount_grams
+                    ItemRow(
+                        title = pin.food.name,
+                        detail = pin.usualGrams?.let { stringResource(unit, formatAmount(it)) },
+                        onClick = { onChoosePin(pin) },
+                    )
+                }
             }
             if (ui.batches.isNotEmpty()) {
                 section(R.string.today_section_pot)
-                items(ui.batches, key = { "batch-" + it.id }) { batch ->
+                items(ui.batches, key = { "batch-" + it.batch.id }) { item ->
                     val locale = Locale.forLanguageTag(stringResource(R.string.today_locale))
-                    val day = batch.cookedOn.format(DateTimeFormatter.ofPattern("EEEE", locale))
+                    val day = item.batch.cookedOn.format(DateTimeFormatter.ofPattern("EEEE", locale))
                     ItemRow(
-                        title = batch.name,
-                        detail = stringResource(R.string.today_cooked_on, day),
-                        onClick = { onBatch(batch) },
+                        title = item.batch.name,
+                        detail = stringResource(R.string.today_pot_left, day, formatAmount(item.gramsLeft)),
+                        onClick = { onBatch(item.batch) },
                     )
                 }
             }
@@ -281,6 +297,14 @@ private fun LogFoodContent(
                     items(ui.found, key = { "found-" + it.id }) { food -> FoodRow(food) { onChooseFood(food) } }
                 }
                 onlineSection(ui, onSearchOnline, onChooseFood)
+                // Not in any list (a market stall, a friend's dish): log it with your own kcal in Eat out.
+                item(key = "type-kcal") {
+                    ItemRow(
+                        title = stringResource(R.string.today_type_kcal),
+                        detail = stringResource(R.string.today_type_kcal_detail, ui.query.trim()),
+                        onClick = onTypeKcal,
+                    )
+                }
                 val shown = ui.found + ((ui.online as? OnlineSearch.Found)?.foods ?: emptyList())
                 if (shown.any { it.source == FoodOrigin.NEVO }) {
                     item(key = "nevo") {
@@ -383,9 +407,13 @@ private fun ItemRow(
 private fun AmountSheet(
     step: AmountStep,
     meal: Meal,
+    pin: PinnedFood?,
     onDismiss: () -> Unit,
     onWeigh: () -> Unit,
     onAdd: (Double) -> Unit,
+    onPin: (Double) -> Unit,
+    onUnpin: () -> Unit,
+    onEditFood: (String) -> Unit,
 ) {
     val pick = step.pick
     var text by remember(step) { mutableStateOf(formatAmount(step.grams)) }
@@ -415,6 +443,15 @@ private fun AmountSheet(
                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                pick.chips.forEach { chip ->
+                    val amount = "${formatAmount(chip.grams)} $unit"
+                    val label = when (chip.kind) {
+                        AmountChip.Kind.SERVING -> stringResource(R.string.today_chip_serving, amount)
+                        AmountChip.Kind.PACK -> stringResource(R.string.today_chip_pack, amount)
+                        AmountChip.Kind.PIECE -> stringResource(R.string.today_chip_piece, chip.label.orEmpty(), amount)
+                    }
+                    SuggestionChip(onClick = { text = formatAmount(chip.grams) }, label = { Text(label) })
+                }
                 quickAmounts(pick.isDrink).forEach { amount ->
                     SuggestionChip(onClick = { text = formatAmount(amount) }, label = { Text("${formatAmount(amount)} $unit") })
                 }
@@ -423,6 +460,21 @@ private fun AmountSheet(
                 Icon(TodayIcons.Weigh, contentDescription = null, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.today_weigh_on_scale))
+            }
+            val foodId = pick.foodId
+            if (foodId != null) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (pin == null) {
+                        TextButton(onClick = { grams?.let(onPin) }, enabled = grams != null) {
+                            Text(stringResource(R.string.today_pin))
+                        }
+                    } else {
+                        TextButton(onClick = onUnpin) { Text(stringResource(R.string.today_unpin)) }
+                    }
+                    if (canEdit(pick.food)) {
+                        TextButton(onClick = { onEditFood(foodId) }) { Text(stringResource(R.string.today_edit_food)) }
+                    }
+                }
             }
             if (grams != null) {
                 Text(

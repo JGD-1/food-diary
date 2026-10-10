@@ -27,17 +27,21 @@ import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.data.repo.RecipeRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.CommonPortions
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodSource
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
+import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.ui.Routes
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.Optional
+import kotlin.jvm.optionals.getOrNull
 import javax.inject.Inject
 
 /** The amount step for one chosen item. */
@@ -58,11 +62,15 @@ internal data class LogFoodUiState(
     val query: String,
     val recent: List<LogEntry>,
     val pinned: List<Recipe>,
-    val batches: List<Batch>,
+    val pinnedFoods: List<PinnedFood>,
+    val batches: List<PotItem>,
     val found: List<Food>,
     val online: OnlineSearch,
     val amount: AmountStep?,
-)
+) {
+    /** My pin for the food in the amount sheet, if I pinned it. */
+    val amountPin: PinnedFood? get() = amount?.pick?.foodId?.let { id -> pinnedFoods.firstOrNull { it.food.id == id } }
+}
 
 internal sealed interface LogFoodEvent {
     data class Added(val name: String, val meal: Meal, val id: Id) : LogFoodEvent
@@ -77,7 +85,9 @@ internal class LogFoodViewModel @Inject constructor(
     private val diary: DiaryRepository,
     private val foods: FoodRepository,
     private val foodSource: FoodSource,
-    recipes: RecipeRepository,
+    private val recipes: RecipeRepository,
+    /** "1 apple ≈ 150 g" pieces, bound by feature/food; empty until it is. */
+    private val commonPortions: Optional<CommonPortions>,
 ) : ViewModel() {
 
     private val meal = MutableStateFlow(
@@ -117,15 +127,19 @@ internal class LogFoodViewModel @Inject constructor(
 
     private val household = user.flatMapLatest { recipes.recipes(it.householdId) }
 
-    /** My favourites (per person), shown as their recipe with my usual portion. */
-    private val pinned = user.flatMapLatest { recipes.favourites(it.userId) }
-        .combine(household) { favourites, list -> pinnedRecipes(favourites, list) }
-    private val batches = user.flatMapLatest { recipes.batches(it.householdId) }.map { list ->
-        val since = LocalDate.now().minusDays(RECENT_BATCH_DAYS)
-        list.filter { it.cookedOn >= since }
+    /** My favourites (per person): recipes with my usual portion, and pinned foods with my usual amount. */
+    private val favourites = user.flatMapLatest { recipes.favourites(it.userId) }
+    private val pinned = favourites.combine(household) { favourites, list -> pinnedRecipes(favourites, list) }
+    private val myPinnedFoods = favourites.mapLatest { list -> pinnedFoods(list) { foods.get(it) } }
+
+    /** Batches stay until someone taps "Finished", with what is left in the pot across the household. */
+    private val batches = user.flatMapLatest { u ->
+        combine(recipes.batches(u.householdId), recipes.householdPortions(u.householdId)) { list, portions ->
+            potItems(list, portions)
+        }
     }
 
-    private val lists = combine(recentAll, pinned, batches, found) { r, p, b, f -> Lists(r, p, b, f) }
+    private val lists = combine(recentAll, pinned, myPinnedFoods, batches, found) { r, p, pf, b, f -> Lists(r, p, pf, b, f) }
 
     val state: StateFlow<LogFoodUiState?> = combine(meal, query, lists, online, amount) { meal, query, lists, online, amount ->
         val recent = recentItems(lists.recent, meal).filter { query.isBlank() || it.displayName.contains(query.trim(), true) }
@@ -136,6 +150,8 @@ internal class LogFoodViewModel @Inject constructor(
             query = query,
             recent = recent,
             pinned = if (query.isBlank()) lists.pinned else lists.pinned.filter { it.name.contains(query.trim(), true) },
+            pinnedFoods = if (query.isBlank()) lists.pinnedFoods
+            else lists.pinnedFoods.filter { it.food.name.contains(query.trim(), true) },
             batches = if (query.isBlank()) lists.batches else emptyList(),
             found = lists.found.filterNot { it.id in recentFoodIds },
             online = online,
@@ -173,12 +189,60 @@ internal class LogFoodViewModel @Inject constructor(
     }
 
     fun choose(food: Food) {
-        amount.value = AmountStep(pickFromFood(food, recentAll.value), weighedGrams ?: 0.0).withDefault()
+        val pick = pickFromFood(food, recentAll.value)
+        amount.value = AmountStep(pick, weighedGrams ?: 0.0).withDefault()
+        addChips(pick, food)
     }
 
     fun choose(entry: LogEntry) {
         val pick = pickFromEntry(entry)
-        if (pick == null) quickAdd(entry) else amount.value = AmountStep(pick, weighedGrams ?: pick.defaultGrams)
+        if (pick == null) return quickAdd(entry)
+        amount.value = AmountStep(pick, weighedGrams ?: pick.defaultGrams)
+        // Recent lines don't carry the food's serving and pack sizes: look them up for the chips.
+        val foodId = pick.foodId ?: return
+        viewModelScope.launch { foods.get(foodId)?.let { addChips(pick, it) } }
+    }
+
+    /** Fills in the amount chips for [food] (its sizes and common pieces) while [pick] is still open. */
+    private fun addChips(pick: Pick, food: Food) {
+        viewModelScope.launch {
+            val pieces = try {
+                commonPortions.getOrNull()?.forFood(food).orEmpty()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                emptyList()
+            }
+            val chips = amountChips(food, pieces)
+            amount.update { step ->
+                if (step != null && step.pick == pick) step.copy(pick = pick.copy(food = food, chips = chips)) else step
+            }
+        }
+    }
+
+    /** A pinned food: its amount sheet starts at my usual amount. */
+    fun choose(pin: PinnedFood) {
+        val pick = pickFromFood(pin.food, recentAll.value)
+        amount.value = AmountStep(pick, weighedGrams ?: pin.usualGrams ?: pick.defaultGrams)
+        addChips(pick, pin.food)
+    }
+
+    /** Pins the food in the amount sheet with [grams] as my usual amount, or updates that amount. */
+    fun pin(grams: Double) {
+        val step = amount.value ?: return
+        val foodId = step.pick.foodId ?: return
+        val existing = state.value?.amountPin
+        viewModelScope.launch {
+            step.pick.food?.let { food -> if (foods.get(food.id) == null) foods.save(food) }
+            val favourite = existing?.favourite?.copy(usualPortion = Portion(grams))
+                ?: foodFavourite(user.value.userId, foodId, grams)
+            recipes.saveFavourite(favourite)
+        }
+    }
+
+    fun unpin() {
+        val pin = state.value?.amountPin ?: return
+        viewModelScope.launch { recipes.deleteFavourite(pin.favourite.id) }
     }
 
     fun setGrams(grams: Double) = amount.update { it?.copy(grams = grams) }
@@ -258,6 +322,7 @@ internal class LogFoodViewModel @Inject constructor(
             val recent = recentAll.value.ifEmpty { diary.recent(user.value.userId, RECENT_LINES).first() }
             val pick = pickFromFood(food, recent)
             amount.value = AmountStep(pick, grams ?: pick.defaultGrams)
+            addChips(pick, food)
         }
     }
 
@@ -266,13 +331,13 @@ internal class LogFoodViewModel @Inject constructor(
     private data class Lists(
         val recent: List<LogEntry>,
         val pinned: List<Recipe>,
-        val batches: List<Batch>,
+        val pinnedFoods: List<PinnedFood>,
+        val batches: List<PotItem>,
         val found: List<Food>,
     )
 
     private companion object {
         const val RECENT_LINES = 200
         const val SEARCH_DELAY_MS = 200L
-        const val RECENT_BATCH_DAYS = 7L
     }
 }
