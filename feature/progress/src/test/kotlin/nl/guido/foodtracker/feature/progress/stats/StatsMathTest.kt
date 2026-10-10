@@ -102,6 +102,19 @@ class StatsMathTest {
     }
 
     @Test
+    fun `week total adds up every day so far, today included, against seven times the target`() {
+        val entries = listOf(
+            entry(LocalDate.of(2026, 10, 4), 9000.0), // the Sunday before: not this week
+            entry(LocalDate.of(2026, 10, 5), 1800.0),
+            entry(LocalDate.of(2026, 10, 6), 3100.0),
+            entry(today, 400.0),
+        )
+        val week = StatsMath.week(entries, today)
+        assertEquals(5300.0, week.totalKcal, 1e-9)
+        assertEquals(14000.0, StatsMath.weekBudget(2000), 1e-9)
+    }
+
+    @Test
     fun `entries are loaded from the oldest month shown`() {
         assertEquals(LocalDate.of(2026, 5, 1), StatsMath.firstDayNeeded(today))
     }

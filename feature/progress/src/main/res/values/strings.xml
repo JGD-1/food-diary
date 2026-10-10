@@ -44,9 +44,10 @@
     <string name="progress_stats_this_week">This week</string>
     <string name="progress_stats_average_target">kcal a day on average · target %1$s</string>
     <string name="progress_stats_average">kcal a day on average</string>
+    <string name="progress_stats_week_total">This week: %1$s of %2$s kcal</string>
+    <string name="progress_stats_week_note_budget">Dashed line: your daily target. The week counts as a whole (7 × your target), so a bigger day can balance out with lighter ones. Today\'s bar fills up as you log.</string>
     <string name="progress_stats_week_empty">Nothing logged yet this week.</string>
     <string name="progress_stats_today">Today</string>
-    <string name="progress_stats_week_note_target">Dashed line: your daily target. Today\'s bar fills up as you log.</string>
     <string name="progress_stats_week_note">Today\'s bar fills up as you log.</string>
     <string name="progress_stats_week_desc">Calories per day this week: %1$s</string>
     <string name="progress_stats_by_month">By month</string>

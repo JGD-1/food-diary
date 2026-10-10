@@ -68,6 +68,7 @@ internal fun EnergyTargetScreen(
         val details = current.details
         if (details != null) {
             BreakdownCard(details)
+            LearningWeeks(details.adjustmentSteps)
             WeightLine(details)
             OutlinedButton(onClick = onLogWeighIn, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                 Text(stringResource(R.string.energy_log_weigh_in))
@@ -213,6 +214,29 @@ private fun BreakdownCard(details: EnergyDetails) {
         }
     }
 }
+
+/** Which weigh-in weeks the learned correction used, newest first, so skipped weeks are no mystery. */
+@Composable
+private fun LearningWeeks(steps: List<AdjustmentStep>) {
+    if (steps.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SectionTitle(R.string.energy_weeks_title)
+        Note(stringResource(R.string.energy_weeks_body, (EnergyMath.MIN_SHARE_OF_TARGET * 100).toInt()))
+        steps.asReversed().take(MAX_WEEKS_SHOWN).forEach { step ->
+            SumLine(
+                amount = signedKcal(step.adjustmentKcal),
+                title = stringResource(
+                    if (step.used) R.string.energy_week_used else R.string.energy_week_skipped,
+                    shortDate(step.date),
+                ),
+                body = stringResource(R.string.energy_week_days, step.completeDays, step.totalDays),
+            )
+        }
+    }
+}
+
+/** The list stays short; older weeks matter less and are still part of the sum. */
+private const val MAX_WEEKS_SHOWN = 8
 
 @Composable
 private fun SumLine(amount: String, title: String, body: String?) {

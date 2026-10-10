@@ -19,8 +19,13 @@
     <string name="energy_line_maintain_title">At your target weight</string>
     <string name="energy_line_maintain_body">You\'re within half a kilo of your target weight, so the aim is to stay where you are.</string>
     <string name="energy_line_adjust_title">Learned from your weigh-ins</string>
-    <string name="energy_line_adjust_body">Based on your weekly weigh-ins and what you logged. It changes by at most 100 kcal a week, and weeks with little logging are skipped.</string>
+    <string name="energy_line_adjust_body">Based on your weekly weigh-ins and what you logged. It changes by at most 100 kcal a week. Days that look incomplete don\'t count, and weeks with too few complete days are skipped.</string>
     <string name="energy_line_adjust_waiting">Starts after 3 weekly weigh-ins. %1$d more to go.</string>
+    <string name="energy_weeks_title">Weeks used for learning</string>
+    <string name="energy_weeks_body">A day counts when at least %1$d%% of your target is logged. A weigh-in is used when at least half of the days before it count.</string>
+    <string name="energy_week_used">Weigh-in %1$s: used</string>
+    <string name="energy_week_skipped">Weigh-in %1$s: skipped</string>
+    <string name="energy_week_days">%1$d of %2$d days complete</string>
     <string name="energy_line_total_title">Daily target</string>
     <string name="energy_line_minimum">Kept at %1$s kcal, a sensible minimum.</string>
     <string name="energy_weight_from_weigh_in">Weight used: %1$s kg, from your weigh-in on %2$s.</string>
