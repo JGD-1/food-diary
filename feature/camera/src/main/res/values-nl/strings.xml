@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="camera_camera_title">Scannen</string>
+    <string name="camera_back">Terug</string>
+
+    <!-- Toestemming voor de camera -->
+    <string name="camera_permission_body">Om barcodes, etiketten en je weegschaal te scannen, heeft de app de camera nodig. Foto\'s blijven op je telefoon.</string>
+    <string name="camera_permission_allow">Camera toestaan</string>
+
+    <!-- Lamp -->
+    <string name="camera_light_on">Lamp aan</string>
+    <string name="camera_light_off">Lamp uit</string>
+
+    <!-- Barcode -->
+    <string name="camera_barcode_title">Barcode scannen</string>
+    <string name="camera_barcode_body">Richt de camera op de barcode van het pak of de fles.</string>
+    <string name="camera_barcode_hint">Houd de barcode recht en dichtbij, zodat hij het beeld vult. Meer licht kan helpen.</string>
+    <string name="camera_barcode_type">Barcode intypen</string>
+    <string name="camera_barcode_type_field">Barcodenummer</string>
+    <string name="camera_barcode_type_go">Opzoeken</string>
+    <string name="camera_barcode_type_invalid">Dat nummer lijkt geen volledige barcode. Controleer de cijfers onder de streepjes.</string>
+    <string name="camera_looking_up">%1$s opzoeken…</string>
+    <string name="camera_not_found_title">Dit product kennen we nog niet</string>
+    <string name="camera_not_found_body">Scan het voedingsetiket, dan onthouden we het voor de volgende keer.</string>
+    <string name="camera_offline_title">We konden dit nu niet opzoeken</string>
+    <string name="camera_offline_body">Misschien is er geen internet. Je kunt in plaats daarvan het voedingsetiket scannen.</string>
+    <string name="camera_scan_again">Opnieuw scannen</string>
+
+    <!-- Andere mogelijkheden, als een scan niet lukt -->
+    <string name="camera_alt_label">Etiket scannen</string>
+    <string name="camera_alt_search">Zoeken op naam</string>
+    <string name="camera_alt_type_food">Zelf intypen</string>
+    <string name="camera_alt_type_grams">Gram intypen</string>
+
+    <!-- Etiket -->
+    <string name="camera_label_title">Foto van het voedingsetiket</string>
+    <string name="camera_label_body">Zorg dat de hele tabel met de kolom \"per 100 g\" in beeld is en maak dan de foto.</string>
+    <string name="camera_label_take">Foto maken</string>
+    <string name="camera_label_reading">Etiket lezen…</string>
+    <string name="camera_food_title">Nieuw product</string>
+    <string name="camera_food_read">We hebben %1$d van de 4 waarden gelezen. Vergelijk ze even met de verpakking.</string>
+    <string name="camera_food_unread">Het etiket kon deze keer niet gelezen worden. Probeer een andere foto, of typ de getallen van de verpakking over.</string>
+    <string name="camera_food_typed">Typ de waarden van de verpakking over.</string>
+    <string name="camera_food_retake">Nieuwe foto maken</string>
+    <string name="camera_food_name">Naam</string>
+    <string name="camera_food_brand">Merk (optioneel)</string>
+    <string name="camera_food_per100g">Per 100 g</string>
+    <string name="camera_food_per100ml">Per 100 ml</string>
+    <string name="camera_food_kcal">kcal</string>
+    <string name="camera_food_protein">Eiwit (g)</string>
+    <string name="camera_food_carbs">Koolhydraten (g)</string>
+    <string name="camera_food_fat">Vet (g)</string>
+    <string name="camera_food_optional">Optioneel</string>
+    <string name="camera_food_fibre">Vezels (g)</string>
+    <string name="camera_food_sugar">Suikers (g)</string>
+    <string name="camera_food_salt">Zout (g)</string>
+    <string name="camera_food_is_drink">Dit is drinken</string>
+    <string name="camera_food_save">Product opslaan</string>
+
+    <!-- Hoeveel -->
+    <string name="camera_amount_title">Hoeveel?</string>
+    <string name="camera_amount_per100g">%1$d kcal per 100 g</string>
+    <string name="camera_amount_per100ml">%1$d kcal per 100 ml</string>
+    <string name="camera_amount_grams">Gram</string>
+    <string name="camera_amount_ml">Milliliter</string>
+    <string name="camera_amount_total">Dat is %1$d kcal</string>
+    <string name="camera_amount_read_scale">Weegschaal aflezen</string>
+    <string name="camera_amount_done">Klaar</string>
+    <string name="camera_chip_grams">%1$s g</string>
+    <string name="camera_chip_ml">%1$s ml</string>
+    <string name="camera_chip_serving">1 portie · %1$s</string>
+    <string name="camera_chip_pack">Hele verpakking · %1$s</string>
+    <string name="camera_chip_piece">%1$s ≈ %2$s</string>
+
+    <!-- Product wijzigen -->
+    <string name="camera_edit_title">Product wijzigen</string>
+    <string name="camera_edit_body">Pas de getallen aan zodat ze kloppen met de verpakking. Wat je eerder hebt ingevuld, houdt zijn eigen getallen.</string>
+    <string name="camera_edit_cannot">Dit product kan hier niet gewijzigd worden. Producten uit de NEVO-tabel blijven zoals ze zijn.</string>
+    <string name="camera_edit_save">Wijzigingen opslaan</string>
+
+    <!-- Weegschaal -->
+    <string name="camera_scale_title">Weegschaal aflezen</string>
+    <string name="camera_scale_body">Richt de camera op het schermpje van je weegschaal.</string>
+    <string name="camera_scale_reading">%1$s g</string>
+    <string name="camera_scale_zero">De weegschaal staat op 0. Leg het eten erop.</string>
+    <string name="camera_scale_use">%1$s g gebruiken</string>
+    <string name="camera_scale_hint">Nog niet leesbaar. Ga dichterbij, vermijd weerspiegeling op het scherm, of zet de lamp aan.</string>
+    <string name="camera_scale_type_field">Gram op de weegschaal</string>
+    <string name="camera_scale_type_use">Dit gewicht gebruiken</string>
+</resources>

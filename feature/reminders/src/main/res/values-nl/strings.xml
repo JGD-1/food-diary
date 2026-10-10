@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminders_title">Herinnering</string>
+    <string name="reminders_back">Terug</string>
+    <string name="reminders_intro">Eén rustige herinnering per dag om een maaltijd in te vullen, op een tijd die jij kiest. Verder niets. Hij staat alleen op deze telefoon.</string>
+    <string name="reminders_switch">Dagelijkse herinnering</string>
+    <string name="reminders_time">Tijd</string>
+    <string name="reminders_change_time">Tijd wijzigen</string>
+    <string name="reminders_preview">Om %1$s zie je “%2$s” Tik erop om Eten toevoegen te openen.</string>
+    <string name="reminders_skip_note">Heb je %1$s die dag al ingevuld, dan komt er geen herinnering.</string>
+    <string name="reminders_meal_breakfast">het ontbijt</string>
+    <string name="reminders_meal_lunch">de lunch</string>
+    <string name="reminders_meal_dinner">het avondeten</string>
+    <string name="reminders_meal_snacks">een tussendoortje</string>
+    <string name="reminders_blocked">Meldingen staan uit voor deze app, dus de herinnering kan niet verschijnen. Je kunt ze aanzetten in de instellingen van je telefoon.</string>
+    <string name="reminders_open_settings">Instellingen openen</string>
+    <string name="reminders_picker_title">Tijd van de herinnering</string>
+    <string name="reminders_picker_ok">OK</string>
+    <string name="reminders_picker_cancel">Annuleren</string>
+
+    <!-- De melding zelf -->
+    <string name="reminders_channel_name">Dagelijkse herinnering</string>
+    <string name="reminders_channel_description">De ene herinnering om een maaltijd in te vullen, als je die hebt aangezet.</string>
+    <string name="reminders_notify_breakfast">Ontbijt invullen?</string>
+    <string name="reminders_notify_lunch">Lunch invullen?</string>
+    <string name="reminders_notify_dinner">Avondeten invullen?</string>
+    <string name="reminders_notify_snacks">Tussendoortje invullen?</string>
+    <string name="reminders_notify_body">Tik om Eten toevoegen te openen.</string>
+</resources>

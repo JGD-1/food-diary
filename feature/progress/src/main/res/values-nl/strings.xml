@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Gedeeld -->
+    <string name="progress_kg">%1$s kg</string>
+    <string name="progress_kcal">%1$s kcal</string>
+
+    <!-- Tabblad Gewicht -->
+    <string name="progress_weight_title">Gewicht</string>
+    <string name="progress_weight_every">Weging elke %1$s</string>
+    <string name="progress_weight_weekly">Weeg jezelf één keer per week</string>
+    <string name="progress_weight_to_go">%1$s kg tot %2$s kg</string>
+    <string name="progress_weight_reached">Doel %1$s kg bereikt</string>
+    <string name="progress_weight_start_on">Start %1$s kg · %2$s</string>
+    <string name="progress_weight_start">Start %1$s kg</string>
+    <string name="progress_weight_down">%1$s kg eraf</string>
+    <string name="progress_weight_up">%1$s kg erbij</string>
+    <string name="progress_weight_same">Hetzelfde als bij de start</string>
+    <string name="progress_weight_over_time">Verloop</string>
+    <string name="progress_weight_goal">Doel %1$s kg</string>
+    <string name="progress_weight_graph_desc">Wekelijkse wegingen van %1$s kg naar %2$s kg, doel %3$s kg</string>
+    <string name="progress_weight_graph_empty">Je wekelijkse wegingen verschijnen hier.</string>
+    <string name="progress_weight_week_to_week">Per week</string>
+    <string name="progress_weight_last_change">laatste: %1$s kg</string>
+    <string name="progress_weight_changes_desc">Verschil tussen wegingen over %1$d weken, laatste %2$s kg</string>
+    <string name="progress_weight_changes_empty">Het verschil per week verschijnt hier.</string>
+    <plurals name="progress_weight_trend_not_enough">
+        <item quantity="one">Na nog %d weging zie je hier je trend. Kleine schommelingen zijn normaal.</item>
+        <item quantity="other">Na nog %d wegingen zie je hier je trend. Kleine schommelingen zijn normaal.</item>
+    </plurals>
+    <string name="progress_weight_trend_losing">Kleine schommelingen zijn normaal. Gemiddeld val je %1$s kg per week af, dan zit je rond %3$s op %2$s kg.</string>
+    <string name="progress_weight_trend_gaining">Kleine schommelingen zijn normaal. Gemiddeld kom je %1$s kg per week aan, dan zit je rond %3$s op %2$s kg.</string>
+    <string name="progress_weight_trend_steady">Kleine schommelingen zijn normaal. De laatste tijd blijft je gewicht per week ongeveer gelijk.</string>
+    <string name="progress_weight_trend_away_up">Kleine schommelingen zijn normaal. De laatste tijd ging het ongeveer %1$s kg per week omhoog.</string>
+    <string name="progress_weight_trend_away_down">Kleine schommelingen zijn normaal. De laatste tijd ging het ongeveer %1$s kg per week omlaag.</string>
+    <string name="progress_weight_trend_reached">Je hebt je streefgewicht bereikt. Kleine schommelingen zijn normaal.</string>
+    <string name="progress_weight_list_title">Je wegingen</string>
+    <string name="progress_weight_list_hint">Tik op een weging om hem te wijzigen of te verwijderen.</string>
+    <string name="progress_weight_list_change">Wijzigen of verwijderen</string>
+    <string name="progress_weight_list_all">Alles tonen</string>
+    <string name="progress_weight_list_fewer">Minder tonen</string>
+    <string name="progress_weight_log">Gewicht invoeren</string>
+    <string name="progress_weight_no_profile_title">Je streefgewicht</string>
+    <string name="progress_weight_no_profile_body">Vul je start- en streefgewicht in om hier je voortgang te zien.</string>
+    <string name="progress_weight_set_target">Streefgewicht instellen</string>
+
+    <!-- Tabblad Overzicht -->
+    <string name="progress_stats_title">Overzicht</string>
+    <string name="progress_stats_kicker">Calorieën</string>
+    <string name="progress_stats_this_week">Deze week</string>
+    <string name="progress_stats_last_week">Vorige week</string>
+    <plurals name="progress_stats_weeks_ago">
+        <item quantity="one">%d week geleden</item>
+        <item quantity="other">%d weken geleden</item>
+    </plurals>
+    <string name="progress_stats_earlier">‹ Eerdere week</string>
+    <string name="progress_stats_later">Latere week ›</string>
+    <string name="progress_stats_open_day">Deze dag openen</string>
+    <string name="progress_stats_tap_day">Tik op een dag om te zien wat je hebt ingevuld.</string>
+    <string name="progress_stats_past_week_total">Die week: %1$s van %2$s kcal</string>
+    <string name="progress_stats_past_week_empty">Die week niets ingevuld.</string>
+    <string name="progress_stats_drinks_title_past">Drinken die week</string>
+    <string name="progress_stats_drinks_none_past">Die week geen drinken ingevuld.</string>
+    <string name="progress_stats_average_target">kcal per dag gemiddeld · doel %1$s</string>
+    <string name="progress_stats_average">kcal per dag gemiddeld</string>
+    <string name="progress_stats_week_total">Deze week: %1$s van %2$s kcal</string>
+    <string name="progress_stats_week_note_budget">Stippellijn: je dagdoel. De week telt als geheel (7 × je doel), dus een grotere dag kan worden opgevangen door lichtere dagen. De balk van vandaag groeit mee terwijl je invult.</string>
+    <string name="progress_stats_week_empty">Deze week nog niets ingevuld.</string>
+    <string name="progress_stats_today">Vandaag</string>
+    <string name="progress_stats_week_note">De balk van vandaag groeit mee terwijl je invult.</string>
+    <string name="progress_stats_week_desc">Calorieën per dag deze week: %1$s</string>
+    <string name="progress_stats_by_month">Per maand</string>
+    <string name="progress_stats_per_day">gemiddeld per dag</string>
+    <string name="progress_stats_no_value">–</string>
+    <string name="progress_stats_days_logged">%1$s: %2$d van %3$d dagen ingevuld.</string>
+    <string name="progress_stats_drinks_title">Drinken deze week</string>
+    <string name="progress_stats_drinks_none">Deze week geen drinken ingevuld.</string>
+    <string name="progress_stats_drinks_one">%1$d%% van alle calorieën · vooral %2$s</string>
+    <string name="progress_stats_drinks_two">%1$d%% van alle calorieën · vooral %2$s en %3$s</string>
+</resources>

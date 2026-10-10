@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_save">Opslaan</string>
+    <string name="action_cancel">Annuleren</string>
+    <string name="placeholder_body">Aan dit deel wordt nog gewerkt.</string>
+    <!-- NEVO-licentie: deze regel moet letterlijk in de app staan (op Profiel) -->
+    <string name="nevo_attribution">Gebaseerd op gegevens uit NEVO-online versie 2025/9.0, RIVM, Bilthoven</string>
+</resources>
