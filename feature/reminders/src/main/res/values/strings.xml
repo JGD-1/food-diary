@@ -1,5 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="reminders_title">Reminder</string>
-    <string name="reminders_placeholder">A daily reminder to log a meal is coming soon.</string>
+    <string name="reminders_back">Back</string>
+    <string name="reminders_intro">One gentle reminder a day to log a meal, at a time you choose. Nothing else. It is set on this phone only.</string>
+    <string name="reminders_switch">Daily reminder</string>
+    <string name="reminders_time">Time</string>
+    <string name="reminders_change_time">Change time</string>
+    <string name="reminders_preview">At %1$s you\'ll see “%2$s” Tap it to open Log food.</string>
+    <string name="reminders_skip_note">If %1$s is already logged that day, there is no reminder.</string>
+    <string name="reminders_meal_breakfast">breakfast</string>
+    <string name="reminders_meal_lunch">lunch</string>
+    <string name="reminders_meal_dinner">dinner</string>
+    <string name="reminders_meal_snacks">a snack</string>
+    <string name="reminders_blocked">Notifications are turned off for this app, so the reminder can\'t show. You can allow them in the phone\'s settings.</string>
+    <string name="reminders_open_settings">Open phone settings</string>
+    <string name="reminders_picker_title">Reminder time</string>
+    <string name="reminders_picker_ok">OK</string>
+    <string name="reminders_picker_cancel">Cancel</string>
+
+    <!-- The notification itself -->
+    <string name="reminders_channel_name">Daily reminder</string>
+    <string name="reminders_channel_description">The one reminder to log a meal, if you switched it on.</string>
+    <string name="reminders_notify_breakfast">Log breakfast?</string>
+    <string name="reminders_notify_lunch">Log lunch?</string>
+    <string name="reminders_notify_dinner">Log dinner?</string>
+    <string name="reminders_notify_snacks">Log a snack?</string>
+    <string name="reminders_notify_body">Tap to open Log food.</string>
 </resources>
