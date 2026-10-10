@@ -1,5 +1,6 @@
 package nl.guido.foodtracker.feature.today
 
+import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.DayTotal
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
@@ -179,3 +180,7 @@ internal fun extraNutrients(n: Nutrients): List<Pair<ExtraNutrient, Double>> = l
     n.sugar?.let { ExtraNutrient.SUGAR to it },
     n.salt?.let { ExtraNutrient.SALT to it },
 )
+
+/** The pot portion that was saved with diary line [entryId]. */
+internal fun portionFor(portions: List<BatchPortion>, entryId: Id): BatchPortion? =
+    portions.firstOrNull { it.logEntryId == entryId }
