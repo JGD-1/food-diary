@@ -9,6 +9,7 @@ import nl.guido.foodtracker.core.data.db.RecipeDao
 import nl.guido.foodtracker.core.data.db.toEntity
 import nl.guido.foodtracker.core.data.db.toModel
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Id
@@ -62,6 +63,13 @@ internal class RoomRecipeRepository @Inject constructor(private val dao: RecipeD
         dao.favourites(userId).map { rows -> rows.map { it.toModel() } }
     override suspend fun saveFavourite(f: Favourite) = dao.upsertFavourite(f.toEntity(now()))
     override suspend fun deleteFavourite(id: Id) = dao.markFavouriteDeleted(id, now())
+    override fun portions(batchId: Id): Flow<List<BatchPortion>> =
+        dao.portions(batchId).map { rows -> rows.map { it.toModel() } }
+    override fun householdPortions(householdId: Id): Flow<List<BatchPortion>> =
+        dao.householdPortions(householdId).map { rows -> rows.map { it.toModel() } }
+    override suspend fun savePortion(portion: BatchPortion) = dao.upsertPortion(portion.toEntity(now()))
+    override suspend fun deletePortion(id: Id) = dao.markPortionDeleted(id, now())
+    override suspend fun finishBatch(batchId: Id, on: LocalDate?) = dao.finishBatch(batchId, on?.toString(), now())
 }
 
 internal class RoomProfileRepository @Inject constructor(private val dao: ProfileDao) : ProfileRepository {

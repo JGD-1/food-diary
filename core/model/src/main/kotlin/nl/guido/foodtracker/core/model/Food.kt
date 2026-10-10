@@ -16,6 +16,10 @@ data class Food(
     val isDrink: Boolean = false,
     /** Who created it (label scans, manual foods). Null for NEVO and Open Food Facts rows. */
     val ownerId: Id? = null,
+    /** Grams in one serving, e.g. from Open Food Facts `serving_quantity`. Null when unknown. */
+    val servingG: Double? = null,
+    /** Grams in the whole pack, e.g. from Open Food Facts `product_quantity`. Null when unknown. */
+    val packageG: Double? = null,
 )
 
 /** An amount of something. [label] is a friendly name such as "1 bowl" or "330 ml". */

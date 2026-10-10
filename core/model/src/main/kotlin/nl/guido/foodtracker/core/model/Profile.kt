@@ -25,6 +25,8 @@ data class UserProfile(
     val weeklyPaceKg: Double,
     /** Set when the user types their own daily target; wins over the calculation. */
     val manualTargetKcal: Int? = null,
+    /** Optional daily protein goal in grams, shown next to the macros. Null = no goal. */
+    val proteinGoalG: Int? = null,
 )
 
 data class WeighIn(val id: Id, val userId: Id, val date: LocalDate, val kg: Double)

@@ -11,6 +11,7 @@ import nl.guido.foodtracker.feature.sync.remote.HttpResponse
 import nl.guido.foodtracker.feature.sync.remote.SignedOutException
 import nl.guido.foodtracker.feature.sync.remote.SupabaseApi
 import nl.guido.foodtracker.feature.sync.remote.SupabaseConfig
+import nl.guido.foodtracker.feature.sync.remote.SupabaseException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -71,6 +72,22 @@ class SupabaseApiTest {
         var refused = false
         try { api.upsert("t", SyncTables.weighIn, emptyList()) } catch (e: RejectedRowException) { refused = true }
         assertTrue(refused)
+    }
+
+    @Test
+    fun `a column the server does not have yet fails the sync instead of dropping the rows`() = runTest {
+        http.response = HttpResponse(400, """{"code":"PGRST204","message":"Could not find the 'fibre' column"}""")
+        var refused = false
+        var failed = false
+        try {
+            api.upsert("t", SyncTables.food, emptyList())
+        } catch (e: RejectedRowException) {
+            refused = true
+        } catch (e: SupabaseException) {
+            failed = true
+        }
+        assertTrue(failed)
+        assertTrue(!refused)
     }
 
     @Test

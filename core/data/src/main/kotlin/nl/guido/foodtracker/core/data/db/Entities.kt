@@ -23,6 +23,11 @@ data class FoodEntity(
     val ownerId: String?,
     val updatedAt: Long,
     val deleted: Boolean = false,
+    val fibre: Double? = null,
+    val sugar: Double? = null,
+    val salt: Double? = null,
+    val servingG: Double? = null,
+    val packageG: Double? = null,
 )
 
 @Entity(tableName = "log_entry", indices = [Index("userId", "date")])
@@ -42,6 +47,9 @@ data class LogEntryEntity(
     val createdAt: Long,
     val updatedAt: Long,
     val deleted: Boolean = false,
+    val fibre: Double? = null,
+    val sugar: Double? = null,
+    val salt: Double? = null,
 )
 
 @Entity(tableName = "recipe", indices = [Index("householdId")])
@@ -77,6 +85,7 @@ data class BatchEntity(
     val cookedOn: String,
     val updatedAt: Long,
     val deleted: Boolean = false,
+    val finishedOn: String? = null,
 )
 
 @Entity(tableName = "profile")
@@ -93,6 +102,7 @@ data class ProfileEntity(
     val manualTargetKcal: Int?,
     val updatedAt: Long,
     val deleted: Boolean = false,
+    val proteinGoalG: Int? = null,
 )
 
 @Entity(tableName = "weigh_in", indices = [Index("userId", "date")])
@@ -109,8 +119,22 @@ data class WeighInEntity(
 data class FavouriteEntity(
     @PrimaryKey val id: String,
     val userId: String,
-    val recipeId: String,
+    val recipeId: String?,
     val usualPortionJson: String?,
+    val updatedAt: Long,
+    val deleted: Boolean = false,
+    val foodId: String? = null,
+)
+
+/** Grams one person took from a batch; shared in the household so everyone sees what is left. */
+@Entity(tableName = "batch_portion", indices = [Index("batchId"), Index("householdId")])
+data class BatchPortionEntity(
+    @PrimaryKey val id: String,
+    val batchId: String,
+    val householdId: String,
+    val userId: String,
+    val grams: Double,
+    val logEntryId: String?,
     val updatedAt: Long,
     val deleted: Boolean = false,
 )
