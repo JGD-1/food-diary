@@ -1,6 +1,7 @@
 package nl.guido.foodtracker.feature.today
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,16 +14,20 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,6 +56,9 @@ internal fun MealSheet(
     onChangeAmount: (LogEntry, Double) -> Unit,
     onRemove: (LogEntry) -> Unit,
     onAddMore: () -> Unit,
+    onMove: (Meal) -> Unit,
+    /** Null when the day shown is today. */
+    onCopyToToday: (() -> Unit)?,
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -71,6 +79,36 @@ internal fun MealSheet(
                 modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
             ) {
                 Text(stringResource(addToMeal(meal)), fontWeight = FontWeight.Bold)
+            }
+            if (entries.isNotEmpty()) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val targets = moveTargets(meal)
+                    if (targets.isNotEmpty()) MoveButton(targets, onMove)
+                    if (onCopyToToday != null) {
+                        OutlinedButton(onClick = onCopyToToday, modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text(stringResource(R.string.today_copy_to_today))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** "Move to…": puts the whole meal under another meal, e.g. a snack that was really lunch. */
+@Composable
+private fun MoveButton(targets: List<Meal>, onMove: (Meal) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        OutlinedButton(onClick = { open = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+            Text(stringResource(R.string.today_move_to))
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            targets.forEach { to ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(mealName(to))) },
+                    onClick = { open = false; onMove(to) },
+                )
             }
         }
     }

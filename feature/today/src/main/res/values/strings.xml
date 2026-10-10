@@ -6,6 +6,10 @@
 
     <string name="today_title">Today</string>
     <string name="today_profile">Profile and settings</string>
+    <string name="today_yesterday">Yesterday</string>
+    <string name="today_previous_day">Previous day</string>
+    <string name="today_next_day">Next day</string>
+    <string name="today_back_to_today">Back to today</string>
 
     <!-- The ring -->
     <string name="today_kcal_left">kcal left</string>
@@ -70,6 +74,10 @@
     <string name="today_save">Save</string>
     <string name="today_remove">Remove</string>
     <string name="today_meal_empty">Nothing here yet.</string>
+    <string name="today_move_to">Move to…</string>
+    <string name="today_copy_to_today">Copy to today</string>
+    <string name="today_moved_to">Moved to %1$s</string>
+    <string name="today_copied">Copied to today</string>
 
     <!-- Macros sheet -->
     <string name="today_macros_title">Protein, carbs and fat</string>
@@ -97,6 +105,7 @@
     <!-- Log food -->
     <string name="today_back">Back</string>
     <string name="today_done">Done</string>
+    <string name="today_log_for_day">For %1$s</string>
     <string name="today_search_hint">Search foods and drinks</string>
     <string name="today_search_online">Search online for “%1$s”</string>
     <string name="today_searching_online">Searching Open Food Facts…</string>

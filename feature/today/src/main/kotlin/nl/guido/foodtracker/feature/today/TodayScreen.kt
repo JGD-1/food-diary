@@ -92,6 +92,8 @@ internal fun TodayRoute(
     val addedAgain = stringResource(R.string.today_added_again)
     val removed = stringResource(R.string.today_removed)
     val addedTo = stringResource(R.string.today_added_to)
+    val movedTo = stringResource(R.string.today_moved_to)
+    val copied = stringResource(R.string.today_copied)
     val mealNames = Meal.entries.associateWith { stringResource(mealName(it)) }
 
     val scope = rememberCoroutineScope()
@@ -108,6 +110,8 @@ internal fun TodayRoute(
                 is TodayEvent.Added -> addedAgain.format(mealNames.getValue(event.meal).lowercase())
                 is TodayEvent.Removed -> removed.format(event.entry.displayName)
                 is TodayEvent.Logged -> addedTo.format(event.name, mealNames.getValue(event.meal).lowercase())
+                is TodayEvent.Moved -> movedTo.format(mealNames.getValue(event.to).lowercase())
+                is TodayEvent.Copied -> copied
                 is TodayEvent.Open -> {
                     if (!navController.navigateSafely(event.route)) snackbar.showSnackbar(comingSoon)
                     null
@@ -126,16 +130,19 @@ internal fun TodayRoute(
                 ui = ui,
                 onProfile = { open(Routes.PROFILE) },
                 onTarget = { open(Routes.ENERGY_TARGET) },
+                onDay = viewModel::showDay,
                 onAgain = viewModel::again,
-                onAddTo = { meal -> open(TodayRoutes.logFood(meal)) },
+                onAddTo = { meal -> open(TodayRoutes.logFood(meal, date = ui.dateArg)) },
                 onChangeAmount = viewModel::changeAmount,
                 onRemove = viewModel::remove,
+                onMove = viewModel::move,
+                onCopyToToday = viewModel::copyToToday,
                 onDismissReview = viewModel::dismissReview,
-                onLogFood = { open(TodayRoutes.logFood()) },
+                onLogFood = { open(TodayRoutes.logFood(date = ui.dateArg)) },
                 onScan = { viewModel.openingCamera(forDrink = false); open(Routes.CAMERA) },
                 onScanDrink = { viewModel.openingCamera(forDrink = true); open(Routes.CAMERA_DRINK, Routes.CAMERA) },
                 onWeigh = { viewModel.openingCamera(forDrink = false); open(Routes.CAMERA_SCALE, Routes.CAMERA) },
-                onEatOut = { open(Routes.EAT_OUT) },
+                onEatOut = { open(Routes.eatOut(ui.dateArg), Routes.EAT_OUT) },
             )
         }
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(bottom = 80.dp))
@@ -147,10 +154,13 @@ private fun TodayContent(
     ui: TodayUiState,
     onProfile: () -> Unit,
     onTarget: () -> Unit,
+    onDay: (LocalDate) -> Unit,
     onAgain: (Meal) -> Unit,
     onAddTo: (Meal) -> Unit,
     onChangeAmount: (LogEntry, Double) -> Unit,
     onRemove: (LogEntry) -> Unit,
+    onMove: (from: Meal, to: Meal) -> Unit,
+    onCopyToToday: (Meal) -> Unit,
     onDismissReview: (WeeklyReview) -> Unit,
     onLogFood: () -> Unit,
     onScan: () -> Unit,
@@ -167,7 +177,7 @@ private fun TodayContent(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Header(ui.date, ui.displayName, onProfile)
+            Header(ui, onDay, onProfile)
             RingSection(summary, onTarget, onMacros = { showMacros = true })
             ui.review?.let { ReviewCard(it, onDismiss = { onDismissReview(it) }) }
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -218,37 +228,58 @@ private fun TodayContent(
     }
 
     openMeal?.let { meal ->
-        val entries = if (meal == Meal.DRINKS) summary.drinks.entries
-        else summary.filledMeals.firstOrNull { it.meal == meal }?.entries.orEmpty()
         MealSheet(
             meal = meal,
-            entries = entries,
+            entries = mealEntries(summary, meal),
             onDismiss = { openMeal = null },
             onChangeAmount = onChangeAmount,
             onRemove = onRemove,
             onAddMore = { openMeal = null; onAddTo(meal) },
+            onMove = { to -> openMeal = null; onMove(meal, to) },
+            onCopyToToday = if (ui.isToday) null else ({ openMeal = null; onCopyToToday(meal) }),
         )
     }
     if (showMacros) MacroSheet(summary.eaten, onDismiss = { showMacros = false })
 }
 
+/** The day with ‹ › arrows to look at (and log on) earlier days, the title, and the profile button. */
 @Composable
-private fun Header(date: LocalDate, displayName: String, onProfile: () -> Unit) {
+private fun Header(ui: TodayUiState, onDay: (LocalDate) -> Unit, onProfile: () -> Unit) {
     val locale = Locale.forLanguageTag(stringResource(R.string.today_locale))
     val pattern = stringResource(R.string.today_date_pattern)
+    val date = ui.date
     val dateText = remember(date, locale, pattern) { date.format(DateTimeFormatter.ofPattern(pattern, locale)) }
+    val title = when (date) {
+        ui.today -> stringResource(R.string.today_title)
+        ui.today.minusDays(1) -> stringResource(R.string.today_yesterday)
+        else -> remember(date, locale) { date.format(DateTimeFormatter.ofPattern("EEEE", locale)) }
+    }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text(
-                dateText.replaceFirstChar { it.titlecase(locale) },
-                fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                stringResource(R.string.today_title),
-                fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 34.sp,
-                modifier = Modifier.semantics { heading() },
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                DayArrow("‹", stringResource(R.string.today_previous_day)) { onDay(date.minusDays(1)) }
+                Text(
+                    dateText.replaceFirstChar { it.titlecase(locale) },
+                    fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                if (ui.canGoForward) {
+                    DayArrow("›", stringResource(R.string.today_next_day)) { nextDay(date, ui.today)?.let(onDay) }
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    title.replaceFirstChar { it.titlecase(locale) },
+                    fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 34.sp,
+                    modifier = Modifier.weight(1f, fill = false).semantics { heading() },
+                )
+                if (!ui.isToday) {
+                    TextButton(onClick = { onDay(ui.today) }, modifier = Modifier.heightIn(min = 48.dp)) {
+                        Text(stringResource(R.string.today_back_to_today), fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
         }
         val label = stringResource(R.string.today_profile)
         Surface(
@@ -258,9 +289,21 @@ private fun Header(date: LocalDate, displayName: String, onProfile: () -> Unit) 
             modifier = Modifier.size(44.dp).semantics { contentDescription = label },
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Text(displayName.take(1).uppercase(), fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+                Text(ui.displayName.take(1).uppercase(), fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
             }
         }
+    }
+}
+
+/** A ‹ or › button next to the date, big enough to tap. */
+@Composable
+private fun DayArrow(symbol: String, label: String, onClick: () -> Unit) {
+    TextButton(
+        onClick = onClick,
+        contentPadding = PaddingValues(0.dp),
+        modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp).semantics { contentDescription = label },
+    ) {
+        Text(symbol, fontSize = 24.sp, fontWeight = FontWeight.Bold)
     }
 }
 
