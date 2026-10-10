@@ -54,6 +54,9 @@ import nl.guido.foodtracker.feature.recipes.FoodSearchViewModel
 import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.RecipesRoutes
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,6 +110,16 @@ internal fun NutrientsSummary(nutrients: Nutrients, modifier: Modifier = Modifie
                 nutrients.protein.roundToInt(), nutrients.carbs.roundToInt(), nutrients.fat.roundToInt(),
             ),
         )
+    }
+}
+
+private val dayFormat = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.getDefault())
+
+/** "For Friday 9 October", shown only when logging to a day other than today. */
+@Composable
+internal fun ForDay(date: LocalDate) {
+    if (date != LocalDate.now()) {
+        Text(stringResource(R.string.recipes_for_day, date.format(dayFormat)), style = MaterialTheme.typography.titleSmall)
     }
 }
 
