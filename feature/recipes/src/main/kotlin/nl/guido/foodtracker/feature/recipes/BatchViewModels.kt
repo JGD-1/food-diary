@@ -135,6 +135,8 @@ internal class BatchPortionViewModel @Inject constructor(
         val batch: Batch? = null,
         val gramsText: String = "",
         val meal: Meal = Meal.DINNER,
+        /** The day this lands on: the day being viewed on Today, else today. */
+        val date: LocalDate = LocalDate.now(),
         val weighing: Boolean = false,
         /** Everyone's portions so far, to show what is left in the pot. */
         val portions: List<BatchPortion> = emptyList(),
@@ -150,7 +152,10 @@ internal class BatchPortionViewModel @Inject constructor(
 
     private val batchId: String = checkNotNull(savedState[RecipesRoutes.ARG_BATCH_ID])
     private val _state = MutableStateFlow(
-        State(meal = RecipesRoutes.mealArg(savedState[RecipesRoutes.ARG_MEAL]) ?: mealAt(LocalTime.now())),
+        State(
+            meal = RecipesRoutes.mealArg(savedState[RecipesRoutes.ARG_MEAL]) ?: mealAt(LocalTime.now()),
+            date = RecipesRoutes.dateArg(savedState[RecipesRoutes.ARG_DATE], LocalDate.now()),
+        ),
     )
     val state: StateFlow<State> = _state.asStateFlow()
 
@@ -179,7 +184,7 @@ internal class BatchPortionViewModel @Inject constructor(
         val grams = s.grams ?: return
         val user = session.currentUser.value
         viewModelScope.launch {
-            val entry = batch.logEntry(user.userId, LocalDate.now(), s.meal, grams, Instant.now())
+            val entry = batch.logEntry(user.userId, s.date, s.meal, grams, Instant.now())
             diary.save(entry)
             // Grams only, shared with the household so everyone sees what is left; my diary stays mine.
             recipes.savePortion(batch.portionFor(entry, user.householdId))

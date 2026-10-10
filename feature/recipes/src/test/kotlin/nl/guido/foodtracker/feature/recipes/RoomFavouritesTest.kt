@@ -69,4 +69,15 @@ class RoomFavouritesTest {
         assertEquals(emptyList<PinnedRecipe>(), favourites.pinned("guido").first())
         assertEquals(1, favourites.pinned("partner").first().size)
     }
+
+    @Test
+    fun pinnedFoodsLiveNextToRecipesWithoutGettingInTheWay() = runTest {
+        // Log food pins foods in the same table (foodId set, recipeId empty).
+        repo.saveFavourite(Favourite(id = "f1", userId = "guido", foodId = "apple", usualPortion = Portion(150.0)))
+        favourites.pin("guido", "pasta", null)
+        assertEquals(listOf(PinnedRecipe("pasta", null)), favourites.pinned("guido").first())
+
+        favourites.unpin("guido", "pasta")
+        assertEquals(listOf("f1"), repo.rows.value.map { it.id })
+    }
 }

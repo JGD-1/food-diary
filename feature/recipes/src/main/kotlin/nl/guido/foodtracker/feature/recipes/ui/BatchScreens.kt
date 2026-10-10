@@ -164,6 +164,7 @@ internal fun BatchPortionScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
             state.nutrients?.let { NutrientsSummary(it) }
+            ForDay(state.date)
             MealChips(state.meal, vm::setMeal)
             Row(
                 Modifier.fillMaxWidth().toggleable(state.lastPortion, role = Role.Checkbox, onValueChange = vm::setLastPortion),

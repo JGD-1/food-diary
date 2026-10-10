@@ -40,6 +40,7 @@
     <string name="recipes_kcal">%1$d kcal</string>
     <string name="recipes_kcal_per_100g">%1$d kcal per 100 g</string>
     <string name="recipes_macros">Protein %1$d g · Carbs %2$d g · Fat %3$d g</string>
+    <string name="recipes_for_day">For %1$s</string>
     <string name="recipes_meal_breakfast">Breakfast</string>
     <string name="recipes_meal_lunch">Lunch</string>
     <string name="recipes_meal_dinner">Dinner</string>

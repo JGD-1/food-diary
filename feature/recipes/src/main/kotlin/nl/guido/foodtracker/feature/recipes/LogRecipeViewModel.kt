@@ -56,6 +56,8 @@ internal class LogRecipeViewModel @Inject constructor(
         val extras: List<EditableIngredient> = emptyList(),
         val gramsText: String = "",
         val meal: Meal = Meal.DINNER,
+        /** The day this lands on: the day being viewed on Today, else today. */
+        val date: LocalDate = LocalDate.now(),
         val pinned: PinnedRecipe? = null,
         val rememberPortion: Boolean = false,
         val weighing: Weighing? = null,
@@ -70,7 +72,10 @@ internal class LogRecipeViewModel @Inject constructor(
 
     private val recipeId: String = checkNotNull(savedState[RecipesRoutes.ARG_RECIPE_ID])
     private val _state = MutableStateFlow(
-        State(meal = RecipesRoutes.mealArg(savedState[RecipesRoutes.ARG_MEAL]) ?: mealAt(LocalTime.now())),
+        State(
+            meal = RecipesRoutes.mealArg(savedState[RecipesRoutes.ARG_MEAL]) ?: mealAt(LocalTime.now()),
+            date = RecipesRoutes.dateArg(savedState[RecipesRoutes.ARG_DATE], LocalDate.now()),
+        ),
     )
     val state: StateFlow<State> = _state.asStateFlow()
 
@@ -153,7 +158,7 @@ internal class LogRecipeViewModel @Inject constructor(
         if (!s.canLog) return
         val user = session.currentUser.value
         viewModelScope.launch {
-            diary.save(dish.logEntry(user.userId, LocalDate.now(), s.meal, grams, Instant.now()))
+            diary.save(dish.logEntry(user.userId, s.date, s.meal, grams, Instant.now()))
             if (s.pinned != null && s.rememberPortion) {
                 favourites.pin(user.userId, dish.recipe.id, dish.toUsualPortion(grams))
             }

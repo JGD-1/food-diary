@@ -138,6 +138,7 @@ internal fun LogRecipeScreen(
                 }
             }
 
+            ForDay(state.date)
             MealChips(state.meal, vm::setMeal)
 
             Button(onClick = vm::log, enabled = state.canLog, modifier = Modifier.fillMaxWidth().height(56.dp)) {
