@@ -11,6 +11,10 @@ data class LabelValues(
     val fat: Double? = null,
     /** The label says "per 100 ml", so it is most likely a drink. */
     val perMl: Boolean = false,
+    // Extra rows, optional on the form: not counted in [foundCount].
+    val fibre: Double? = null,
+    val sugar: Double? = null,
+    val salt: Double? = null,
 ) {
     val foundCount: Int get() = listOf(kcal, protein, carbs, fat).count { it != null }
 }
@@ -25,7 +29,7 @@ data class LabelValues(
 object NutritionLabelParser {
     private const val KJ_PER_KCAL = 4.184
 
-    private enum class Nutrient { ENERGY, FAT, CARBS, PROTEIN }
+    private enum class Nutrient { ENERGY, FAT, CARBS, PROTEIN, FIBRE, SUGAR, SALT }
 
     // Sub-rows ("waarvan suikers", "verzadigde vetzuren") and other rows we must never read as the main value.
     private val skipWords = listOf(
@@ -39,6 +43,15 @@ object NutritionLabelParser {
         Nutrient.PROTEIN to listOf("eiwit", "protein", "eiweiss", "eiweis"),
         Nutrient.FAT to listOf("vet", "fat", "fett", "matieres grasses", "lipides", "grassi"),
     )
+
+    // The extra rows: sugars (usually "waarvan suikers"), fibre and salt. "Sel" only as a whole word.
+    private val extraRows = listOf(
+        Nutrient.SUGAR to Regex("suiker|sugar|zucker|sucre"),
+        Nutrient.FIBRE to Regex("vezel|fibre|fiber|ballast"),
+        Nutrient.SALT to Regex("zout|salt|salz|\\bsel\\b"),
+    )
+    // Rows that look like an extra row but are something else ("free sugars", "sugar alcohols", sodium).
+    private val notExtra = listOf("polyol", "natrium", "sodium", "vrije suiker", "free sugar", "suikeralcohol")
 
     private enum class Unit { G, KCAL, KJ, OTHER }
     private data class Num(val value: Double, val unit: Unit?, val x: Float)
@@ -66,6 +79,11 @@ object NutritionLabelParser {
                 pick(kcal, headerX) { it in 0.0..950.0 }?.let { found[Nutrient.ENERGY] = it }
                     ?: run { if (kjOnly == null) kjOnly = pick(kj, headerX) { it in 0.0..4000.0 } }
             }
+            val extra = extraRows.firstOrNull { (_, words) -> words.containsMatchIn(label) }?.first
+            if (extra != null && extra !in found && notExtra.none { label.contains(it) }) {
+                val grams = nums.filter { it.unit == Unit.G || it.unit == null }
+                pick(grams, headerX) { it in 0.0..100.0 }?.let { found[extra] = it }
+            }
             if (skipWords.any { label.contains(it) }) continue
             val nutrient = keywords.firstOrNull { (n, words) -> n != Nutrient.ENERGY && words.any { w -> label.contains(w) } }?.first
                 ?: continue
@@ -74,7 +92,10 @@ object NutritionLabelParser {
             pick(grams, headerX) { it in 0.0..100.0 }?.let { found[nutrient] = it }
         }
         val energy = found[Nutrient.ENERGY] ?: kjOnly?.let { Math.round(it / KJ_PER_KCAL).toDouble() }
-        return LabelValues(energy, found[Nutrient.PROTEIN], found[Nutrient.CARBS], found[Nutrient.FAT], perMl)
+        return LabelValues(
+            energy, found[Nutrient.PROTEIN], found[Nutrient.CARBS], found[Nutrient.FAT], perMl,
+            fibre = found[Nutrient.FIBRE], sugar = found[Nutrient.SUGAR], salt = found[Nutrient.SALT],
+        )
     }
 
     private val per100 = Regex("100\\s*(g|gr|gram|ml)\\b")

@@ -28,7 +28,11 @@ class NutritionLabelParserTest {
                 row("Zout" to 0f, "1,2 g" to 300f, "0,36 g" to 500f),
             ),
         )
-        assertEquals(LabelValues(kcal = 250.0, protein = 8.1, carbs = 30.0, fat = 9.5), v)
+        assertEquals(
+            LabelValues(kcal = 250.0, protein = 8.1, carbs = 30.0, fat = 9.5, fibre = 4.1, sugar = 12.0, salt = 1.2),
+            v,
+        )
+        assertEquals(4, v.foundCount)
     }
 
     @Test fun `each row read as one line by the camera`() {
@@ -87,6 +91,24 @@ class NutritionLabelParserTest {
             ),
         )
         assertEquals(LabelValues(478.0, 6.5, 55.0, 25.0), v)
+    }
+
+    @Test fun `fibre sugar and salt in other languages, sodium and free sugars ignored`() {
+        val v = NutritionLabelParser.parse(
+            table(
+                row("Nutrition per 100 g" to 0f),
+                row("Energy 1600 kJ / 382 kcal" to 0f),
+                row("Carbohydrate 60 g" to 0f),
+                row("of which sugars / davon Zucker 22 g" to 0f),
+                row("Ballaststoffe / Fibre 6,5 g" to 0f),
+                row("Sodium 0,4 g" to 0f),
+                row("Sel / Salz / Salt 1,0 g" to 0f),
+            ),
+        )
+        assertEquals(22.0, v.sugar)
+        assertEquals(6.5, v.fibre)
+        assertEquals(1.0, v.salt)
+        assertEquals(60.0, v.carbs)
     }
 
     @Test fun `less-than values`() {

@@ -46,6 +46,17 @@ class FoodDraftTest {
         assertNull(FoodDraft(name = "Bread", kcal = "100", fat = "lots").toFood("id", "u"))
     }
 
+    @Test fun `fibre sugar and salt are optional and empty means unknown`() {
+        val d = FoodDraft.fromLabel(LabelValues(250.0, 8.1, 30.0, 9.5, fibre = 4.1, salt = 1.2), null, drinkHint = false)
+        assertEquals("4.1", d.fibre)
+        assertEquals("", d.sugar)
+        val food = d.copy(name = "Crackers").toFood("id", "u")!!
+        assertEquals(4.1, food.per100g.fibre!!, 1e-9)
+        assertNull(food.per100g.sugar)
+        assertEquals(1.2, food.per100g.salt!!, 1e-9)
+        assertNull(d.copy(name = "Crackers", salt = "a pinch").toFood("id", "u"))
+    }
+
     @Test fun `typed amounts`() {
         assertEquals(12.5, parseAmount("12,5")!!, 0.0)
         assertEquals(150.0, parseAmount(" 150 ")!!, 0.0)
