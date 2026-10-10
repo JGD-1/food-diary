@@ -119,7 +119,6 @@ internal object StatsMath {
             MonthAverage(
                 month = month,
                 averageKcal = averagePerLoggedDay(totals, dates, today),
-            totalKcal = allKcal,
                 daysLogged = dates.count { it in totals },
                 daysSoFar = dates.size,
                 isCurrent = month == current,
