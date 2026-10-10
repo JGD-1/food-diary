@@ -1,6 +1,7 @@
 package nl.guido.foodtracker.feature.recipes.logic
 
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Ingredient
 import nl.guido.foodtracker.core.model.LogEntry
@@ -10,6 +11,7 @@ import nl.guido.foodtracker.core.model.Nutrients
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.RecipeVariant
+import nl.guido.foodtracker.core.model.gramsLeft
 import nl.guido.foodtracker.core.model.newId
 import nl.guido.foodtracker.core.model.sum
 import java.time.Instant
@@ -97,10 +99,23 @@ fun mealAt(time: LocalTime): Meal = when {
 fun parseGrams(text: String): Double? =
     text.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 && it.isFinite() }
 
-/** How long a cooked batch stays on the list for weighing portions from it. */
-const val BATCH_DAYS_SHOWN = 7L
+/** A batch on the list with what is left in the pot, counting everyone's portions in the household. */
+data class OpenBatch(val batch: Batch, val gramsLeft: Double)
 
-/** Batches cooked in the last week (leftovers included), newest first. */
-fun recentBatches(batches: List<Batch>, today: LocalDate): List<Batch> =
-    batches.filter { !it.cookedOn.isBefore(today.minusDays(BATCH_DAYS_SHOWN)) }
+/** Batches nobody has marked Finished yet, newest first, with grams left from everyone's portions. */
+fun openBatches(batches: List<Batch>, portions: List<BatchPortion>): List<OpenBatch> {
+    val byBatch = portions.groupBy { it.batchId }
+    return batches.filter { it.finishedOn == null }
         .sortedByDescending { it.cookedOn }
+        .map { OpenBatch(it, it.gramsLeft(byBatch[it.id].orEmpty())) }
+}
+
+/** My portion as the grams-only row the household sees, linked to my diary line. */
+fun Batch.portionFor(entry: LogEntry, householdId: Id, id: Id = newId()) = BatchPortion(
+    id = id,
+    batchId = this.id,
+    householdId = householdId,
+    userId = entry.userId,
+    grams = entry.portion.grams,
+    logEntryId = entry.id,
+)

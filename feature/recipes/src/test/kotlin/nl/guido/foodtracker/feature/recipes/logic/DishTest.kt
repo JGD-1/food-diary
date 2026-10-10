@@ -1,6 +1,7 @@
 package nl.guido.foodtracker.feature.recipes.logic
 
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Ingredient
 import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
@@ -11,7 +12,6 @@ import nl.guido.foodtracker.core.model.RecipeVariant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -127,10 +127,32 @@ class DishTest {
     }
 
     @Test
-    fun recentBatchesShowsLastWeekNewestFirst() {
-        fun batch(id: String, daysAgo: Long) = Batch(id, "home", null, id, emptyList(), 100.0, day.minusDays(daysAgo))
-        val list = recentBatches(listOf(batch("old", 8), batch("a", 3), batch("b", 0), batch("edge", 7)), day)
-        assertEquals(listOf("b", "a", "edge"), list.map { it.id })
-        assertTrue(list.none { it.id == "old" })
+    fun batchesStayUntilFinishedNewestFirst() {
+        fun batch(id: String, daysAgo: Long, finished: Boolean = false) =
+            Batch(id, "home", null, id, emptyList(), 1000.0, day.minusDays(daysAgo), finishedOn = if (finished) day else null)
+        val list = openBatches(listOf(batch("old", 30), batch("a", 3), batch("done", 1, finished = true), batch("b", 0)), emptyList())
+        assertEquals(listOf("b", "a", "old"), list.map { it.batch.id })
+    }
+
+    @Test
+    fun gramsLeftCountsEveryonesPortions() {
+        val pot = Batch("pot", "home", null, "Chili", emptyList(), 1000.0, day)
+        val other = Batch("other", "home", null, "Soup", emptyList(), 500.0, day)
+        val portions = listOf(
+            BatchPortion("p1", "pot", "home", "guido", 350.0),
+            BatchPortion("p2", "pot", "home", "partner", 400.0),
+            BatchPortion("p3", "other", "home", "guido", 600.0),
+        )
+        val left = openBatches(listOf(pot, other), portions).associate { it.batch.id to it.gramsLeft }
+        assertEquals(250.0, left["pot"]!!, 0.001)
+        assertEquals(0.0, left["other"]!!, 0.001)
+    }
+
+    @Test
+    fun myPortionIsSharedAsGramsOnlyLinkedToMyDiaryLine() {
+        val pot = Batch("pot", "home", null, "Chili", emptyList(), 1000.0, day)
+        val entry = pot.logEntry("guido", day, Meal.DINNER, 320.0, Instant.EPOCH, id = "line1")
+        val portion = pot.portionFor(entry, "home", id = "p1")
+        assertEquals(BatchPortion("p1", "pot", "home", "guido", 320.0, logEntryId = "line1"), portion)
     }
 }

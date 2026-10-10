@@ -13,10 +13,12 @@ import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.RecipeRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.core.model.gramsLeft
 import nl.guido.foodtracker.core.model.newId
 import nl.guido.foodtracker.core.model.sum
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
@@ -25,6 +27,7 @@ import nl.guido.foodtracker.feature.recipes.logic.formatGrams
 import nl.guido.foodtracker.feature.recipes.logic.logEntry
 import nl.guido.foodtracker.feature.recipes.logic.mealAt
 import nl.guido.foodtracker.feature.recipes.logic.parseGrams
+import nl.guido.foodtracker.feature.recipes.logic.portionFor
 import nl.guido.foodtracker.feature.recipes.logic.toIngredients
 import java.time.Instant
 import java.time.LocalDate
@@ -133,10 +136,15 @@ internal class BatchPortionViewModel @Inject constructor(
         val gramsText: String = "",
         val meal: Meal = Meal.DINNER,
         val weighing: Boolean = false,
+        /** Everyone's portions so far, to show what is left in the pot. */
+        val portions: List<BatchPortion> = emptyList(),
+        /** Tick "that was the last of it" to mark the batch Finished when logging. */
+        val lastPortion: Boolean = false,
         val done: Boolean = false,
     ) {
         val grams: Double? get() = parseGrams(gramsText)
         val nutrients: Nutrients? get() = grams?.let { g -> batch?.shareFor(g) }
+        val gramsLeft: Double? get() = batch?.gramsLeft(portions)
         val canLog: Boolean get() = batch != null && grams != null
     }
 
@@ -151,10 +159,14 @@ internal class BatchPortionViewModel @Inject constructor(
             val batch = recipes.getBatch(batchId)
             _state.update { it.copy(loading = false, batch = batch) }
         }
+        viewModelScope.launch {
+            recipes.portions(batchId).collect { list -> _state.update { it.copy(portions = list) } }
+        }
     }
 
     fun setGrams(text: String) = _state.update { it.copy(gramsText = text) }
     fun setMeal(meal: Meal) = _state.update { it.copy(meal = meal) }
+    fun setLastPortion(on: Boolean) = _state.update { it.copy(lastPortion = on) }
     fun startWeighing() = _state.update { it.copy(weighing = true) }
     fun onWeighed(grams: Double) {
         if (!_state.value.weighing) return
@@ -165,9 +177,13 @@ internal class BatchPortionViewModel @Inject constructor(
         val s = _state.value
         val batch = s.batch ?: return
         val grams = s.grams ?: return
-        val userId = session.currentUser.value.userId
+        val user = session.currentUser.value
         viewModelScope.launch {
-            diary.save(batch.logEntry(userId, LocalDate.now(), s.meal, grams, Instant.now()))
+            val entry = batch.logEntry(user.userId, LocalDate.now(), s.meal, grams, Instant.now())
+            diary.save(entry)
+            // Grams only, shared with the household so everyone sees what is left; my diary stays mine.
+            recipes.savePortion(batch.portionFor(entry, user.householdId))
+            if (s.lastPortion) recipes.finishBatch(batch.id, LocalDate.now())
             _state.update { it.copy(done = true) }
         }
     }
