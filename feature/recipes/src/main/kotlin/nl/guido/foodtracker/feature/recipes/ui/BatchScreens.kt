@@ -2,13 +2,16 @@ package nl.guido.foodtracker.feature.recipes.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -20,8 +23,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
@@ -148,6 +153,7 @@ internal fun BatchPortionScreen(
                     batch.total.kcal.roundToInt(),
                 ),
             )
+            state.gramsLeft?.let { Hint(stringResource(R.string.recipes_batch_left, formatGrams(it))) }
             SectionTitle(stringResource(R.string.recipes_batch_step_portion))
             Hint(stringResource(R.string.recipes_batch_step_portion_hint))
             GramsField(
@@ -159,6 +165,13 @@ internal fun BatchPortionScreen(
             )
             state.nutrients?.let { NutrientsSummary(it) }
             MealChips(state.meal, vm::setMeal)
+            Row(
+                Modifier.fillMaxWidth().toggleable(state.lastPortion, role = Role.Checkbox, onValueChange = vm::setLastPortion),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(checked = state.lastPortion, onCheckedChange = null)
+                Text(stringResource(R.string.recipes_batch_last_portion), Modifier.padding(start = 8.dp))
+            }
             Button(onClick = vm::log, enabled = state.canLog, modifier = Modifier.fillMaxWidth().height(56.dp)) {
                 Text(stringResource(R.string.recipes_log_my_portion))
             }

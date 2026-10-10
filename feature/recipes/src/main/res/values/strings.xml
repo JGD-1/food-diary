@@ -5,8 +5,11 @@
     <string name="recipes_back">Back</string>
     <string name="recipes_new_recipe">New recipe</string>
     <string name="recipes_cook_batch">Cook a batch</string>
-    <string name="recipes_batches_section">Cooked this week</string>
-    <string name="recipes_batch_cooked">Cooked %1$s</string>
+    <string name="recipes_batches_section">In the pot</string>
+    <string name="recipes_batch_cooked_left">Cooked %1$s · about %2$s g left</string>
+    <string name="recipes_batch_finished">Finished</string>
+    <string name="recipes_batch_finished_done">Taken off the list</string>
+    <string name="recipes_undo">Undo</string>
     <string name="recipes_weigh_my_portion">Weigh my portion</string>
     <string name="recipes_pinned_section">My favourites</string>
     <string name="recipes_all_section">All recipes</string>
@@ -84,4 +87,6 @@
     <string name="recipes_batch_step_portion">3. Weigh my portion</string>
     <string name="recipes_batch_step_portion_hint">Put your plate on the scale, set it to zero, then add your portion.</string>
     <string name="recipes_log_my_portion">Log my portion</string>
+    <string name="recipes_batch_left">About %1$s g left in the pot</string>
+    <string name="recipes_batch_last_portion">That was the last of it: take it off the list</string>
 </resources>
