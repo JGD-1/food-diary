@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark mode: the dark Forest-green background, so the window matches the app (core/ui Theme.kt). -->
+    <style name="Theme.FoodDiary" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/background</item>
+    </style>
+    <color name="background">#101814</color>
+    <color name="accent">#7CC9A1</color>
+</resources>

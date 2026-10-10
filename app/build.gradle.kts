@@ -46,6 +46,7 @@ dependencies {
     implementation(project(":feature:today"))
     implementation(project(":feature:progress"))
     implementation(project(":feature:sync"))
+    implementation(project(":feature:reminders"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

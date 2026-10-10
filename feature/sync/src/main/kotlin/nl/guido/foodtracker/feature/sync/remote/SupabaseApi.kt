@@ -104,7 +104,11 @@ class SupabaseApi(private val config: SupabaseConfig, private val http: Http) {
             ),
         )
         // 400s here mean the server refuses these rows (access rule, bad value); 401 means log in again.
-        if (response.code in 400..499 && response.code != 401) throw RejectedRowException(response.body)
+        // A table or column the server doesn't have yet (its update not run) is not the rows' fault:
+        // fail the sync so the rows are sent again once the server has caught up.
+        if (response.code in 400..499 && response.code != 401 && !response.isMissingSchema()) {
+            throw RejectedRowException(response.body)
+        }
         response.ok()
     }
 
@@ -120,6 +124,10 @@ class SupabaseApi(private val config: SupabaseConfig, private val http: Http) {
         )
         return supabaseJson.decodeFromString(ListSerializer(JsonObject.serializer()), response.ok())
     }
+
+    /** PostgREST: PGRST204 = unknown column, PGRST205 / 42P01 = unknown table. */
+    private fun HttpResponse.isMissingSchema(): Boolean =
+        code == 404 || listOf("PGRST204", "PGRST205", "42P01").any { it in body }
 
     private fun HttpResponse.ok(): String {
         if (code !in 200..299) throw SupabaseException(code, body.take(300))

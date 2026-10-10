@@ -60,6 +60,7 @@ object SyncTables {
         listOf(
             text("id"), text("name"), long("birthYear"), text("sex"), long("heightCm"), text("activity"),
             double("startWeightKg"), double("targetWeightKg"), double("weeklyPaceKg"), long("manualTargetKcal"),
+            long("proteinGoalG"),
         ) + stamps,
     )
     val logEntry = SyncTable(
@@ -67,7 +68,7 @@ object SyncTables {
         listOf(
             text("id"), text("userId"), text("date"), text("meal"), text("whatJson"), double("portionGrams"),
             text("portionLabel"), double("kcal"), double("protein"), double("carbs"), double("fat"),
-            bool("isEstimate"), long("createdAt"),
+            bool("isEstimate"), long("createdAt"), double("fibre"), double("sugar"), double("salt"),
         ) + stamps,
     )
     val weighIn = SyncTable(
@@ -79,6 +80,7 @@ object SyncTables {
         listOf(
             text("id"), text("ownerId"), text("name"), text("brand"), text("barcode"), double("kcal"),
             double("protein"), double("carbs"), double("fat"), text("source"), bool("isDrink"),
+            double("fibre"), double("sugar"), double("salt"), double("servingG"), double("packageG"),
         ) + stamps,
         localFilter = "source != 'NEVO'",
     )
@@ -95,18 +97,24 @@ object SyncTables {
     )
     val favourite = SyncTable(
         "favourite", "favourites", Scope.USER, "userId",
-        listOf(text("id"), text("userId"), text("recipeId"), text("usualPortionJson")) + stamps,
+        listOf(text("id"), text("userId"), text("recipeId"), text("usualPortionJson"), text("foodId")) + stamps,
     )
     val batch = SyncTable(
         "batch", "batches", Scope.HOUSEHOLD, "householdId",
         listOf(
             text("id"), text("householdId"), text("recipeId"), text("name"), text("ingredientsJson"),
-            double("cookedWeightG"), text("cookedOn"),
+            double("cookedWeightG"), text("cookedOn"), text("finishedOn"),
+        ) + stamps,
+    )
+    val batchPortion = SyncTable(
+        "batch_portion", "batch_portions", Scope.HOUSEHOLD, "householdId",
+        listOf(
+            text("id"), text("batchId"), text("householdId"), text("userId"), double("grams"), text("logEntryId"),
         ) + stamps,
     )
 
-    val all = listOf(profile, logEntry, weighIn, food, recipe, recipeVariant, favourite, batch)
-    val household = listOf(recipe, recipeVariant, batch)
+    val all = listOf(profile, logEntry, weighIn, food, recipe, recipeVariant, favourite, batch, batchPortion)
+    val household = listOf(recipe, recipeVariant, batch, batchPortion)
 }
 
 /** Phone row → JSON for Supabase. */

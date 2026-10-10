@@ -92,6 +92,10 @@ class RoomLocalStore @Inject constructor(private val database: FoodDatabase) : L
                     Scope.HOUSEHOLD_VARIANT -> continue
                 }
                 db.execSQL("UPDATE ${table.local} SET ${table.ownerColumn} = ? WHERE ${table.ownerColumn} = ?", arrayOf(to, from))
+                // Household rows that also name a person (batch portions) move to the real account too.
+                if (table.scope == Scope.HOUSEHOLD && table.columns.any { it.local == "userId" }) {
+                    db.execSQL("UPDATE ${table.local} SET userId = ? WHERE userId = ?", arrayOf(toUser, fromUser))
+                }
             }
             db.setTransactionSuccessful()
         } finally {

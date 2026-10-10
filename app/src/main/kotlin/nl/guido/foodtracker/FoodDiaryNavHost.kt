@@ -29,6 +29,7 @@ import nl.guido.foodtracker.feature.energy.energyScreens
 import nl.guido.foodtracker.feature.food.foodScreens
 import nl.guido.foodtracker.feature.progress.progressScreens
 import nl.guido.foodtracker.feature.recipes.recipesScreens
+import nl.guido.foodtracker.feature.reminders.remindersScreens
 import nl.guido.foodtracker.feature.sync.syncScreens
 import nl.guido.foodtracker.feature.today.todayScreens
 
@@ -42,11 +43,22 @@ private val tabs = listOf(
 )
 
 @Composable
-fun FoodDiaryNavHost(shouldOfferSignIn: Flow<Boolean>) {
+fun FoodDiaryNavHost(
+    shouldOfferSignIn: Flow<Boolean>,
+    openRoute: String? = null,
+    onRouteOpened: () -> Unit = {},
+) {
     val navController = rememberNavController()
     // Offer sign-in once at start-up. The sign-in screen has "Not now", so it never blocks the app.
     LaunchedEffect(Unit) {
-        if (shouldOfferSignIn.first()) navController.navigate(Routes.SIGN_IN)
+        if (openRoute == null && shouldOfferSignIn.first()) navController.navigate(Routes.SIGN_IN)
+    }
+    // A notification (e.g. the lunch reminder) asked for a screen: open it on top of Today.
+    LaunchedEffect(openRoute) {
+        if (openRoute != null) {
+            runCatching { navController.navigate(openRoute) }
+            onRouteOpened()
+        }
     }
     val backStack by navController.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
@@ -80,6 +92,7 @@ fun FoodDiaryNavHost(shouldOfferSignIn: Flow<Boolean>) {
             recipesScreens(navController)
             energyScreens(navController)
             syncScreens(navController)
+            remindersScreens(navController)
         }
     }
 }

@@ -47,6 +47,8 @@ data class Batch(
     val ingredients: List<Ingredient>,
     val cookedWeightG: Double,
     val cookedOn: LocalDate,
+    /** Set when someone taps "Finished"; the batch then leaves the list. Null = still in the pot. */
+    val finishedOn: LocalDate? = null,
 ) {
     val total: Nutrients get() = ingredients.map { it.nutrients }.sum()
 
@@ -55,10 +57,31 @@ data class Batch(
         if (cookedWeightG <= 0.0) Nutrients.ZERO else total * (portionGrams / cookedWeightG)
 }
 
-/** One person's pinned recipe with their own usual portion. Private to that person. */
+/**
+ * How many grams one person took from a batch. Shared within the household (no kcal, no diary),
+ * so everyone sees how much is left in the pot. [logEntryId] is the diary line it came with.
+ */
+data class BatchPortion(
+    val id: Id,
+    val batchId: Id,
+    val householdId: Id,
+    val userId: Id,
+    val grams: Double,
+    val logEntryId: Id? = null,
+)
+
+/** Grams left in the pot after these portions (never below 0). */
+fun Batch.gramsLeft(portions: List<BatchPortion>): Double =
+    (cookedWeightG - portions.filter { it.batchId == id }.sumOf { it.grams }).coerceAtLeast(0.0)
+
+/**
+ * One person's pinned recipe or food with their own usual portion. Private to that person.
+ * Exactly one of [recipeId] and [foodId] is set.
+ */
 data class Favourite(
     val id: Id,
     val userId: Id,
-    val recipeId: Id,
+    val recipeId: Id? = null,
     val usualPortion: Portion? = null,
+    val foodId: Id? = null,
 )

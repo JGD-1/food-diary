@@ -3,6 +3,7 @@ package nl.guido.foodtracker.core.data.repo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Id
@@ -55,6 +56,17 @@ interface RecipeRepository {
     fun favourites(userId: Id): Flow<List<Favourite>>
     suspend fun saveFavourite(f: Favourite)
     suspend fun deleteFavourite(id: Id)
+
+    /** Everyone's portions of this batch (grams only), to show what is left in the pot. */
+    fun portions(batchId: Id): Flow<List<BatchPortion>>
+
+    /** All portions in the household, e.g. to show grams left on every batch in a list. */
+    fun householdPortions(householdId: Id): Flow<List<BatchPortion>>
+    suspend fun savePortion(portion: BatchPortion)
+    suspend fun deletePortion(id: Id)
+
+    /** "Finished": the batch leaves the list for everyone. Null [on] puts it back. */
+    suspend fun finishBatch(batchId: Id, on: LocalDate?)
 }
 
 /** Profile and weigh-ins. Private to each person. */

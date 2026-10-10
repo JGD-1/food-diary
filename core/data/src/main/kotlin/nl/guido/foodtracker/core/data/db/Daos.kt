@@ -78,6 +78,21 @@ interface RecipeDao {
 
     @Query("UPDATE favourite SET deleted = 1, updatedAt = :now WHERE id = :id")
     suspend fun markFavouriteDeleted(id: String, now: Long)
+
+    @Query("SELECT * FROM batch_portion WHERE batchId = :batchId AND deleted = 0")
+    fun portions(batchId: String): Flow<List<BatchPortionEntity>>
+
+    @Query("SELECT * FROM batch_portion WHERE householdId = :householdId AND deleted = 0")
+    fun householdPortions(householdId: String): Flow<List<BatchPortionEntity>>
+
+    @Upsert
+    suspend fun upsertPortion(portion: BatchPortionEntity)
+
+    @Query("UPDATE batch_portion SET deleted = 1, updatedAt = :now WHERE id = :id")
+    suspend fun markPortionDeleted(id: String, now: Long)
+
+    @Query("UPDATE batch SET finishedOn = :finishedOn, updatedAt = :now WHERE id = :id")
+    suspend fun finishBatch(id: String, finishedOn: String?, now: Long)
 }
 
 @Dao

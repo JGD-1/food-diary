@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 import nl.guido.foodtracker.core.data.repo.RecipeRepository
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Portion
@@ -15,6 +16,7 @@ import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.RecipeVariant
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.time.LocalDate
 
 class RoomFavouritesTest {
     /** Only the favourites part of the repository; enough for these tests. */
@@ -33,6 +35,11 @@ class RoomFavouritesTest {
         override fun batches(householdId: Id): Flow<List<Batch>> = emptyFlow()
         override suspend fun getBatch(id: Id): Batch? = null
         override suspend fun saveBatch(batch: Batch) = Unit
+        override fun portions(batchId: Id): Flow<List<BatchPortion>> = emptyFlow()
+        override fun householdPortions(householdId: Id): Flow<List<BatchPortion>> = emptyFlow()
+        override suspend fun savePortion(portion: BatchPortion) = Unit
+        override suspend fun deletePortion(id: Id) = Unit
+        override suspend fun finishBatch(batchId: Id, on: LocalDate?) = Unit
     }
 
     private val repo = FakeRepo()

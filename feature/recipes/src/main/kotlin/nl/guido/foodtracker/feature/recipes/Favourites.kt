@@ -27,7 +27,7 @@ interface Favourites {
 /** Pins kept in the per-person favourite table (core/data), so they sync with the person's own account only. */
 internal class RoomFavourites @Inject constructor(private val recipes: RecipeRepository) : Favourites {
     override fun pinned(userId: Id): Flow<List<PinnedRecipe>> =
-        recipes.favourites(userId).map { list -> list.map { PinnedRecipe(it.recipeId, it.usualPortion) } }
+        recipes.favourites(userId).map { list -> list.mapNotNull { f -> f.recipeId?.let { PinnedRecipe(it, f.usualPortion) } } }
 
     /** Pins the recipe, or updates the usual portion if it is already pinned. */
     override suspend fun pin(userId: Id, recipeId: Id, usualPortion: Portion?) {
