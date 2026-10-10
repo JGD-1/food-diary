@@ -13,9 +13,13 @@ fun NavGraphBuilder.progressScreens(navController: NavController) {
         WeightRoute(
             onLogWeighIn = { navController.navigate(Routes.WEIGH_IN) },
             onSetTarget = { navController.navigate(Routes.PROFILE) },
+            onOpenWeighIn = { id -> navController.navigate(Routes.weighIn(id)) },
         )
     }
     composable(Routes.STATS) {
-        StatsRoute()
+        StatsRoute(
+            // Today registers the day route (finding 1); until it does, tapping a day simply does nothing.
+            onOpenDay = { date -> runCatching { navController.navigate(Routes.day(date)) } },
+        )
     }
 }

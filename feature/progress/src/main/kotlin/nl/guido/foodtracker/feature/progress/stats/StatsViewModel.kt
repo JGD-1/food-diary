@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.EnergyRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
@@ -23,6 +25,8 @@ internal sealed interface StatsUiState {
         /** Daily kcal target, or null until a profile exists. */
         val targetKcal: Int?,
         val today: LocalDate,
+        /** 0 = this week, 1 = last week, and so on. */
+        val weeksBack: Int = 0,
     ) : StatsUiState
 }
 
@@ -34,23 +38,33 @@ internal class StatsViewModel @Inject constructor(
     energy: EnergyRepository,
 ) : ViewModel() {
 
-    val state: StateFlow<StatsUiState> = session.currentUser
-        .flatMapLatest { user ->
+    private val weeksBack = MutableStateFlow(0)
+
+    val state: StateFlow<StatsUiState> = combine(session.currentUser, weeksBack) { user, back -> user to back }
+        .flatMapLatest { (user, back) ->
             val today = LocalDate.now()
             val entries = diary.entriesBetween(
                 user.userId,
-                StatsMath.firstDayNeeded(today),
+                StatsMath.firstDayNeeded(today, back),
                 StatsMath.weekStart(today).plusDays(6),
             )
             // The same daily target as Today and the target screen (stream 4), null until there's a profile.
             combine(entries, energy.target) { list, target ->
                 StatsUiState.Ready(
-                    week = StatsMath.week(list, today),
+                    week = StatsMath.week(list, today, back),
                     months = StatsMath.months(list, today),
                     targetKcal = target?.targetKcal,
                     today = today,
+                    weeksBack = back,
                 )
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StatsUiState.Loading)
+
+    fun earlierWeek() = weeksBack.update { (it + 1).coerceAtMost(MAX_WEEKS_BACK) }
+
+    fun laterWeek() = weeksBack.update { (it - 1).coerceAtLeast(0) }
 }
+
+/** About two years back is plenty for looking at earlier weeks. */
+internal const val MAX_WEEKS_BACK = 104

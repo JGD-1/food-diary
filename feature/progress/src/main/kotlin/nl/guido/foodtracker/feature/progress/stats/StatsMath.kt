@@ -45,9 +45,9 @@ internal object StatsMath {
 
     fun weekStart(date: LocalDate): LocalDate = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
-    /** First day the Stats tab needs entries from: the start of the oldest month shown. */
-    fun firstDayNeeded(today: LocalDate): LocalDate =
-        minOf(YearMonth.from(today).minusMonths((MONTHS_SHOWN - 1).toLong()).atDay(1), weekStart(today))
+    /** First day the Stats tab needs entries from: the start of the oldest month shown, or of the week shown. */
+    fun firstDayNeeded(today: LocalDate, weeksBack: Int = 0): LocalDate =
+        minOf(YearMonth.from(today).minusMonths((MONTHS_SHOWN - 1).toLong()).atDay(1), weekStart(today).minusWeeks(weeksBack.toLong()))
 
     fun dayTotals(entries: List<LogEntry>): Map<LocalDate, Double> =
         entries.groupBy { it.date }.mapValues { (_, list) -> list.sumOf { it.nutrients.kcal } }
@@ -67,8 +67,9 @@ internal object StatsMath {
     /** The week's budget: seven times the daily target, so a big Saturday can balance out over the week. */
     fun weekBudget(dailyTargetKcal: Int): Double = 7.0 * dailyTargetKcal
 
-    fun week(entries: List<LogEntry>, today: LocalDate): WeekStats {
-        val from = weekStart(today)
+    /** The week [weeksBack] weeks before this one (0 = this week), Monday to Sunday. */
+    fun week(entries: List<LogEntry>, today: LocalDate, weeksBack: Int = 0): WeekStats {
+        val from = weekStart(today).minusWeeks(weeksBack.toLong())
         val to = from.plusDays(6)
         val inWeek = entries.filter { it.date in from..to }
         val totals = dayTotals(inWeek)

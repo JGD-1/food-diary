@@ -19,7 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import nl.guido.foodtracker.core.ui.FoodColors
+import nl.guido.foodtracker.core.ui.FoodTheme
 
 /** Small grey line above a big bold title, as at the top of each tab in the design. */
 @Composable
@@ -76,7 +76,7 @@ internal fun NoteText(text: String, modifier: Modifier = Modifier) {
     )
 }
 
-/** A rounded bar from 0 to 1, accent on a light green track. */
+/** A rounded bar from 0 to 1, accent on the green track (light or dark). */
 @Composable
 internal fun ProgressTrack(fraction: Float, modifier: Modifier = Modifier) {
     Box(
@@ -84,7 +84,7 @@ internal fun ProgressTrack(fraction: Float, modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .height(10.dp)
             .clip(RoundedCornerShape(50))
-            .background(FoodColors.AccentTrack),
+            .background(FoodTheme.colors.accentTrack),
     ) {
         if (fraction > 0f) {
             Box(

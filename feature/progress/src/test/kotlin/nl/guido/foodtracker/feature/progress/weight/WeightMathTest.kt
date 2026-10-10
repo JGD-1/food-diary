@@ -149,4 +149,10 @@ class WeightMathTest {
     fun `summary keeps the weekday of the latest weigh-in`() {
         assertEquals(DayOfWeek.SUNDAY, WeightMath.summary(profile(), sundays(80.0)).weighInDay)
     }
+
+    @Test
+    fun `the weigh-in list has every weigh-in, newest first`() {
+        val summary = WeightMath.summary(profile(), sundays(80.1, 79.8, 79.5))
+        assertEquals(listOf(79.5, 79.8, 80.1), summary.weighIns.map { it.kg })
+    }
 }
