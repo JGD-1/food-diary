@@ -11,6 +11,7 @@ import nl.guido.foodtracker.core.model.newId
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import kotlin.math.roundToInt
 
 /** The meal you're most likely eating out at this time of day. Drinks are logged elsewhere. */
 internal fun mealAt(time: LocalTime): Meal = when {
@@ -48,3 +49,25 @@ internal fun restaurantEntry(
     isEstimate = true,
     createdAt = now,
 )
+
+/** How much of the usual restaurant portion was eaten. [mark] goes before the dish name on the diary line. */
+enum class PortionSize(val factor: Double, val mark: String?) {
+    HALF(0.5, "½"),
+    WHOLE(1.0, null),
+    ONE_AND_HALF(1.5, "1½"),
+}
+
+/** The dish's range for this portion size: low, typical and high all scaled, rounded to whole kcal. */
+internal fun Estimate.scaled(size: PortionSize): Estimate =
+    if (size == PortionSize.WHOLE) this
+    else Estimate(scaleKcal(low, size), scaleKcal(typical, size), scaleKcal(high, size))
+
+private fun scaleKcal(kcal: Int, size: PortionSize) = (kcal * size.factor).roundToInt()
+
+/** "½ Pizza margherita" for half a portion; the plain name for a whole one. */
+internal fun dishWithSize(dish: String, size: PortionSize): String =
+    size.mark?.let { "$it ${dish.trim()}" } ?: dish.trim()
+
+/** The day to log to, from the screen's `date` extra (ISO); today when it's missing or unreadable. */
+internal fun dayFrom(arg: String?, today: LocalDate): LocalDate =
+    arg?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: today

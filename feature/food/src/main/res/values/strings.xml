@@ -11,6 +11,10 @@
     <string name="food_eat_out_own_dish">You typed this one in before.</string>
     <string name="food_eat_out_not_listed">Not in the list? Type the kcal yourself. The app remembers this dish for next time.</string>
     <string name="food_eat_out_type_kcal">Kcal (your own guess)</string>
+    <string name="food_eat_out_how_much">How much did you eat?</string>
+    <string name="food_eat_out_size_half">Half</string>
+    <string name="food_eat_out_size_whole">Whole</string>
+    <string name="food_eat_out_size_one_and_half">1½</string>
     <string name="food_eat_out_meal">Which meal?</string>
     <string name="food_eat_out_log">Log as estimate</string>
     <string name="food_eat_out_cancel">Cancel</string>
