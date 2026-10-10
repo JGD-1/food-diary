@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Lijst met recepten -->
+    <string name="recipes_recipes_title">Recepten</string>
+    <string name="recipes_back">Terug</string>
+    <string name="recipes_new_recipe">Nieuw recept</string>
+    <string name="recipes_cook_batch">Grote pan koken</string>
+    <string name="recipes_batches_section">In de pan</string>
+    <string name="recipes_batch_cooked_left">Gekookt %1$s · nog ongeveer %2$s g over</string>
+    <string name="recipes_batch_finished">Op</string>
+    <string name="recipes_batch_finished_done">Van de lijst gehaald</string>
+    <string name="recipes_undo">Ongedaan maken</string>
+    <string name="recipes_weigh_my_portion">Mijn portie wegen</string>
+    <string name="recipes_pinned_section">Mijn favorieten</string>
+    <string name="recipes_all_section">Alle recepten</string>
+    <string name="recipes_empty">Nog geen recepten. Sla er één keer een op, dan voeg je hem de volgende keer met twee tikken toe.</string>
+    <string name="recipes_recipe_detail">%1$d kcal in %2$s g</string>
+    <string name="recipes_usual_portion">Meestal %1$s g, %2$d kcal</string>
+    <string name="recipes_edit">Wijzigen</string>
+    <string name="recipes_not_found">Dit is er niet meer. Misschien is het verwijderd.</string>
+
+    <!-- Recept bewerken -->
+    <string name="recipes_edit_recipe">Recept wijzigen</string>
+    <string name="recipes_name">Naam</string>
+    <string name="recipes_ingredients">Ingrediënten</string>
+    <string name="recipes_ingredients_empty">Voeg toe wat erin gaat, met het aantal gram.</string>
+    <string name="recipes_add_ingredient">Ingrediënt toevoegen</string>
+    <string name="recipes_save">Opslaan</string>
+    <string name="recipes_delete_recipe">Recept verwijderen</string>
+    <string name="recipes_delete_question">Dit recept verwijderen? Het verdwijnt voor iedereen in je huishouden. Maaltijden die je al hebt ingevuld, blijven in je dagboek staan.</string>
+    <string name="recipes_delete">Verwijderen</string>
+    <string name="recipes_keep">Bewaren</string>
+    <string name="recipes_cancel">Annuleren</string>
+
+    <!-- Gedeelde stukjes -->
+    <string name="recipes_grams">Gram</string>
+    <string name="recipes_grams_unit">g</string>
+    <string name="recipes_weigh">Wegen</string>
+    <string name="recipes_remove">Weghalen</string>
+    <string name="recipes_kcal">%1$d kcal</string>
+    <string name="recipes_kcal_per_100g">%1$d kcal per 100 g</string>
+    <string name="recipes_macros">Eiwit %1$d g · Koolhydraten %2$d g · Vet %3$d g</string>
+    <string name="recipes_for_day">Voor %1$s</string>
+    <string name="recipes_meal_breakfast">Ontbijt</string>
+    <string name="recipes_meal_lunch">Lunch</string>
+    <string name="recipes_meal_dinner">Avondeten</string>
+    <string name="recipes_meal_snacks">Tussendoortjes</string>
+    <string name="recipes_meal_drinks">Drinken</string>
+
+    <!-- Een product zoeken -->
+    <string name="recipes_find_food">Product zoeken</string>
+    <string name="recipes_find_food_hint">Typ een product en tik op Zoeken</string>
+    <string name="recipes_search">Zoeken</string>
+    <string name="recipes_searching">Zoeken…</string>
+    <string name="recipes_nothing_found">Niets gevonden. Probeer een ander woord.</string>
+    <string name="recipes_nothing_on_phone">Nog niet op je telefoon. Probeer online te zoeken.</string>
+    <string name="recipes_search_online">Online zoeken</string>
+    <string name="recipes_close">Sluiten</string>
+
+    <!-- Een recept toevoegen -->
+    <string name="recipes_variant">Variant</string>
+    <string name="recipes_variant_plain">Zoals opgeslagen</string>
+    <string name="recipes_extras">Extra\'s deze keer</string>
+    <string name="recipes_extras_hint">Alleen voor deze maaltijd. Je opgeslagen recept blijft hetzelfde.</string>
+    <string name="recipes_add_extra">Extra toevoegen</string>
+    <string name="recipes_save_as_variant">Opslaan als variant</string>
+    <string name="recipes_variant_hint">Bewaart deze extra\'s als variant van het recept, zodat je hem de volgende keer kunt kiezen.</string>
+    <string name="recipes_variant_example">bijv. extra kaas</string>
+    <string name="recipes_how_much">Hoeveel</string>
+    <string name="recipes_whole">Alles (%1$s g)</string>
+    <string name="recipes_usual">Zoals altijd (%1$s g)</string>
+    <string name="recipes_my_portion">Mijn portie</string>
+    <string name="recipes_remember_portion">%1$s g onthouden als mijn gewone portie</string>
+    <string name="recipes_log_it">Toevoegen</string>
+    <string name="recipes_pin">Aan mijn favorieten toevoegen</string>
+    <string name="recipes_unpin">Uit favorieten halen</string>
+    <string name="recipes_cook_batch_of_this">Hiervan een grote pan koken</string>
+
+    <!-- Grote pan -->
+    <string name="recipes_batch_step_in">1. Weeg wat erin gaat</string>
+    <string name="recipes_batch_step_in_hint">Weeg elk ingrediënt voordat het in de pan gaat.</string>
+    <string name="recipes_batch_raw_total">Alles in de pan: %1$d kcal</string>
+    <string name="recipes_batch_step_cooked">2. Weeg het gekookte eten</string>
+    <string name="recipes_batch_step_cooked_hint">Als het klaar is, weeg je al het eten, zonder de pan.</string>
+    <string name="recipes_batch_cooked_weight">Gekookt eten</string>
+    <string name="recipes_batch_save">Pan opslaan en mijn portie wegen</string>
+    <string name="recipes_batch_summary">Gekookt %1$s · %2$s g in totaal, %3$d kcal</string>
+    <string name="recipes_batch_step_portion">3. Weeg mijn portie</string>
+    <string name="recipes_batch_step_portion_hint">Zet je bord op de weegschaal, zet hem op nul en schep dan je portie op.</string>
+    <string name="recipes_log_my_portion">Mijn portie toevoegen</string>
+    <string name="recipes_batch_left">Nog ongeveer %1$s g over in de pan</string>
+    <string name="recipes_batch_last_portion">Dat was het laatste: haal de pan van de lijst</string>
+</resources>

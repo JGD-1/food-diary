@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Eetdagboek</string>
+    <string name="tab_today">Vandaag</string>
+    <string name="tab_weight">Gewicht</string>
+    <string name="tab_stats">Overzicht</string>
+</resources>

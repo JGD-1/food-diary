@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="food_eat_out_title">Uit eten</string>
+    <string name="food_eat_out_body">Kies je gerecht uit de lijst, of typ zelf de kcal.</string>
+    <string name="food_eat_out_dish_label">Wat heb je gegeten?</string>
+    <string name="food_eat_out_dish_hint">Bijvoorbeeld: pizza margherita</string>
+    <string name="food_eat_out_range">%1$d–%2$d kcal</string>
+    <string name="food_eat_out_kcal">%1$d kcal</string>
+    <string name="food_eat_out_typical">Meestal ongeveer %1$d kcal. Dit wordt meegeteld.</string>
+    <string name="food_eat_out_is_estimate">≈ Dit is een schatting. Het wordt ook zo opgeslagen, los van gewogen eten.</string>
+    <string name="food_eat_out_own_dish">Deze heb je eerder zelf ingetypt.</string>
+    <string name="food_eat_out_not_listed">Staat het er niet bij? Typ zelf de kcal. De app onthoudt dit gerecht voor de volgende keer.</string>
+    <string name="food_eat_out_type_kcal">Kcal (je eigen schatting)</string>
+    <string name="food_eat_out_how_much">Hoeveel heb je gegeten?</string>
+    <string name="food_eat_out_size_half">Half</string>
+    <string name="food_eat_out_size_whole">Heel</string>
+    <string name="food_eat_out_size_one_and_half">1½</string>
+    <string name="food_eat_out_meal">Welke maaltijd?</string>
+    <string name="food_eat_out_log">Opslaan als schatting</string>
+    <string name="food_eat_out_cancel">Annuleren</string>
+    <string name="food_meal_breakfast">Ontbijt</string>
+    <string name="food_meal_lunch">Lunch</string>
+    <string name="food_meal_dinner">Avondeten</string>
+    <string name="food_meal_snacks">Tussendoortjes</string>
+</resources>

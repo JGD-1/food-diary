@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sync_title">Account en back-up</string>
+    <string name="sync_not_configured">Online back-up is nog niet ingesteld. Alles wat je invult, staat veilig op deze telefoon.</string>
+
+    <string name="sync_sign_in_body">Log in met Google om een back-up van je dagboek te maken en recepten te delen met je huishouden.</string>
+    <string name="sync_private_note">Recepten en pannen met eten worden gedeeld. Je dagboek, gewicht en voortgang blijven privé.</string>
+    <string name="sync_sign_in_button">Inloggen met Google</string>
+    <string name="sync_signing_in">Bezig met inloggen…</string>
+    <string name="sync_sign_in_failed">Inloggen is niet gelukt. Je kunt het opnieuw proberen.</string>
+    <string name="sync_not_now">Niet nu</string>
+    <string name="sync_signed_in_as">Ingelogd als %1$s</string>
+
+    <string name="sync_backup_title">Back-up</string>
+    <string name="sync_status_syncing">Back-up maken…</string>
+    <string name="sync_status_offline">Opgeslagen op deze telefoon. De back-up volgt zodra je online bent.</string>
+    <string name="sync_status_done">Back-up gemaakt: %1$s</string>
+    <string name="sync_status_never">Nog geen back-up gemaakt.</string>
+    <string name="sync_status_signed_out">Log opnieuw in om back-ups te blijven maken. Alles staat nog op deze telefoon.</string>
+    <string name="sync_now_button">Nu back-up maken</string>
+
+    <string name="sync_household_title">Huishouden</string>
+    <string name="sync_household_alone">Je bent nu nog de enige in je huishouden.</string>
+    <string name="sync_household_shared">%1$d mensen delen recepten en pannen met eten in je huishouden.</string>
+    <string name="sync_household_code_label">Code van je huishouden</string>
+    <string name="sync_household_code_help">Je partner typt deze code hieronder in de eigen app om recepten met je te delen.</string>
+    <string name="sync_join_field">Code van je partner</string>
+    <string name="sync_join_button">Huishouden binnengaan</string>
+    <string name="sync_join_done">Gelukt. Gedeelde recepten verschijnen zo.</string>
+    <string name="sync_join_not_found">Die code is niet gevonden. Controleer hem en probeer het opnieuw.</string>
+
+    <string name="sync_export_title">Je gegevens</string>
+    <string name="sync_export_body">Bewaar alles wat je hebt ingevuld als bestand (spreadsheet en JSON).</string>
+    <string name="sync_export_button">Al mijn gegevens exporteren</string>
+    <string name="sync_export_saved">Opgeslagen.</string>
+    <string name="sync_export_failed">Het bestand kon niet worden opgeslagen. Probeer het opnieuw.</string>
+</resources>

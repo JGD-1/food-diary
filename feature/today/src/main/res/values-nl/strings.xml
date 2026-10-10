@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Taal van de datums op Vandaag (bijv. "vrijdag 9 oktober"). -->
+    <string name="today_locale" translatable="false">nl</string>
+
+    <string name="today_title">Vandaag</string>
+    <string name="today_profile">Profiel en instellingen</string>
+    <string name="today_yesterday">Gisteren</string>
+    <string name="today_previous_day">Vorige dag</string>
+    <string name="today_next_day">Volgende dag</string>
+    <string name="today_back_to_today">Terug naar vandaag</string>
+
+    <!-- De ring -->
+    <string name="today_kcal_left">kcal over</string>
+    <string name="today_kcal_over">kcal boven je doel</string>
+    <string name="today_kcal_eaten">kcal gegeten</string>
+    <string name="today_ring_description_left">Vandaag nog %1$s kcal over</string>
+    <string name="today_ring_description_over">%1$s kcal boven het doel van vandaag</string>
+    <string name="today_ring_description_eaten">Vandaag %1$s kcal gegeten</string>
+    <string name="today_sum">%1$s doel − %2$s gegeten</string>
+    <string name="today_sum_estimate">%1$s doel − ≈ %2$s gegeten</string>
+    <string name="today_sum_open">Tik om te zien hoe je doel wordt berekend</string>
+    <string name="today_set_target">Stel je dagdoel in ›</string>
+    <string name="today_macros">%1$s g eiwit · %2$s g koolhydraten · %3$s g vet ›</string>
+    <string name="today_macros_open">Tik voor details</string>
+    <string name="today_macros_goal">%1$s van %2$s g eiwit · %3$s g koolhydraten · %4$s g vet ›</string>
+
+    <!-- Maaltijden -->
+    <string name="today_meal_breakfast">Ontbijt</string>
+    <string name="today_meal_lunch">Lunch</string>
+    <string name="today_meal_dinner">Avondeten</string>
+    <string name="today_meal_snacks">Tussendoortjes</string>
+    <string name="today_meal_drinks">Drinken</string>
+    <string name="today_add_breakfast">+ Ontbijt toevoegen</string>
+    <string name="today_add_lunch">+ Lunch toevoegen</string>
+    <string name="today_add_dinner">+ Avondeten toevoegen</string>
+    <string name="today_add_snacks">+ Tussendoortje toevoegen</string>
+    <string name="today_add_to_breakfast">Toevoegen aan ontbijt</string>
+    <string name="today_add_to_lunch">Toevoegen aan lunch</string>
+    <string name="today_add_to_dinner">Toevoegen aan avondeten</string>
+    <string name="today_add_to_snacks">Toevoegen aan tussendoortjes</string>
+    <string name="today_add_to_drinks">Toevoegen aan drinken</string>
+    <string name="today_again">Nog eens</string>
+    <string name="today_last_time">Vorige keer: %1$s</string>
+    <string name="today_scan_drink">Drankje scannen</string>
+    <string name="today_add_drink">Drankje toevoegen</string>
+    <string name="today_drinks_none">Nog niets</string>
+    <string name="today_amount_grams">%1$s g</string>
+    <string name="today_amount_ml">%1$s ml</string>
+    <string name="today_restaurant_item_single">%1$s · restaurant, ongeveer %2$s</string>
+    <string name="today_restaurant_item">%1$s · restaurant, %2$s–%3$s</string>
+    <string name="today_kcal_value">%1$s</string>
+    <string name="today_kcal_estimate">≈ %1$s</string>
+    <string name="today_kcal_unit">%1$s kcal</string>
+    <string name="today_estimate_range">Schatting, %1$s–%2$s kcal</string>
+
+    <!-- Knoppen onderaan -->
+    <string name="today_log_food_title">Eten toevoegen</string>
+    <string name="today_scan">Scannen</string>
+    <string name="today_weigh">Wegen</string>
+    <string name="today_eat_out">Uit eten</string>
+
+    <!-- Meldingen met Ongedaan maken -->
+    <string name="today_added_again">Opnieuw toegevoegd aan %1$s</string>
+    <string name="today_removed">%1$s weggehaald</string>
+    <string name="today_added">%1$s toegevoegd</string>
+    <string name="today_added_to">%1$s toegevoegd aan %2$s</string>
+    <string name="today_undo">Ongedaan maken</string>
+    <string name="today_coming_soon">Aan dit deel van de app wordt nog gewerkt</string>
+
+    <!-- Details van een maaltijd -->
+    <string name="today_change_amount">Hoeveelheid %1$s wijzigen</string>
+    <string name="today_amount_label">Hoeveelheid</string>
+    <string name="today_save">Opslaan</string>
+    <string name="today_remove">Weghalen</string>
+    <string name="today_meal_empty">Hier staat nog niets.</string>
+    <string name="today_move_to">Verplaatsen naar…</string>
+    <string name="today_copy_to_today">Naar vandaag kopiëren</string>
+    <string name="today_moved_to">Verplaatst naar %1$s</string>
+    <string name="today_copied">Naar vandaag gekopieerd</string>
+
+    <!-- Eiwit, koolhydraten en vet -->
+    <string name="today_macros_title">Eiwit, koolhydraten en vet</string>
+    <string name="today_protein">Eiwit</string>
+    <string name="today_carbs">Koolhydraten</string>
+    <string name="today_fat">Vet</string>
+    <string name="today_macro_share">%1$s%% van de kcal</string>
+    <string name="today_amount_of_goal">%1$s van %2$s g</string>
+    <string name="today_fibre">Vezels</string>
+    <string name="today_sugar">Suikers</string>
+    <string name="today_salt">Zout</string>
+    <string name="today_extras_note">Geteld voor de producten waarbij het bekend is.</string>
+    <string name="today_meal_carbs">%1$s g koolhydraten</string>
+    <string name="today_macros_note">Leuk om te weten. Het belangrijkste getal is de kcal die over is.</string>
+
+    <!-- Terugblik op maandag -->
+    <string name="today_review_title">Je week in het kort</string>
+    <string name="today_review_average_target">Gemiddeld %1$s kcal per dag (doel %2$s)</string>
+    <string name="today_review_days">Ingevuld op %1$d van de 7 dagen</string>
+    <string name="today_review_weight_change">Weging: %1$s kg (%2$s kg sinds de vorige)</string>
+    <string name="today_review_weight">Weging: %1$s kg</string>
+    <string name="today_review_no_weight">Vorige week geen weging</string>
+    <string name="today_review_goal_reached">Je hebt je streefgewicht bereikt. In je profiel kun je overstappen op een doel waarmee je daar blijft.</string>
+    <string name="today_review_log_more">Probeer deze week op een paar dagen meer in te vullen. Even snel “Nog eens” telt ook.</string>
+    <string name="today_review_weigh_in">Stap deze week één keer op de weegschaal, zodat je trend bijblijft.</string>
+    <string name="today_review_above">Vorige week kwam iets boven je doel uit. Eén avondeten vooruit plannen kan deze week makkelijker maken.</string>
+    <string name="today_review_below">Je at flink onder je doel. Dichter bij je doel eten is makkelijker vol te houden.</string>
+    <string name="today_review_keep_going">Je zat dicht bij je doel. Deze week in hetzelfde ritme!</string>
+    <string name="today_review_dismiss">Begrepen</string>
+
+    <!-- Eten toevoegen -->
+    <string name="today_back">Terug</string>
+    <string name="today_done">Klaar</string>
+    <string name="today_log_for_day">Voor %1$s</string>
+    <string name="today_search_hint">Zoek eten en drinken</string>
+    <string name="today_search_online">Online zoeken naar “%1$s”</string>
+    <string name="today_searching_online">Zoeken in Open Food Facts…</string>
+    <string name="today_online_nothing">Online niets gevonden. Probeer andere woorden, of scan de barcode.</string>
+    <string name="today_online_unreachable">Open Food Facts is niet bereikbaar. Controleer je internet, of scan de barcode.</string>
+    <string name="today_all_recipes">Recepten ›</string>
+    <string name="today_all_recipes_detail">Je recepten en pannen met eten</string>
+    <string name="today_section_favourites">Favorieten</string>
+    <string name="today_section_pot">Uit de pan</string>
+    <string name="today_section_recent">Recent</string>
+    <string name="today_section_foods">Producten</string>
+    <string name="today_section_online">Online</string>
+    <string name="today_empty_hint">Zoek een product of scan de barcode. Wat je invult, staat hier de volgende keer klaar.</string>
+    <string name="today_quick_add">Toevoegen</string>
+    <string name="today_quick_add_description">%1$s nog eens toevoegen</string>
+    <string name="today_per_100g">%1$s kcal per 100 g</string>
+    <string name="today_per_100ml">%1$s kcal per 100 ml</string>
+    <string name="today_source_nevo">NEVO</string>
+    <string name="today_source_off">Open Food Facts</string>
+    <string name="today_source_own">Mijn product</string>
+    <string name="today_weigh_on_scale">Op de weegschaal wegen</string>
+    <string name="today_unit_g">g</string>
+    <string name="today_unit_ml">ml</string>
+    <string name="today_amount_total">= %1$s kcal</string>
+    <string name="today_chip_serving">1 portie · %1$s</string>
+    <string name="today_chip_pack">Hele verpakking · %1$s</string>
+    <string name="today_chip_piece">%1$s · %2$s</string>
+    <string name="today_pin">Aan favorieten toevoegen</string>
+    <string name="today_unpin">Uit favorieten halen</string>
+    <string name="today_edit_food">Product wijzigen</string>
+    <string name="today_type_kcal">Zelf kcal intypen ›</string>
+    <string name="today_type_kcal_detail">“%1$s” toevoegen met je eigen kcal</string>
+    <string name="today_pot_left">gekookt %1$s · nog %2$s g over</string>
+</resources>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="energy_back">Terug</string>
+    <string name="energy_kcal">%1$s kcal</string>
+    <string name="energy_times">× %1$s</string>
+
+    <!-- Hoe wordt mijn doel berekend -->
+    <string name="energy_target_title">Zo wordt je doel berekend</string>
+    <string name="energy_target_daily">Je dagdoel</string>
+    <string name="energy_manual_note">Je hebt zelf een doel van %1$s kcal ingesteld. De berekening hieronder (%2$s kcal) is alleen ter vergelijking.</string>
+    <string name="energy_line_resting_title">Energie in rust</string>
+    <string name="energy_line_resting_body">Wat je lichaam in volledige rust verbruikt, berekend uit je leeftijd (%1$d), geslacht (%2$s), lengte en gewicht (%3$s kg). Dit is de formule van Mifflin-St Jeor.</string>
+    <string name="energy_line_activity_title">Beweging: ongeveer %1$s kcal per dag</string>
+    <string name="energy_line_activity_body">Wat je dagelijks beweegt, bovenop de energie in rust. Samen is dit ongeveer wat je nodig hebt om op hetzelfde gewicht te blijven.</string>
+    <string name="energy_line_lose_title">Op weg naar je streefgewicht</string>
+    <string name="energy_line_lose_body">Om ongeveer %1$s kg per week af te vallen.</string>
+    <string name="energy_line_gain_title">Op weg naar je streefgewicht</string>
+    <string name="energy_line_gain_body">Om ongeveer %1$s kg per week aan te komen.</string>
+    <string name="energy_line_maintain_title">Op je streefgewicht</string>
+    <string name="energy_line_maintain_body">Je zit binnen een halve kilo van je streefgewicht, dus het doel is om daar te blijven.</string>
+    <string name="energy_line_adjust_title">Geleerd van je wegingen</string>
+    <string name="energy_line_adjust_body">Gebaseerd op je wekelijkse wegingen en wat je hebt ingevuld. Het verandert hooguit 100 kcal per week. Dagen die onvolledig lijken tellen niet mee, en weken met te weinig volledige dagen worden overgeslagen.</string>
+    <string name="energy_line_adjust_waiting">Begint na 3 wekelijkse wegingen. Nog %1$d te gaan.</string>
+    <string name="energy_weeks_title">Weken waarvan geleerd is</string>
+    <string name="energy_weeks_body">Een dag telt mee als minstens %1$d%% van je doel is ingevuld. Een weging wordt gebruikt als minstens de helft van de dagen ervoor meetelt.</string>
+    <string name="energy_week_used">Weging %1$s: gebruikt</string>
+    <string name="energy_week_skipped">Weging %1$s: overgeslagen</string>
+    <string name="energy_week_days">%1$d van %2$d dagen volledig</string>
+    <string name="energy_line_total_title">Dagdoel</string>
+    <string name="energy_line_minimum">Op %1$s kcal gehouden, een verstandig minimum.</string>
+    <string name="energy_weight_from_weigh_in">Gebruikt gewicht: %1$s kg, van je weging op %2$s.</string>
+    <string name="energy_weight_from_start">Gebruikt gewicht: %1$s kg, je startgewicht.</string>
+    <string name="energy_log_weigh_in">Gewicht invoeren</string>
+    <string name="energy_change_inputs">Je gegevens wijzigen</string>
+
+    <!-- Profiel -->
+    <string name="energy_profile_title">Je gegevens</string>
+    <string name="energy_profile_intro">Vertel de app iets over jezelf, dan berekent hij een dagdoel voor je.</string>
+    <string name="energy_form_birth_year">Geboortejaar</string>
+    <string name="energy_form_sex">Geslacht (de formule verschilt een beetje)</string>
+    <string name="energy_sex_female">Vrouw</string>
+    <string name="energy_sex_male">Man</string>
+    <string name="energy_sex_female_lower">vrouw</string>
+    <string name="energy_sex_male_lower">man</string>
+    <string name="energy_form_height">Lengte (cm)</string>
+    <string name="energy_form_weight">Gewicht nu (kg)</string>
+    <string name="energy_form_activity">Hoe actief ben je op een gewone dag?</string>
+    <string name="energy_activity_sedentary">Vooral zittend</string>
+    <string name="energy_activity_sedentary_body">Bureauwerk, weinig lopen.</string>
+    <string name="energy_activity_light">Licht actief</string>
+    <string name="energy_activity_light_body">Wat lopen, of 1 tot 3 dagen per week licht sporten.</string>
+    <string name="energy_activity_moderate">Gemiddeld actief</string>
+    <string name="energy_activity_moderate_body">Veel op de been, of 3 tot 5 dagen per week sporten.</string>
+    <string name="energy_activity_active">Zeer actief</string>
+    <string name="energy_activity_active_body">Lichamelijk werk, of 6 tot 7 dagen per week flink sporten.</string>
+    <string name="energy_activity_very_active">Extreem actief</string>
+    <string name="energy_activity_very_active_body">Zwaar lichamelijk werk en elke dag trainen.</string>
+    <string name="energy_form_target_weight">Streefgewicht (kg)</string>
+    <string name="energy_form_pace">Tempo</string>
+    <string name="energy_pace_option">%1$s kg per week</string>
+    <string name="energy_form_own_target">Mijn eigen dagdoel gebruiken</string>
+    <string name="energy_form_own_target_body">Typ je eigen getal in plaats van het berekende.</string>
+    <string name="energy_form_own_target_kcal">Dagdoel (kcal)</string>
+    <string name="energy_form_protein_goal">Eiwitdoel per dag in gram (optioneel)</string>
+    <string name="energy_form_protein_goal_body">Laat leeg voor geen doel. Stel je er een in, dan toont Vandaag het naast je eiwit.</string>
+    <string name="energy_form_check">Vul alle velden in. Geboortejaar, lengte (100 tot 250 cm) en gewichten (30 tot 300 kg) moeten een getal zijn. Een eiwitdoel, als je dat instelt, ligt tussen 10 en 400 gram.</string>
+    <string name="energy_form_saved">Opgeslagen. Je doel is bijgewerkt.</string>
+    <string name="energy_form_save">Opslaan</string>
+    <string name="energy_reminders">Herinneringen</string>
+    <string name="energy_account_sync">Account en back-up</string>
+    <string name="energy_data_sources">Gegevensbronnen</string>
+
+    <!-- Wekelijkse weging -->
+    <string name="energy_weigh_in_title">Wekelijkse weging</string>
+    <string name="energy_weigh_in_tip">Eén keer per week is genoeg. Weeg jezelf steeds op hetzelfde moment, bijvoorbeeld maandagochtend voor het ontbijt.</string>
+    <string name="energy_weigh_in_last">Vorige keer: %1$s kg op %2$s.</string>
+    <string name="energy_weigh_in_replaces">Je hebt deze week al gewogen (%1$s kg). Opslaan vervangt die weging.</string>
+    <string name="energy_weigh_in_field">Gewicht (kg)</string>
+    <string name="energy_weigh_in_check">Typ je gewicht in kilo, bijvoorbeeld 82,4.</string>
+    <string name="energy_weigh_in_save">Weging opslaan</string>
+    <string name="energy_weigh_in_saved">Opgeslagen: %1$s kg</string>
+    <string name="energy_weigh_in_less">%1$s kg minder dan de week ervoor.</string>
+    <string name="energy_weigh_in_more">%1$s kg meer dan de week ervoor.</string>
+    <string name="energy_weigh_in_same">Hetzelfde als de week ervoor.</string>
+    <string name="energy_weigh_in_first">Je eerste weging. Na een paar weken zie je de trend.</string>
+    <string name="energy_weigh_in_normal">Je gewicht gaat van dag tot dag zo\'n kilo op en neer, vooral door vocht en zout. Het verloop over de weken is wat telt.</string>
+    <string name="energy_done">Klaar</string>
+    <string name="energy_weigh_in_change_title">Weging wijzigen</string>
+    <string name="energy_weigh_in_on">Weging van %1$s. Typ het juiste gewicht, of verwijder hem.</string>
+    <string name="energy_weigh_in_gone">Deze weging bestaat niet meer.</string>
+    <string name="energy_weigh_in_delete">Weging verwijderen</string>
+    <string name="energy_weigh_in_delete_title">Deze weging verwijderen?</string>
+    <string name="energy_weigh_in_delete_body">De %1$s kg van %2$s verdwijnt uit je grafieken en je doel.</string>
+    <string name="energy_weigh_in_delete_yes">Verwijderen</string>
+    <string name="energy_weigh_in_delete_no">Bewaren</string>
+</resources>
