@@ -50,6 +50,10 @@
     <string name="camera_food_protein">Protein (g)</string>
     <string name="camera_food_carbs">Carbs (g)</string>
     <string name="camera_food_fat">Fat (g)</string>
+    <string name="camera_food_optional">Optional</string>
+    <string name="camera_food_fibre">Fibre (g)</string>
+    <string name="camera_food_sugar">Sugars (g)</string>
+    <string name="camera_food_salt">Salt (g)</string>
     <string name="camera_food_is_drink">This is a drink</string>
     <string name="camera_food_save">Save food</string>
 
@@ -62,6 +66,17 @@
     <string name="camera_amount_total">That\'s %1$d kcal</string>
     <string name="camera_amount_read_scale">Read the scale</string>
     <string name="camera_amount_done">Done</string>
+    <string name="camera_chip_grams">%1$s g</string>
+    <string name="camera_chip_ml">%1$s ml</string>
+    <string name="camera_chip_serving">1 serving · %1$s</string>
+    <string name="camera_chip_pack">Whole pack · %1$s</string>
+    <string name="camera_chip_piece">%1$s ≈ %2$s</string>
+
+    <!-- Edit food -->
+    <string name="camera_edit_title">Edit food</string>
+    <string name="camera_edit_body">Change the numbers to match the packet. Food you logged before keeps its numbers.</string>
+    <string name="camera_edit_cannot">This food can\'t be changed here. Foods from the NEVO table stay as they are.</string>
+    <string name="camera_edit_save">Save changes</string>
 
     <!-- Scale -->
     <string name="camera_scale_title">Read the scale</string>

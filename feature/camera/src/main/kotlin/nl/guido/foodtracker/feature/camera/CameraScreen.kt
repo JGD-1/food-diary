@@ -17,6 +17,8 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,11 +33,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -305,23 +307,11 @@ private fun EditFoodPanel(s: CameraStep.EditFood, vm: CameraViewModel) {
         },
     )
     if (s.readCount != null) OtherButton(stringResource(R.string.camera_food_retake), vm::scanLabel)
-    TextField(d.name, { vm.onDraftChange(d.copy(name = it)) }, stringResource(R.string.camera_food_name))
-    TextField(d.brand, { vm.onDraftChange(d.copy(brand = it)) }, stringResource(R.string.camera_food_brand))
-    Text(
-        stringResource(if (d.isDrink) R.string.camera_food_per100ml else R.string.camera_food_per100g),
-        style = MaterialTheme.typography.titleMedium,
-    )
-    NumberField(d.kcal, { vm.onDraftChange(d.copy(kcal = it)) }, stringResource(R.string.camera_food_kcal))
-    NumberField(d.protein, { vm.onDraftChange(d.copy(protein = it)) }, stringResource(R.string.camera_food_protein))
-    NumberField(d.carbs, { vm.onDraftChange(d.copy(carbs = it)) }, stringResource(R.string.camera_food_carbs))
-    NumberField(d.fat, { vm.onDraftChange(d.copy(fat = it)) }, stringResource(R.string.camera_food_fat))
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.camera_food_is_drink), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-        Switch(checked = d.isDrink, onCheckedChange = { vm.onDraftChange(d.copy(isDrink = it)) })
-    }
+    FoodFields(d, vm::onDraftChange)
     MainButton(stringResource(R.string.camera_food_save), enabled = d.canSave, onClick = vm::saveFood)
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun HowMuchPanel(s: CameraStep.HowMuch, vm: CameraViewModel) {
     val food = s.food
@@ -333,6 +323,18 @@ private fun HowMuchPanel(s: CameraStep.HowMuch, vm: CameraViewModel) {
             food.per100g.kcal.roundToInt(),
         ),
     )
+    val chips = amountChips(food, s.pieces)
+    if (chips.isNotEmpty()) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            chips.forEach { chip ->
+                FilterChip(
+                    selected = parseAmount(s.grams) == chip.grams,
+                    onClick = { vm.onGramsChange(formatGrams(chip.grams)) },
+                    label = { Text(chipText(chip, food.isDrink)) },
+                )
+            }
+        }
+    }
     NumberField(
         s.grams, vm::onGramsChange,
         stringResource(if (food.isDrink) R.string.camera_amount_ml else R.string.camera_amount_grams),
@@ -342,6 +344,17 @@ private fun HowMuchPanel(s: CameraStep.HowMuch, vm: CameraViewModel) {
     }
     MainButton(stringResource(R.string.camera_amount_done), enabled = (parseAmount(s.grams) ?: 0.0) > 0, onClick = vm::finishWithFood)
     OtherButton(stringResource(R.string.camera_amount_read_scale)) { vm.readScaleFor(food) }
+}
+
+/** "1 serving · 45 g", "Whole pack · 750 g", "1 apple ≈ 150 g". */
+@Composable
+private fun chipText(chip: AmountChip, drink: Boolean): String {
+    val amount = stringResource(if (drink) R.string.camera_chip_ml else R.string.camera_chip_grams, formatGrams(chip.grams))
+    return when (chip.kind) {
+        AmountChip.Kind.SERVING -> stringResource(R.string.camera_chip_serving, amount)
+        AmountChip.Kind.PACK -> stringResource(R.string.camera_chip_pack, amount)
+        AmountChip.Kind.PIECE -> stringResource(R.string.camera_chip_piece, chip.label.orEmpty(), amount)
+    }
 }
 
 @Composable
@@ -371,10 +384,6 @@ private fun ScalePanel(s: CameraStep.ReadScale, scale: ScaleView, vm: CameraView
     }
     OtherButton(stringResource(R.string.camera_alt_type_grams), vm::typeGrams)
 }
-
-@Composable
-private fun TextField(value: String, onChange: (String) -> Unit, label: String) =
-    OutlinedTextField(value, onChange, label = { Text(label) }, singleLine = true, modifier = Modifier.fillMaxWidth())
 
 @Composable
 private fun NumberField(value: String, onChange: (String) -> Unit, label: String, type: KeyboardType = KeyboardType.Decimal) =

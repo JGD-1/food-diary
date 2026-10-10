@@ -16,6 +16,13 @@ import nl.guido.foodtracker.core.ui.Routes
  * CameraResult.GRAMS (Double) on the opener's savedStateHandle, then closes.
  */
 fun NavGraphBuilder.cameraScreens(navController: NavController) {
+    // "Edit food" (Routes.foodEdit(id)): the camera's food form, pre-filled; closes when saved.
+    composable(
+        route = Routes.FOOD_EDIT,
+        arguments = listOf(navArgument(Routes.ARG_FOOD_ID) { type = NavType.StringType }),
+    ) {
+        FoodEditScreen(onDone = { navController.popBackStack() })
+    }
     composable(
         route = "${Routes.CAMERA}?${CameraViewModel.ARG_MODE}={${CameraViewModel.ARG_MODE}}" +
             "&${CameraViewModel.ARG_DRINK}={${CameraViewModel.ARG_DRINK}}",

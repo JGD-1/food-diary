@@ -13,7 +13,9 @@ import kotlinx.coroutines.test.setMain
 import nl.guido.foodtracker.core.data.repo.CurrentUser
 import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
+import nl.guido.foodtracker.core.model.CommonPortions
 import nl.guido.foodtracker.core.model.Food
+import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.FoodSource
 import nl.guido.foodtracker.core.model.Id
@@ -27,6 +29,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.IOException
+import java.util.Optional
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CameraViewModelTest {
@@ -57,10 +60,11 @@ class CameraViewModelTest {
     }
 
     private val foods = FakeFoods()
+    private var pieces: Optional<CommonPortions> = Optional.empty()
     private val readings = CameraScaleReadings()
 
     private fun vm(source: FoodSource = FakeSource(cola), args: Map<String, Any?> = emptyMap()) =
-        CameraViewModel(SavedStateHandle(args), foods, source, Session, setOf(CameraScaleWeightSource(readings)), readings)
+        CameraViewModel(SavedStateHandle(args), foods, source, Session, setOf(CameraScaleWeightSource(readings)), readings, pieces)
 
     @Before fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
     @After fun tearDown() = Dispatchers.resetMain()
@@ -75,6 +79,19 @@ class CameraViewModelTest {
         vm.onGramsChange("330")
         vm.finishWithFood()
         assertEquals(CameraOutcome("off-cola", 330.0), vm.outcome.value)
+    }
+
+    @Test fun `how much shows the common pieces for the food`() {
+        pieces = Optional.of(
+            object : CommonPortions {
+                override suspend fun forFood(food: Food) = listOf(Portion(330.0, "1 can"))
+            },
+        )
+        val vm = vm()
+        vm.see("5449000000996")
+        assertEquals(CameraStep.HowMuch(cola, pieces = listOf(Portion(330.0, "1 can"))), vm.step.value)
+        vm.onGramsChange("330")
+        assertEquals(listOf(Portion(330.0, "1 can")), (vm.step.value as CameraStep.HowMuch).pieces)
     }
 
     @Test fun `one glimpse of a barcode is not enough`() {
