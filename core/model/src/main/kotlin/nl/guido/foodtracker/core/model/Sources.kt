@@ -18,6 +18,15 @@ interface FoodSource {
     suspend fun searchOnline(text: String): List<Food> = emptyList()
 }
 
+/**
+ * Common pieces for a food, e.g. Portion(150.0, "1 apple"), shown as amount chips (finding 2).
+ * Bound by feature/food; optional, so callers inject Optional<CommonPortions>.
+ */
+interface CommonPortions {
+    /** Empty when there are no common pieces for this food. */
+    suspend fun forFood(food: Food): List<Portion>
+}
+
 /** Gives a kcal range for a restaurant dish described in words. Swappable provider. */
 interface RestaurantEstimator {
     suspend fun estimate(dish: String): Estimate
