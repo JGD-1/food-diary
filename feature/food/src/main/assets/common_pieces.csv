@@ -1,0 +1,31 @@
+# Common pieces for NEVO foods: the weight of one usual piece, edible part, in grams.
+# These are the app's own rough averages (an addition, not NEVO data), shown as "1 apple ≈ 150 g".
+# NEVO codes (;)|English|Dutch|grams
+147;875;2751;2752;2753;2754|1 apple|1 appel|150
+151|1 banana|1 banaan|120
+168;2748|1 pear|1 peer|160
+171|1 orange|1 sinaasappel|150
+1056|1 kiwi|1 kiwi|75
+169|1 peach|1 perzik|130
+1812|1 nectarine|1 nectarine|130
+170|1 plum|1 pruim|45
+149|1 apricot|1 abrikoos|35
+148|1 strawberry|1 aardbei|12
+689|½ avocado|½ avocado|70
+692|1 mango|1 mango|250
+83;84;1314|1 egg|1 ei|55
+60;2730;2732;2734|1 tomato|1 tomaat|100
+2731|1 cherry tomato|1 cherrytomaat|15
+63;64|1 onion|1 ui|80
+71;2726;2728|1 carrot|1 wortel|60
+1;2;3;982;2325;2744;2745;2746;2747|1 potato|1 aardappel|75
+236;241;242;243;246;248;249;1017;1395;1459;233;2348;2349;2350;2351;2353;2357;2358;2382;2703;2704;2782;2783;2784;2786;2787;2788|1 slice of bread|1 snee brood|35
+230|1 roll|1 bolletje|50
+2803|1 currant bun|1 krentenbol|60
+227;655;1022;5106|1 rusk|1 beschuit|10
+229;596;975;976;1253;1779|1 crispbread|1 knäckebröd|12
+1481;2653|1 rice cake|1 rijstwafel|8
+513;1113;2756;2757;2758;2759|1 slice of cheese|1 plak kaas|20
+252;258|1 biscuit|1 koekje|8
+878|1 croissant|1 croissant|45
+467;2581;2582;2868|1 pancake|1 pannenkoek|100
