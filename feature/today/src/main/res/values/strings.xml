@@ -118,7 +118,6 @@
     <string name="today_section_recent">Recent</string>
     <string name="today_section_foods">Foods</string>
     <string name="today_section_online">Online</string>
-    <string name="today_cooked_on">cooked %1$s</string>
     <string name="today_empty_hint">Search for a food, or scan its barcode. Things you log show up here for next time.</string>
     <string name="today_quick_add">Add</string>
     <string name="today_quick_add_description">Add %1$s again</string>
@@ -131,4 +130,13 @@
     <string name="today_unit_g">g</string>
     <string name="today_unit_ml">ml</string>
     <string name="today_amount_total">= %1$s kcal</string>
+    <string name="today_chip_serving">1 serving · %1$s</string>
+    <string name="today_chip_pack">Whole pack · %1$s</string>
+    <string name="today_chip_piece">%1$s · %2$s</string>
+    <string name="today_pin">Pin to favourites</string>
+    <string name="today_unpin">Unpin from favourites</string>
+    <string name="today_edit_food">Edit food</string>
+    <string name="today_type_kcal">Type kcal yourself ›</string>
+    <string name="today_type_kcal_detail">Log “%1$s” with your own kcal</string>
+    <string name="today_pot_left">cooked %1$s · %2$s g left</string>
 </resources>
