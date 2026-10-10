@@ -22,7 +22,8 @@ import javax.inject.Singleton
 internal const val OFF_USER_AGENT = "FoodDiary/1.0 (cptdillinger@gmail.com)"
 
 private const val BASE = "https://world.openfoodfacts.org"
-private const val FIELDS = "code,product_name,product_name_nl,product_name_en,brands,nutriments,categories_tags"
+private const val FIELDS = "code,product_name,product_name_nl,product_name_en,brands,nutriments,categories_tags," +
+    "serving_quantity,serving_quantity_unit,product_quantity,product_quantity_unit"
 
 /**
  * Open Food Facts: product lookups by barcode (at most 15 a minute, as in the plan) and an explicit
@@ -91,10 +92,25 @@ internal class OpenFoodFacts(
                     protein = n.number("proteins_100g") ?: 0.0,
                     carbs = n.number("carbohydrates_100g") ?: 0.0,
                     fat = n.number("fat_100g") ?: 0.0,
+                    fibre = n.number("fiber_100g"),
+                    sugar = n.number("sugars_100g"),
+                    salt = n.number("salt_100g") ?: n.number("sodium_100g")?.let { it * 2.5 },
                 ),
                 source = FoodOrigin.OFF,
                 isDrink = isDrink,
+                servingG = p.amount("serving_quantity", "serving_quantity_unit"),
+                packageG = p.amount("product_quantity", "product_quantity_unit"),
             )
+        }
+
+        /**
+         * A serving or pack size in grams. Open Food Facts gives these in g, or ml for drinks (counted as g,
+         * like everywhere in the app); other units and silly numbers are left out.
+         */
+        private fun JsonObject.amount(key: String, unitKey: String): Double? {
+            val unit = string(unitKey)?.trim()?.lowercase()
+            if (unit != null && unit != "g" && unit != "ml") return null
+            return number(key)?.takeIf { it > 0.0 && it <= 20_000.0 }
         }
 
         private fun JsonObject.string(key: String): String? = (this[key] as? JsonPrimitive)?.contentOrNull
