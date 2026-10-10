@@ -21,6 +21,7 @@ import nl.guido.foodtracker.core.data.repo.RoomFoodRepository
 import nl.guido.foodtracker.core.data.repo.RoomProfileRepository
 import nl.guido.foodtracker.core.data.repo.RoomRecipeRepository
 import nl.guido.foodtracker.core.data.repo.SyncEntry
+import nl.guido.foodtracker.core.model.CommonPortions
 import javax.inject.Singleton
 
 @Module
@@ -53,4 +54,7 @@ internal abstract class RepositoryModule {
 internal abstract class OptionalBindingsModule {
     /** feature/sync binds the real SyncEntry; until then the app sees Optional.empty(). */
     @BindsOptionalOf abstract fun syncEntry(): SyncEntry
+
+    /** feature/food binds the bundled common-pieces list; until then Optional.empty(). */
+    @BindsOptionalOf abstract fun commonPortions(): CommonPortions
 }
