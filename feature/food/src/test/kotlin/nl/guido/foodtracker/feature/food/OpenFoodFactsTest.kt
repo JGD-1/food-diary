@@ -40,6 +40,30 @@ class OpenFoodFactsTest {
         assertFalse(food.isDrink)
     }
 
+    @Test fun fibreSugarSaltAndSizes() = runTest {
+        val body = """{"status":1,"product":{"product_name":"Muesli","serving_quantity":"45","serving_quantity_unit":"g",
+            "product_quantity":750,"product_quantity_unit":"g",
+            "nutriments":{"energy-kcal_100g":370,"fiber_100g":8.5,"sugars_100g":"12,1","sodium_100g":0.2}}}"""
+        val food = OpenFoodFacts(FakeWeb { WebResponse(200, body) }).product("87654321")!!
+        assertEquals(8.5, food.per100g.fibre!!, 1e-9)
+        assertEquals(12.1, food.per100g.sugar!!, 1e-9)
+        assertEquals(0.5, food.per100g.salt!!, 1e-9)
+        assertEquals(45.0, food.servingG!!, 0.0)
+        assertEquals(750.0, food.packageG!!, 0.0)
+    }
+
+    @Test fun missingNumbersStayUnknown() = runTest {
+        val food = OpenFoodFacts(FakeWeb { WebResponse(200, cola) }).product("5449000000996")!!
+        assertNull(food.per100g.fibre)
+        assertNull(food.per100g.salt)
+        assertNull(food.servingG)
+        val oddUnit = """{"status":1,"product":{"product_name":"Tea","product_quantity":"20","product_quantity_unit":"pieces",
+            "nutriments":{"energy-kcal_100g":1,"salt_100g":0.01}}}"""
+        val tea = OpenFoodFacts(FakeWeb { WebResponse(200, oddUnit) }).product("87654321")!!
+        assertNull(tea.packageG)
+        assertEquals(0.01, tea.per100g.salt!!, 1e-9)
+    }
+
     @Test fun unknownOrEmptyProductsGiveNull() = runTest {
         assertNull(OpenFoodFacts(FakeWeb { WebResponse(404, """{"status":0}""") }).product("12345678"))
         val noKcal = """{"status":1,"product":{"product_name":"Mystery","nutriments":{}}}"""
