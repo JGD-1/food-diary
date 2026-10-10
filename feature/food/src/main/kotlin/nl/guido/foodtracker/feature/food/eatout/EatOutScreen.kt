@@ -62,7 +62,19 @@ fun EatOutScreen(onDone: () -> Unit, viewModel: EatOutViewModel = hiltViewModel(
         )
 
         if (typing && state.suggestions.isNotEmpty()) Suggestions(state.suggestions, viewModel::pick)
-        if (picked != null) EstimateCard(picked)
+        if (picked != null) {
+            Text(stringResource(R.string.food_eat_out_how_much), style = MaterialTheme.typography.titleMedium)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                PortionSize.entries.forEach { size ->
+                    FilterChip(
+                        selected = state.size == size,
+                        onClick = { viewModel.setSize(size) },
+                        label = { Text(stringResource(sizeText(size))) },
+                    )
+                }
+            }
+            EstimateCard(picked, state.size)
+        }
         if (typing) {
             Text(stringResource(R.string.food_eat_out_not_listed), style = MaterialTheme.typography.bodyLarge)
             OutlinedTextField(
@@ -116,15 +128,16 @@ private fun Suggestions(dishes: List<Dish>, onPick: (Dish) -> Unit) {
 }
 
 @Composable
-private fun EstimateCard(dish: Dish) {
+private fun EstimateCard(dish: Dish, size: PortionSize) {
+    val estimate = dish.estimate.scaled(size)
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(rangeText(dish.estimate), style = MaterialTheme.typography.headlineSmall)
+            Text(rangeText(estimate), style = MaterialTheme.typography.headlineSmall)
             if (!dish.own) {
-                Text(stringResource(R.string.food_eat_out_typical, dish.estimate.typical), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.food_eat_out_typical, estimate.typical), style = MaterialTheme.typography.bodyLarge)
             }
             Text(
                 stringResource(if (dish.own) R.string.food_eat_out_own_dish else R.string.food_eat_out_is_estimate),
@@ -138,6 +151,12 @@ private fun EstimateCard(dish: Dish) {
 private fun rangeText(e: Estimate) =
     if (e.low == e.high) stringResource(R.string.food_eat_out_kcal, e.typical)
     else stringResource(R.string.food_eat_out_range, e.low, e.high)
+
+private fun sizeText(size: PortionSize) = when (size) {
+    PortionSize.HALF -> R.string.food_eat_out_size_half
+    PortionSize.WHOLE -> R.string.food_eat_out_size_whole
+    PortionSize.ONE_AND_HALF -> R.string.food_eat_out_size_one_and_half
+}
 
 private fun mealText(meal: Meal) = when (meal) {
     Meal.BREAKFAST -> R.string.food_meal_breakfast
