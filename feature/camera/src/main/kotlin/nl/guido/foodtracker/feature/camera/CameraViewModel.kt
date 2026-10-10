@@ -14,6 +14,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
+import nl.guido.foodtracker.core.model.CommonPortions
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodSource
 import nl.guido.foodtracker.core.model.Portion
@@ -24,6 +25,7 @@ import nl.guido.foodtracker.feature.camera.read.NutritionLabelParser
 import nl.guido.foodtracker.feature.camera.read.ScaleParse
 import nl.guido.foodtracker.feature.camera.read.Stabilizer
 import nl.guido.foodtracker.feature.camera.read.TextLine
+import java.util.Optional
 import javax.inject.Inject
 
 internal enum class CameraMode { BARCODE, LABEL, SCALE }
@@ -58,6 +60,8 @@ internal class CameraViewModel @Inject constructor(
     private val session: SessionRepository,
     private val weightSources: Set<@JvmSuppressWildcards WeightSource>,
     private val cameraReadings: CameraScaleReadings,
+    /** Common pieces ("1 apple ≈ 150 g"), bound by feature/food; empty until then. */
+    private val commonPortions: Optional<CommonPortions>,
 ) : ViewModel() {
 
     private val mode = when (savedStateHandle.get<String>(ARG_MODE)) {
@@ -95,6 +99,16 @@ internal class CameraViewModel @Inject constructor(
         _step.value = next
         if (next is CameraStep.ReadScale && !wasScale) listenToScales()
         if (next !is CameraStep.ReadScale) stopListening()
+        if (next is CameraStep.HowMuch && next.pieces.isEmpty()) loadPieces(next.food)
+    }
+
+    private fun loadPieces(food: Food) {
+        val source = commonPortions.orElse(null) ?: return
+        viewModelScope.launch {
+            val pieces = runCatching { source.forFood(food) }.getOrDefault(emptyList())
+            if (pieces.isEmpty()) return@launch
+            _step.update { if (it is CameraStep.HowMuch && it.food.id == food.id) it.copy(pieces = pieces) else it }
+        }
     }
 
     // ---- Barcode ----
