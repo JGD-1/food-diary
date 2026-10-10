@@ -9,4 +9,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.work.runtime)
+    // Notifications, and asking for the notification permission
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.compose)
 }
