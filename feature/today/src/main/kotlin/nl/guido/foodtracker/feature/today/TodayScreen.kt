@@ -178,7 +178,7 @@ private fun TodayContent(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Header(ui, onDay, onProfile)
-            RingSection(summary, onTarget, onMacros = { showMacros = true })
+            RingSection(summary, ui.proteinGoalG, onTarget, onMacros = { showMacros = true })
             ui.review?.let { ReviewCard(it, onDismiss = { onDismissReview(it) }) }
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 summary.filledMeals.forEach { meal ->
@@ -239,7 +239,7 @@ private fun TodayContent(
             onCopyToToday = if (ui.isToday) null else ({ openMeal = null; onCopyToToday(meal) }),
         )
     }
-    if (showMacros) MacroSheet(summary.eaten, onDismiss = { showMacros = false })
+    if (showMacros) MacroSheet(summary.eaten, ui.proteinGoalG, onDismiss = { showMacros = false })
 }
 
 /** The day with ‹ › arrows to look at (and log on) earlier days, the title, and the profile button. */
@@ -308,7 +308,7 @@ private fun DayArrow(symbol: String, label: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun RingSection(summary: TodaySummary, onTarget: () -> Unit, onMacros: () -> Unit) {
+private fun RingSection(summary: TodaySummary, proteinGoalG: Int?, onTarget: () -> Unit, onMacros: () -> Unit) {
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         KcalRing(summary)
         Spacer(Modifier.size(4.dp))
@@ -327,9 +327,14 @@ private fun RingSection(summary: TodaySummary, onTarget: () -> Unit, onMacros: (
             Text(sumText, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         val eaten = summary.eaten
-        val macrosText = stringResource(
-            R.string.today_macros, formatKcal(eaten.protein), formatKcal(eaten.carbs), formatKcal(eaten.fat),
-        )
+        val macrosText = if (proteinGoalG != null) {
+            stringResource(
+                R.string.today_macros_goal, formatKcal(eaten.protein), formatKcal(proteinGoalG),
+                formatKcal(eaten.carbs), formatKcal(eaten.fat),
+            )
+        } else {
+            stringResource(R.string.today_macros, formatKcal(eaten.protein), formatKcal(eaten.carbs), formatKcal(eaten.fat))
+        }
         TextButton(onClick = onMacros, contentPadding = PaddingValues(horizontal = 12.dp), modifier = Modifier.heightIn(min = 32.dp)) {
             Text(macrosText, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

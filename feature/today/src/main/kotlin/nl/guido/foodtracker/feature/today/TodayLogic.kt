@@ -1,5 +1,6 @@
 package nl.guido.foodtracker.feature.today
 
+import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.DayTotal
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
@@ -164,3 +165,22 @@ internal fun macroShares(n: Nutrients): MacroShares? {
     if (total <= 0.0) return null
     return MacroShares((p / total * 100).roundToInt(), (c / total * 100).roundToInt(), (f / total * 100).roundToInt())
 }
+
+/** Grams of carbs in a meal's lines (meal sheet). */
+internal fun mealCarbs(entries: List<LogEntry>): Double = entries.sumOf { it.nutrients.carbs }
+
+internal enum class ExtraNutrient { FIBRE, SUGAR, SALT }
+
+/**
+ * Fibre, sugar and salt eaten, only those that are known for at least one line: older lines and
+ * foods without these numbers leave them null, so a 0 is never shown for "not known".
+ */
+internal fun extraNutrients(n: Nutrients): List<Pair<ExtraNutrient, Double>> = listOfNotNull(
+    n.fibre?.let { ExtraNutrient.FIBRE to it },
+    n.sugar?.let { ExtraNutrient.SUGAR to it },
+    n.salt?.let { ExtraNutrient.SALT to it },
+)
+
+/** The pot portion that was saved with diary line [entryId]. */
+internal fun portionFor(portions: List<BatchPortion>, entryId: Id): BatchPortion? =
+    portions.firstOrNull { it.logEntryId == entryId }

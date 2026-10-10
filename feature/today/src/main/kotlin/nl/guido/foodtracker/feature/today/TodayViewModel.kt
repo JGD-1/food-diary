@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -21,9 +22,13 @@ import kotlinx.coroutines.launch
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.EnergyRepository
 import nl.guido.foodtracker.core.data.repo.FoodRepository
+import nl.guido.foodtracker.core.data.repo.ProfileRepository
+import nl.guido.foodtracker.core.data.repo.RecipeRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
+import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
+import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.WeeklyReview
 import nl.guido.foodtracker.core.ui.Routes
@@ -38,6 +43,8 @@ internal data class TodayUiState(
     val today: LocalDate,
     val displayName: String,
     val summary: TodaySummary,
+    /** Optional daily protein goal from the profile, shown on the macro line. */
+    val proteinGoalG: Int?,
     val review: WeeklyReview?,
 ) {
     val isToday: Boolean get() = date == today
@@ -49,7 +56,8 @@ internal data class TodayUiState(
 /** One-off things the screen reacts to: a message with Undo, or opening another screen. */
 internal sealed interface TodayEvent {
     data class Added(val meal: Meal, val count: Int, val ids: List<Id>) : TodayEvent
-    data class Removed(val entry: LogEntry) : TodayEvent
+    /** [portion] is the shared pot portion that went with a batch line, put back on Undo. */
+    data class Removed(val entry: LogEntry, val portion: BatchPortion? = null) : TodayEvent
     /** A meal's lines moved to another meal; [before] puts them back. */
     data class Moved(val to: Meal, val before: List<LogEntry>) : TodayEvent
     /** Lines copied from an earlier day to today. */
@@ -58,6 +66,8 @@ internal sealed interface TodayEvent {
     data class Logged(val name: String, val meal: Meal, val id: Id) : TodayEvent
     data class Open(val route: String) : TodayEvent
 }
+
+private data class Goals(val targetKcal: Int?, val proteinG: Int?)
 
 /** The date and the meal that fits the time; changes a few times a day. */
 private data class Moment(val date: LocalDate, val meal: Meal)
@@ -70,6 +80,8 @@ internal class TodayViewModel @Inject constructor(
     private val diary: DiaryRepository,
     private val foods: FoodRepository,
     private val energy: EnergyRepository,
+    private val profiles: ProfileRepository,
+    private val recipes: RecipeRepository,
     private val reviewPrefs: ReviewPrefs,
 ) : ViewModel() {
 
@@ -97,16 +109,19 @@ internal class TodayViewModel @Inject constructor(
             combine(
                 diary.entries(user.userId, day),
                 diary.entriesBetween(user.userId, day.minusDays(HISTORY_DAYS), day.minusDays(1)),
-                energy.target.map { it?.targetKcal },
+                combine(energy.target, profiles.profile(user.userId)) { target, profile ->
+                    Goals(target?.targetKcal, profile?.proteinGoalG)
+                },
                 energy.weeklyReview,
                 reviewPrefs.dismissedOn,
-            ) { todayEntries, days, targetKcal, weekly, dismissedWeek ->
+            ) { todayEntries, days, goals, weekly, dismissedWeek ->
                 val isToday = day == now.date
                 TodayUiState(
                     date = day,
                     today = now.date,
                     displayName = user.displayName,
-                    summary = todaySummary(todayEntries, days, targetKcal, if (isToday) now.meal else null),
+                    summary = todaySummary(todayEntries, days, goals.targetKcal, if (isToday) now.meal else null),
+                    proteinGoalG = goals.proteinG,
                     review = if (isToday) reviewToShow(now.date, weekly, dismissedWeek) else null,
                 )
             }
@@ -155,21 +170,37 @@ internal class TodayViewModel @Inject constructor(
 
     fun changeAmount(entry: LogEntry, grams: Double) {
         if (!canChangeAmount(entry)) return
-        viewModelScope.launch { diary.save(withGrams(entry, grams)) }
+        viewModelScope.launch {
+            diary.save(withGrams(entry, grams))
+            // The pot shows grams left for the household, so the shared portion follows the new amount.
+            potPortion(entry)?.let { recipes.savePortion(it.copy(grams = grams)) }
+        }
     }
 
     fun remove(entry: LogEntry) {
         viewModelScope.launch {
             diary.delete(entry.id)
-            events.send(TodayEvent.Removed(entry))
+            // A removed batch line gives its grams back to the pot, or the pot looks emptier than it is.
+            val portion = potPortion(entry)
+            portion?.let { recipes.deletePortion(it.id) }
+            events.send(TodayEvent.Removed(entry, portion))
         }
+    }
+
+    /** The shared pot portion saved with a batch line (by its diary line id), if any. */
+    private suspend fun potPortion(entry: LogEntry): BatchPortion? {
+        val batch = entry.what as? Logged.BatchShare ?: return null
+        return portionFor(recipes.portions(batch.batchId).first(), entry.id)
     }
 
     fun undo(event: TodayEvent) {
         viewModelScope.launch {
             when (event) {
                 is TodayEvent.Added -> event.ids.forEach { diary.delete(it) }
-                is TodayEvent.Removed -> diary.save(event.entry)
+                is TodayEvent.Removed -> {
+                    diary.save(event.entry)
+                    event.portion?.let { recipes.savePortion(it) }
+                }
                 is TodayEvent.Logged -> diary.delete(event.id)
                 is TodayEvent.Moved -> event.before.forEach { diary.save(it) }
                 is TodayEvent.Copied -> event.ids.forEach { diary.delete(it) }
