@@ -24,6 +24,7 @@
     <string name="today_set_target">Set your daily target ›</string>
     <string name="today_macros">%1$s g protein · %2$s g carbs · %3$s g fat ›</string>
     <string name="today_macros_open">Tap for details</string>
+    <string name="today_macros_goal">%1$s of %2$s g protein · %3$s g carbs · %4$s g fat ›</string>
 
     <!-- Meals -->
     <string name="today_meal_breakfast">Breakfast</string>
@@ -85,6 +86,12 @@
     <string name="today_carbs">Carbs</string>
     <string name="today_fat">Fat</string>
     <string name="today_macro_share">%1$s%% of kcal</string>
+    <string name="today_amount_of_goal">%1$s of %2$s g</string>
+    <string name="today_fibre">Fibre</string>
+    <string name="today_sugar">Sugar</string>
+    <string name="today_salt">Salt</string>
+    <string name="today_extras_note">Counted for the foods that list them.</string>
+    <string name="today_meal_carbs">%1$s g carbs</string>
     <string name="today_macros_note">Nice to know. The main number is kcal left.</string>
 
     <!-- Monday review -->

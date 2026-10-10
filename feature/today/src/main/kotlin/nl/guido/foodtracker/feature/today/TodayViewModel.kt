@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.EnergyRepository
 import nl.guido.foodtracker.core.data.repo.FoodRepository
+import nl.guido.foodtracker.core.data.repo.ProfileRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
@@ -38,6 +39,8 @@ internal data class TodayUiState(
     val today: LocalDate,
     val displayName: String,
     val summary: TodaySummary,
+    /** Optional daily protein goal from the profile, shown on the macro line. */
+    val proteinGoalG: Int?,
     val review: WeeklyReview?,
 ) {
     val isToday: Boolean get() = date == today
@@ -59,6 +62,8 @@ internal sealed interface TodayEvent {
     data class Open(val route: String) : TodayEvent
 }
 
+private data class Goals(val targetKcal: Int?, val proteinG: Int?)
+
 /** The date and the meal that fits the time; changes a few times a day. */
 private data class Moment(val date: LocalDate, val meal: Meal)
 
@@ -70,6 +75,7 @@ internal class TodayViewModel @Inject constructor(
     private val diary: DiaryRepository,
     private val foods: FoodRepository,
     private val energy: EnergyRepository,
+    private val profiles: ProfileRepository,
     private val reviewPrefs: ReviewPrefs,
 ) : ViewModel() {
 
@@ -97,16 +103,19 @@ internal class TodayViewModel @Inject constructor(
             combine(
                 diary.entries(user.userId, day),
                 diary.entriesBetween(user.userId, day.minusDays(HISTORY_DAYS), day.minusDays(1)),
-                energy.target.map { it?.targetKcal },
+                combine(energy.target, profiles.profile(user.userId)) { target, profile ->
+                    Goals(target?.targetKcal, profile?.proteinGoalG)
+                },
                 energy.weeklyReview,
                 reviewPrefs.dismissedOn,
-            ) { todayEntries, days, targetKcal, weekly, dismissedWeek ->
+            ) { todayEntries, days, goals, weekly, dismissedWeek ->
                 val isToday = day == now.date
                 TodayUiState(
                     date = day,
                     today = now.date,
                     displayName = user.displayName,
-                    summary = todaySummary(todayEntries, days, targetKcal, if (isToday) now.meal else null),
+                    summary = todaySummary(todayEntries, days, goals.targetKcal, if (isToday) now.meal else null),
+                    proteinGoalG = goals.proteinG,
                     review = if (isToday) reviewToShow(now.date, weekly, dismissedWeek) else null,
                 )
             }

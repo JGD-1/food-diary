@@ -66,6 +66,13 @@ internal fun MealSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(stringResource(mealName(meal)), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+            if (entries.isNotEmpty()) {
+                // Carbs per meal: handy for anyone who matches insulin or energy to meals.
+                Text(
+                    stringResource(R.string.today_meal_carbs, formatKcal(mealCarbs(entries))),
+                    fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             if (entries.isEmpty()) {
                 Text(stringResource(R.string.today_meal_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -171,20 +178,41 @@ private fun EntryRow(entry: LogEntry, onChangeAmount: (LogEntry, Double) -> Unit
     }
 }
 
-/** Protein, carbs and fat in grams and as a share of kcal: nice to know, never the focus. */
+/** Protein, carbs and fat in grams and as a share of kcal, then fibre, sugar and salt when known. Never the focus. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun MacroSheet(eaten: Nutrients, onDismiss: () -> Unit) {
+internal fun MacroSheet(eaten: Nutrients, proteinGoalG: Int?, onDismiss: () -> Unit) {
     val shares = macroShares(eaten)
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
-            Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(stringResource(R.string.today_macros_title), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
-            MacroRow(stringResource(R.string.today_protein), eaten.protein, shares?.protein)
-            MacroRow(stringResource(R.string.today_carbs), eaten.carbs, shares?.carbs)
-            MacroRow(stringResource(R.string.today_fat), eaten.fat, shares?.fat)
+            val protein = if (proteinGoalG != null) {
+                stringResource(R.string.today_amount_of_goal, formatKcal(eaten.protein), formatKcal(proteinGoalG))
+            } else {
+                stringResource(R.string.today_amount_grams, formatKcal(eaten.protein))
+            }
+            MacroRow(stringResource(R.string.today_protein), protein, shares?.protein)
+            MacroRow(stringResource(R.string.today_carbs), stringResource(R.string.today_amount_grams, formatKcal(eaten.carbs)), shares?.carbs)
+            MacroRow(stringResource(R.string.today_fat), stringResource(R.string.today_amount_grams, formatKcal(eaten.fat)), shares?.fat)
+            val extras = extraNutrients(eaten)
+            if (extras.isNotEmpty()) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                extras.forEach { (kind, grams) ->
+                    val name = when (kind) {
+                        ExtraNutrient.FIBRE -> R.string.today_fibre
+                        ExtraNutrient.SUGAR -> R.string.today_sugar
+                        ExtraNutrient.SALT -> R.string.today_salt
+                    }
+                    MacroRow(stringResource(name), stringResource(R.string.today_amount_grams, formatAmount(grams)), null)
+                }
+                Text(
+                    stringResource(R.string.today_extras_note),
+                    fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Text(
                 stringResource(R.string.today_macros_note),
                 fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -194,10 +222,10 @@ internal fun MacroSheet(eaten: Nutrients, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun MacroRow(name: String, grams: Double, share: Int?) {
+private fun MacroRow(name: String, amount: String, share: Int?) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(name, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-        Text(stringResource(R.string.today_amount_grams, formatKcal(grams)), fontSize = 16.sp)
+        Text(amount, fontSize = 16.sp)
         if (share != null) {
             Text(
                 stringResource(R.string.today_macro_share, share.toString()),

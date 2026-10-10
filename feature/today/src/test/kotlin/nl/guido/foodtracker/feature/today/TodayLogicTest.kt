@@ -1,6 +1,7 @@
 package nl.guido.foodtracker.feature.today
 
 import nl.guido.foodtracker.core.model.Meal
+import nl.guido.foodtracker.core.model.Nutrients
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -171,5 +172,17 @@ class TodayLogicTest {
         assertEquals(Meal.DINNER, mealForCameraResult(isDrink = false, fromDrinks = false, time = evening))
         assertEquals(Meal.DRINKS, mealForCameraResult(isDrink = true, fromDrinks = false, time = evening))
         assertEquals(Meal.DRINKS, mealForCameraResult(isDrink = false, fromDrinks = true, time = evening))
+    }
+
+    @Test
+    fun `carbs per meal add up the meal's lines`() {
+        assertEquals(50.0, mealCarbs(listOf(line("Soup", 300.0), line("Bread", 200.0))), 0.001)
+    }
+
+    @Test
+    fun `fibre, sugar and salt show only when known`() {
+        assertTrue(extraNutrients(Nutrients(500.0, 20.0, 60.0, 10.0)).isEmpty())
+        val some = Nutrients(500.0, 20.0, 60.0, 10.0, fibre = 4.0) + Nutrients(100.0, 1.0, 1.0, 1.0, salt = 0.6)
+        assertEquals(listOf(ExtraNutrient.FIBRE to 4.0, ExtraNutrient.SALT to 0.6), extraNutrients(some))
     }
 }
