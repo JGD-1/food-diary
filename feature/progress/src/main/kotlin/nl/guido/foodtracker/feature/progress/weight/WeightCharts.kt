@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import nl.guido.foodtracker.core.ui.FoodColors
+import nl.guido.foodtracker.core.ui.FoodTheme
 import nl.guido.foodtracker.feature.progress.Format
 import java.time.YearMonth
 import kotlin.math.abs
@@ -124,6 +124,8 @@ internal fun WeekChangeBars(
     modifier: Modifier = Modifier,
 ) {
     val accent = MaterialTheme.colorScheme.primary
+    val track = FoodTheme.colors.accentTrack
+    val away = FoodTheme.colors.accentOutline
     Canvas(
         modifier
             .fillMaxWidth()
@@ -131,7 +133,7 @@ internal fun WeekChangeBars(
             .semantics { contentDescription = description },
     ) {
         val mid = size.height / 2
-        drawLine(FoodColors.AccentTrack, Offset(0f, mid), Offset(size.width, mid), strokeWidth = 1.dp.toPx())
+        drawLine(track, Offset(0f, mid), Offset(size.width, mid), strokeWidth = 1.dp.toPx())
         if (changes.isEmpty()) return@Canvas
 
         val slots = max(changes.size, CHANGE_BARS)
@@ -147,7 +149,7 @@ internal fun WeekChangeBars(
             val left = (firstSlot + i) * slot + (slot - barWidth) / 2
             val topY = if (change.deltaKg > 0) mid - h else mid
             drawRoundRect(
-                color = if (change.towardTarget) accent else FoodColors.AccentOutline,
+                color = if (change.towardTarget) accent else away,
                 topLeft = Offset(left, topY),
                 size = Size(barWidth, h),
                 cornerRadius = radius,

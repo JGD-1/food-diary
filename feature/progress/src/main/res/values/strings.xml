@@ -33,6 +33,11 @@
     <string name="progress_weight_trend_away_up">Small ups and downs are normal. Lately it has gone up about %1$s kg a week.</string>
     <string name="progress_weight_trend_away_down">Small ups and downs are normal. Lately it has gone down about %1$s kg a week.</string>
     <string name="progress_weight_trend_reached">You\'ve reached your target weight. Small ups and downs are normal.</string>
+    <string name="progress_weight_list_title">Your weigh-ins</string>
+    <string name="progress_weight_list_hint">Tap one to change or delete it.</string>
+    <string name="progress_weight_list_change">Change or delete</string>
+    <string name="progress_weight_list_all">Show all</string>
+    <string name="progress_weight_list_fewer">Show fewer</string>
     <string name="progress_weight_log">Log weigh-in</string>
     <string name="progress_weight_no_profile_title">Your target weight</string>
     <string name="progress_weight_no_profile_body">Add your start and target weight to see your progress here.</string>
@@ -42,6 +47,19 @@
     <string name="progress_stats_title">Stats</string>
     <string name="progress_stats_kicker">Calories</string>
     <string name="progress_stats_this_week">This week</string>
+    <string name="progress_stats_last_week">Last week</string>
+    <plurals name="progress_stats_weeks_ago">
+        <item quantity="one">%d week ago</item>
+        <item quantity="other">%d weeks ago</item>
+    </plurals>
+    <string name="progress_stats_earlier">‹ Earlier week</string>
+    <string name="progress_stats_later">Later week ›</string>
+    <string name="progress_stats_open_day">Open this day</string>
+    <string name="progress_stats_tap_day">Tap a day to see what you logged.</string>
+    <string name="progress_stats_past_week_total">That week: %1$s of %2$s kcal</string>
+    <string name="progress_stats_past_week_empty">Nothing logged that week.</string>
+    <string name="progress_stats_drinks_title_past">Drinks that week</string>
+    <string name="progress_stats_drinks_none_past">No drinks logged that week.</string>
     <string name="progress_stats_average_target">kcal a day on average · target %1$s</string>
     <string name="progress_stats_average">kcal a day on average</string>
     <string name="progress_stats_week_total">This week: %1$s of %2$s kcal</string>

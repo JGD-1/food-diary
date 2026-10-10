@@ -54,6 +54,8 @@ internal data class WeightSummary(
     val trend: TrendNote,
     /** The weekday of the latest weigh-in, used for "Weigh-in every Sunday". */
     val weighInDay: DayOfWeek?,
+    /** Every weigh-in, newest first, for the list where one can be tapped to change or delete it. */
+    val weighIns: List<WeighIn> = emptyList(),
 )
 
 internal const val MIN_WEIGH_INS_FOR_TREND = 3
@@ -159,6 +161,7 @@ internal object WeightMath {
             changes = changes(points, profile.startWeightKg, profile.targetWeightKg).takeLast(CHANGE_BARS),
             trend = trend(points, progress),
             weighInDay = weighIns.maxByOrNull { it.date }?.date?.dayOfWeek,
+            weighIns = weighIns.sortedByDescending { it.date },
         )
     }
 }

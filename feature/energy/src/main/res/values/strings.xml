@@ -61,9 +61,12 @@
     <string name="energy_form_own_target">Use my own daily target</string>
     <string name="energy_form_own_target_body">Type your own number instead of the calculated one.</string>
     <string name="energy_form_own_target_kcal">Daily target (kcal)</string>
-    <string name="energy_form_check">Please fill in every field. Year of birth, height (100 to 250 cm) and weights (30 to 300 kg) need a number.</string>
+    <string name="energy_form_protein_goal">Daily protein goal in grams (optional)</string>
+    <string name="energy_form_protein_goal_body">Leave empty for no goal. If you set one, Today shows it next to your protein.</string>
+    <string name="energy_form_check">Please fill in every field. Year of birth, height (100 to 250 cm) and weights (30 to 300 kg) need a number. A protein goal, if you set one, is 10 to 400 grams.</string>
     <string name="energy_form_saved">Saved. Your target is up to date.</string>
     <string name="energy_form_save">Save</string>
+    <string name="energy_reminders">Reminders</string>
     <string name="energy_account_sync">Account and sync</string>
     <string name="energy_data_sources">Data sources</string>
 
@@ -82,4 +85,12 @@
     <string name="energy_weigh_in_first">Your first weigh-in. The trend shows after a few weeks.</string>
     <string name="energy_weigh_in_normal">Weight goes up and down by about a kilo from day to day, mostly water and salt. The trend over the weeks is what counts.</string>
     <string name="energy_done">Done</string>
+    <string name="energy_weigh_in_change_title">Change weigh-in</string>
+    <string name="energy_weigh_in_on">Weigh-in on %1$s. Type the right weight, or delete it.</string>
+    <string name="energy_weigh_in_gone">This weigh-in is no longer there.</string>
+    <string name="energy_weigh_in_delete">Delete weigh-in</string>
+    <string name="energy_weigh_in_delete_title">Delete this weigh-in?</string>
+    <string name="energy_weigh_in_delete_body">The %1$s kg from %2$s is removed from your graphs and target.</string>
+    <string name="energy_weigh_in_delete_yes">Delete</string>
+    <string name="energy_weigh_in_delete_no">Keep it</string>
 </resources>

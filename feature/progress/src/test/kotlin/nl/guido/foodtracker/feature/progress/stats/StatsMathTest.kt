@@ -7,6 +7,7 @@ import nl.guido.foodtracker.core.model.Nutrients
 import nl.guido.foodtracker.core.model.Portion
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -112,6 +113,27 @@ class StatsMathTest {
         val week = StatsMath.week(entries, today)
         assertEquals(5300.0, week.totalKcal, 1e-9)
         assertEquals(14000.0, StatsMath.weekBudget(2000), 1e-9)
+    }
+
+    @Test
+    fun `an earlier week has only past days and its own total`() {
+        val entries = listOf(
+            entry(LocalDate.of(2026, 9, 28), 2100.0),
+            entry(LocalDate.of(2026, 10, 4), 2600.0),
+            entry(LocalDate.of(2026, 10, 5), 1800.0), // this week: not counted
+        )
+        val week = StatsMath.week(entries, today, weeksBack = 1)
+        assertEquals(LocalDate.of(2026, 9, 28), week.from)
+        assertEquals(LocalDate.of(2026, 10, 4), week.to)
+        assertTrue(week.days.all { it.kind == DayKind.PAST })
+        assertEquals(4700.0, week.totalKcal, 1e-9)
+        assertEquals(2350.0, week.averageKcal!!, 1e-9)
+    }
+
+    @Test
+    fun `going far back loads entries from that week`() {
+        assertEquals(LocalDate.of(2026, 1, 5), StatsMath.firstDayNeeded(today, weeksBack = 39))
+        assertEquals(LocalDate.of(2026, 5, 1), StatsMath.firstDayNeeded(today, weeksBack = 1))
     }
 
     @Test

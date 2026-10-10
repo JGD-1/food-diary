@@ -2,10 +2,14 @@ package nl.guido.foodtracker.feature.energy
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,9 +23,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.guido.foodtracker.core.model.WeighIn
 import kotlin.math.abs
 
-/** The weekly weigh-in: type the weight, see how it compares with last week. */
+/**
+ * The weekly weigh-in: type the weight, see how it compares with last week.
+ * With [weighInId] (tapped on the Weight tab) it changes or deletes that weigh-in instead.
+ */
 @Composable
-internal fun WeighInScreen(onDone: () -> Unit, viewModel: EnergyViewModel = hiltViewModel()) {
+internal fun WeighInScreen(weighInId: String?, onDone: () -> Unit, viewModel: EnergyViewModel = hiltViewModel()) {
+    if (weighInId != null) {
+        ChangeWeighInScreen(weighInId, onDone, viewModel)
+        return
+    }
     val state by viewModel.state.collectAsStateWithLifecycle()
     var text by remember { mutableStateOf("") }
     var showCheck by remember { mutableStateOf(false) }
@@ -73,6 +84,62 @@ internal fun WeighInScreen(onDone: () -> Unit, viewModel: EnergyViewModel = hilt
                 Text(stringResource(R.string.energy_done), style = MaterialTheme.typography.titleMedium)
             }
         }
+    }
+}
+
+@Composable
+private fun ChangeWeighInScreen(id: String, onDone: () -> Unit, viewModel: EnergyViewModel) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    var text by remember { mutableStateOf("") }
+    var showCheck by remember { mutableStateOf(false) }
+    var askDelete by remember { mutableStateOf(false) }
+    val weighIn = state?.weighIns?.firstOrNull { it.id == id }
+    LaunchedEffect(weighIn?.id) {
+        if (weighIn != null && text.isEmpty()) text = formatKg(weighIn.kg)
+    }
+
+    EnergyScaffold(stringResource(R.string.energy_weigh_in_change_title), onDone) {
+        if (state == null) return@EnergyScaffold
+        if (weighIn == null) {
+            WeighInNote(stringResource(R.string.energy_weigh_in_gone))
+            Button(onClick = onDone, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.energy_done), style = MaterialTheme.typography.titleMedium)
+            }
+            return@EnergyScaffold
+        }
+        WeighInNote(stringResource(R.string.energy_weigh_in_on, shortDate(weighIn.date)))
+        NumberField(text, R.string.energy_weigh_in_field, decimal = true) { text = it }
+        if (showCheck) WeighInNote(stringResource(R.string.energy_weigh_in_check))
+        Button(
+            onClick = {
+                val kg = parseKg(text)
+                showCheck = kg == null
+                if (kg != null) viewModel.changeWeighIn(weighIn.id, kg, onDone)
+            },
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        ) {
+            Text(stringResource(R.string.energy_weigh_in_save), style = MaterialTheme.typography.titleMedium)
+        }
+        OutlinedButton(onClick = { askDelete = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+            Text(stringResource(R.string.energy_weigh_in_delete))
+        }
+    }
+
+    if (askDelete && weighIn != null) {
+        AlertDialog(
+            onDismissRequest = { askDelete = false },
+            title = { Text(stringResource(R.string.energy_weigh_in_delete_title)) },
+            text = { Text(stringResource(R.string.energy_weigh_in_delete_body, formatKg(weighIn.kg), shortDate(weighIn.date))) },
+            confirmButton = {
+                TextButton(onClick = {
+                    askDelete = false
+                    viewModel.deleteWeighIn(weighIn.id, onDone)
+                }) { Text(stringResource(R.string.energy_weigh_in_delete_yes)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { askDelete = false }) { Text(stringResource(R.string.energy_weigh_in_delete_no)) }
+            },
+        )
     }
 }
 

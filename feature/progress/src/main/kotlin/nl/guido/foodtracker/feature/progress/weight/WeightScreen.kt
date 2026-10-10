@@ -1,5 +1,6 @@
 package nl.guido.foodtracker.feature.progress.weight
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,20 +11,28 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import nl.guido.foodtracker.core.model.Id
+import nl.guido.foodtracker.core.model.WeighIn
 import nl.guido.foodtracker.feature.progress.Format
 import nl.guido.foodtracker.feature.progress.NoteText
 import nl.guido.foodtracker.feature.progress.ProgressTrack
@@ -39,10 +48,11 @@ import java.util.Locale
 internal fun WeightRoute(
     onLogWeighIn: () -> Unit,
     onSetTarget: () -> Unit,
+    onOpenWeighIn: (Id) -> Unit,
     viewModel: WeightViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    WeightScreen(state = state, onLogWeighIn = onLogWeighIn, onSetTarget = onSetTarget)
+    WeightScreen(state = state, onLogWeighIn = onLogWeighIn, onSetTarget = onSetTarget, onOpenWeighIn = onOpenWeighIn)
 }
 
 @Composable
@@ -50,6 +60,7 @@ internal fun WeightScreen(
     state: WeightUiState,
     onLogWeighIn: () -> Unit,
     onSetTarget: () -> Unit,
+    onOpenWeighIn: (Id) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     // The cards scroll (large text sizes need room); the button stays at the bottom.
@@ -74,6 +85,7 @@ internal fun WeightScreen(
                     ProgressCard(state.summary.progress)
                     OverTimeCard(state.summary)
                     WeekToWeekCard(state.summary, state.today)
+                    WeighInsCard(state.summary.weighIns, onOpenWeighIn)
                 }
             }
         }
@@ -82,6 +94,43 @@ internal fun WeightScreen(
         }
     }
 }
+
+/** Every weigh-in, newest first; tap one to change or delete it (finding 11). */
+@Composable
+private fun WeighInsCard(weighIns: List<WeighIn>, onOpen: (Id) -> Unit) {
+    if (weighIns.isEmpty()) return
+    var showAll by rememberSaveable { mutableStateOf(false) }
+    SectionCard {
+        SectionTitle(stringResource(R.string.progress_weight_list_title))
+        NoteText(stringResource(R.string.progress_weight_list_hint))
+        val shown = if (showAll) weighIns else weighIns.take(WEIGH_INS_SHOWN)
+        shown.forEachIndexed { i, weighIn ->
+            if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .clickable(role = Role.Button, onClickLabel = stringResource(R.string.progress_weight_list_change)) { onOpen(weighIn.id) },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(Format.dayMonth(weighIn.date), style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    stringResource(R.string.progress_kg, Format.kg(weighIn.kg)),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+        }
+        if (weighIns.size > WEIGH_INS_SHOWN) {
+            TextButton(onClick = { showAll = !showAll }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(stringResource(if (showAll) R.string.progress_weight_list_fewer else R.string.progress_weight_list_all))
+            }
+        }
+    }
+}
+
+private const val WEIGH_INS_SHOWN = 5
 
 @Composable
 private fun NoProfileCard(onSetTarget: () -> Unit) {
