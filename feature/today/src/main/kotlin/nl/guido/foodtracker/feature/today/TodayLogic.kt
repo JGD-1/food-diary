@@ -57,15 +57,16 @@ internal data class TodaySummary(
         else (eatenKcal.toFloat() / targetKcal).coerceIn(0f, 1f)
 }
 
+/** [currentMeal] is null for an earlier day: it is over, so every empty meal is an "earlier" one. */
 internal fun todaySummary(
     todayEntries: List<LogEntry>,
     history: List<LogEntry>,
     targetKcal: Int?,
-    currentMeal: Meal,
+    currentMeal: Meal?,
 ): TodaySummary {
     val byMeal = todayEntries.groupBy { it.meal }
     val filled = FOOD_MEALS.filter { byMeal[it].orEmpty().isNotEmpty() }.map { MealSummary(it, byMeal.getValue(it)) }
-    val now = FOOD_MEALS.indexOf(currentMeal).coerceAtLeast(0)
+    val now = if (currentMeal == null) FOOD_MEALS.size else FOOD_MEALS.indexOf(currentMeal).coerceAtLeast(0)
     val fromNow = FOOD_MEALS.drop(now)
     return TodaySummary(
         targetKcal = targetKcal,
@@ -90,11 +91,13 @@ internal fun lastTimeByMeal(history: List<LogEntry>): Map<Meal, List<LogEntry>> 
  * What "Again" logs for a meal: today's items once more when the meal already has some,
  * otherwise what was eaten the last time.
  */
-internal fun againSource(summary: TodaySummary, meal: Meal): List<LogEntry> {
-    val today = if (meal == Meal.DRINKS) summary.drinks.entries
+internal fun againSource(summary: TodaySummary, meal: Meal): List<LogEntry> =
+    mealEntries(summary, meal).ifEmpty { summary.lastTime[meal].orEmpty() }
+
+/** The lines logged in [meal] on the day shown. */
+internal fun mealEntries(summary: TodaySummary, meal: Meal): List<LogEntry> =
+    if (meal == Meal.DRINKS) summary.drinks.entries
     else summary.filledMeals.firstOrNull { it.meal == meal }?.entries.orEmpty()
-    return today.ifEmpty { summary.lastTime[meal].orEmpty() }
-}
 
 /** Copies diary lines to [date] as new lines, e.g. for "Again". */
 internal fun copyEntries(
@@ -104,6 +107,21 @@ internal fun copyEntries(
     meal: Meal? = null,
     idFor: () -> Id = ::newId,
 ): List<LogEntry> = entries.map { it.copy(id = idFor(), date = date, meal = meal ?: it.meal, createdAt = now) }
+
+/** The same lines in another meal ("Move to…"). Ids stay, so it is a move, not a copy. */
+internal fun moveEntries(entries: List<LogEntry>, to: Meal): List<LogEntry> = entries.map { it.copy(meal = to) }
+
+/** Meals a meal's lines can move to: the other food meals (drinks stay in Drinks). */
+internal fun moveTargets(from: Meal): List<Meal> = if (from == Meal.DRINKS) emptyList() else FOOD_MEALS - from
+
+/** The day after [date], or null when that would be after [today] (no logging ahead). */
+internal fun nextDay(date: LocalDate, today: LocalDate): LocalDate? = date.plusDays(1).takeIf { it <= today }
+
+/** The date to put in a route: null for today, so plain routes keep working. */
+internal fun routeDate(date: LocalDate, today: LocalDate): LocalDate? = date.takeIf { it != today }
+
+/** Reads a route's ISO date extra; null when missing or unreadable. */
+internal fun parseDate(text: String?): LocalDate? = text?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
 
 /** True when the amount of this line can be changed (restaurant estimates have no weight). */
 internal fun canChangeAmount(entry: LogEntry): Boolean =

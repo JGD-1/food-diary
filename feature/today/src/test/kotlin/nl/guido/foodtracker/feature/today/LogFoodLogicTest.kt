@@ -8,6 +8,7 @@ import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
+import nl.guido.foodtracker.core.ui.Routes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -101,7 +102,10 @@ class LogFoodLogicTest {
 
     @Test
     fun `recipes and batches open for the meal chosen in Log food`() {
-        assertEquals("recipe-log/r1?meal=BREAKFAST", TodayRoutes.withMeal("recipe-log/r1", Meal.BREAKFAST))
-        assertEquals("batch-portion/b1?meal=DINNER", TodayRoutes.withMeal("batch-portion/b1", Meal.DINNER))
+        assertEquals("recipe-log/r1?meal=BREAKFAST", Routes.recipeLog("r1", Meal.BREAKFAST, routeDate(TODAY, TODAY)))
+        assertEquals(
+            "batch-portion/b1?meal=DINNER&date=2026-10-11",
+            Routes.batchPortion("b1", Meal.DINNER, routeDate(TODAY.minusDays(1), TODAY)),
+        )
     }
 }

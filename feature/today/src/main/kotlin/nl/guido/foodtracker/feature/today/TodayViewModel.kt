@@ -1,5 +1,6 @@
 package nl.guido.foodtracker.feature.today
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,22 +26,34 @@ import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.WeeklyReview
+import nl.guido.foodtracker.core.ui.Routes
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import javax.inject.Inject
 
 internal data class TodayUiState(
+    /** The day being viewed; logging from this screen goes to this day. */
     val date: LocalDate,
+    val today: LocalDate,
     val displayName: String,
     val summary: TodaySummary,
     val review: WeeklyReview?,
-)
+) {
+    val isToday: Boolean get() = date == today
+    val canGoForward: Boolean get() = nextDay(date, today) != null
+    /** For routes: null when viewing today, so plain routes keep working. */
+    val dateArg: LocalDate? get() = routeDate(date, today)
+}
 
 /** One-off things the screen reacts to: a message with Undo, or opening another screen. */
 internal sealed interface TodayEvent {
     data class Added(val meal: Meal, val count: Int, val ids: List<Id>) : TodayEvent
     data class Removed(val entry: LogEntry) : TodayEvent
+    /** A meal's lines moved to another meal; [before] puts them back. */
+    data class Moved(val to: Meal, val before: List<LogEntry>) : TodayEvent
+    /** Lines copied from an earlier day to today. */
+    data class Copied(val ids: List<Id>) : TodayEvent
     /** Something the camera scanned and weighed, logged straight away. */
     data class Logged(val name: String, val meal: Meal, val id: Id) : TodayEvent
     data class Open(val route: String) : TodayEvent
@@ -52,6 +65,7 @@ private data class Moment(val date: LocalDate, val meal: Meal)
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 internal class TodayViewModel @Inject constructor(
+    private val savedState: SavedStateHandle,
     private val session: SessionRepository,
     private val diary: DiaryRepository,
     private val foods: FoodRepository,
@@ -66,27 +80,67 @@ internal class TodayViewModel @Inject constructor(
         }
     }.distinctUntilChanged()
 
+    /**
+     * The day picked with the ‹ › arrows, or the day opened from Stats (day/{date}).
+     * Null = follow today, so the screen moves on by itself after midnight.
+     */
+    private val pickedDay = savedState.getStateFlow<String?>(PICKED_DAY, savedState.get<String>(Routes.ARG_DATE))
+        .map { parseDate(it) }
+
     private val events = Channel<TodayEvent>(Channel.BUFFERED)
     val eventFlow: Flow<TodayEvent> = events.receiveAsFlow()
 
-    val state: StateFlow<TodayUiState?> = combine(session.currentUser, moment) { user, now -> user to now }
-        .flatMapLatest { (user, now) ->
+    val state: StateFlow<TodayUiState?> = combine(session.currentUser, moment, pickedDay) { user, now, picked ->
+        Triple(user, now, picked?.takeIf { it < now.date } ?: now.date)
+    }
+        .flatMapLatest { (user, now, day) ->
             combine(
-                diary.entries(user.userId, now.date),
-                diary.entriesBetween(user.userId, now.date.minusDays(HISTORY_DAYS), now.date.minusDays(1)),
+                diary.entries(user.userId, day),
+                diary.entriesBetween(user.userId, day.minusDays(HISTORY_DAYS), day.minusDays(1)),
                 energy.target.map { it?.targetKcal },
                 energy.weeklyReview,
                 reviewPrefs.dismissedOn,
             ) { todayEntries, days, targetKcal, weekly, dismissedWeek ->
+                val isToday = day == now.date
                 TodayUiState(
-                    date = now.date,
+                    date = day,
+                    today = now.date,
                     displayName = user.displayName,
-                    summary = todaySummary(todayEntries, days, targetKcal, now.meal),
-                    review = reviewToShow(now.date, weekly, dismissedWeek),
+                    summary = todaySummary(todayEntries, days, targetKcal, if (isToday) now.meal else null),
+                    review = if (isToday) reviewToShow(now.date, weekly, dismissedWeek) else null,
                 )
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Shows another day: earlier days only, today is the last one. */
+    fun showDay(date: LocalDate) {
+        val today = LocalDate.now()
+        savedState[PICKED_DAY] = date.takeIf { it < today }?.toString() ?: TODAY_MARK
+    }
+
+    /** Moves all lines of [from] on the viewed day to [to], with Undo. */
+    fun move(from: Meal, to: Meal) {
+        val current = state.value ?: return
+        val lines = mealEntries(current.summary, from)
+        if (lines.isEmpty() || from == to) return
+        viewModelScope.launch {
+            moveEntries(lines, to).forEach { diary.save(it) }
+            events.send(TodayEvent.Moved(to, lines))
+        }
+    }
+
+    /** "Copy to today": logs an earlier day's meal again today, in the same meal, with Undo. */
+    fun copyToToday(meal: Meal) {
+        val current = state.value ?: return
+        if (current.isToday) return
+        val copies = copyEntries(mealEntries(current.summary, meal), LocalDate.now(), Instant.now())
+        if (copies.isEmpty()) return
+        viewModelScope.launch {
+            copies.forEach { diary.save(it) }
+            events.send(TodayEvent.Copied(copies.map { it.id }))
+        }
+    }
 
     /** "Again": logs the same items once more (or last time's, for an empty meal). */
     fun again(meal: Meal) {
@@ -117,6 +171,8 @@ internal class TodayViewModel @Inject constructor(
                 is TodayEvent.Added -> event.ids.forEach { diary.delete(it) }
                 is TodayEvent.Removed -> diary.save(event.entry)
                 is TodayEvent.Logged -> diary.delete(event.id)
+                is TodayEvent.Moved -> event.before.forEach { diary.save(it) }
+                is TodayEvent.Copied -> event.ids.forEach { diary.delete(it) }
                 is TodayEvent.Open -> Unit
             }
         }
@@ -140,20 +196,25 @@ internal class TodayViewModel @Inject constructor(
         if (foodId == null && grams == null) return
         val forDrink = cameraForDrink
         cameraForDrink = false
+        val today = LocalDate.now()
+        val day = state.value?.date ?: today
         viewModelScope.launch {
             val food = foodId?.let { foods.get(it) }
             val meal = mealForCameraResult(food?.isDrink ?: false, forDrink, LocalTime.now())
             if (food != null && grams != null && grams > 0) {
-                val line = cameraEntry(food, grams, session.currentUser.value.userId, LocalDate.now(), meal, Instant.now())
+                val line = cameraEntry(food, grams, session.currentUser.value.userId, day, meal, Instant.now())
                 diary.save(line)
                 events.send(TodayEvent.Logged(line.displayName, meal, line.id))
             } else {
-                events.send(TodayEvent.Open(TodayRoutes.logFood(meal, foodId, grams)))
+                events.send(TodayEvent.Open(TodayRoutes.logFood(meal, foodId, grams, routeDate(day, today))))
             }
         }
     }
 
     private companion object {
         const val HISTORY_DAYS = 28L
+        const val PICKED_DAY = "today_picked_day"
+        /** Stored when the arrows come back to today, so a day opened from Stats isn't used again. */
+        const val TODAY_MARK = "today"
     }
 }

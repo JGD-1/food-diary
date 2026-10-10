@@ -52,6 +52,8 @@ internal sealed interface OnlineSearch {
 }
 
 internal data class LogFoodUiState(
+    /** Set when logging for an earlier day (opened from that day on Today); null = today. */
+    val date: LocalDate?,
     val meal: Meal,
     val query: String,
     val recent: List<LogEntry>,
@@ -82,6 +84,10 @@ internal class LogFoodViewModel @Inject constructor(
         savedState.get<String>(TodayRoutes.ARG_MEAL)?.let { name -> Meal.entries.firstOrNull { it.name == name } }
             ?: mealForTime(LocalTime.now()),
     )
+    /** The day lines go to: the day shown on Today when it opened this screen, else today. */
+    private val date: LocalDate? = parseDate(savedState.get<String>(TodayRoutes.ARG_DATE))?.takeIf { it < LocalDate.now() }
+    private fun day(): LocalDate = date ?: LocalDate.now()
+
     private val query = MutableStateFlow("")
     private val online = MutableStateFlow<OnlineSearch>(OnlineSearch.Idle)
     private val amount = MutableStateFlow<AmountStep?>(null)
@@ -125,6 +131,7 @@ internal class LogFoodViewModel @Inject constructor(
         val recent = recentItems(lists.recent, meal).filter { query.isBlank() || it.displayName.contains(query.trim(), true) }
         val recentFoodIds = recent.mapNotNull { (it.what as? Logged.FoodRef)?.foodId }.toSet()
         LogFoodUiState(
+            date = date,
             meal = meal,
             query = query,
             recent = recent,
@@ -184,7 +191,7 @@ internal class LogFoodViewModel @Inject constructor(
     fun quickAdd(entry: LogEntry) {
         viewModelScope.launch {
             val line = repeatEntry(
-                entry, user.value.userId, LocalDate.now(),
+                entry, user.value.userId, day(),
                 mealFor(entry.meal == Meal.DRINKS, meal.value), Instant.now(),
             )
             diary.save(line)
@@ -197,7 +204,7 @@ internal class LogFoodViewModel @Inject constructor(
         viewModelScope.launch {
             step.pick.food?.let { food -> if (foods.get(food.id) == null) foods.save(food) }
             val line = entryFromPick(
-                step.pick, grams, user.value.userId, LocalDate.now(),
+                step.pick, grams, user.value.userId, day(),
                 mealFor(step.pick.isDrink, meal.value), Instant.now(),
             )
             diary.save(line)
@@ -212,11 +219,11 @@ internal class LogFoodViewModel @Inject constructor(
     }
 
     fun openRecipe(recipe: Recipe) {
-        viewModelScope.launch { events.send(LogFoodEvent.Open(TodayRoutes.withMeal(Routes.recipeLog(recipe.id), meal.value))) }
+        viewModelScope.launch { events.send(LogFoodEvent.Open(Routes.recipeLog(recipe.id, meal.value, date))) }
     }
 
     fun openBatch(batch: Batch) {
-        viewModelScope.launch { events.send(LogFoodEvent.Open(TodayRoutes.withMeal(Routes.batchPortion(batch.id), meal.value))) }
+        viewModelScope.launch { events.send(LogFoodEvent.Open(Routes.batchPortion(batch.id, meal.value, date))) }
     }
 
     /**
@@ -236,7 +243,7 @@ internal class LogFoodViewModel @Inject constructor(
         viewModelScope.launch {
             val food = foods.get(foodId) ?: return@launch
             val line = cameraEntry(
-                food, grams, user.value.userId, LocalDate.now(), mealFor(food.isDrink, meal.value), Instant.now(),
+                food, grams, user.value.userId, day(), mealFor(food.isDrink, meal.value), Instant.now(),
             )
             diary.save(line)
             weighedGrams = null

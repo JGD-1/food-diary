@@ -159,10 +159,22 @@ private fun LogFoodContent(
             IconButton(onClick = onBack) {
                 Icon(TodayIcons.Back, contentDescription = stringResource(R.string.today_back))
             }
-            Text(
-                stringResource(R.string.today_log_food_title), fontSize = 24.sp, fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.weight(1f).semantics { heading() },
-            )
+            Column(Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.today_log_food_title), fontSize = 24.sp, fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.semantics { heading() },
+                )
+                ui.date?.let { date ->
+                    // Logging for an earlier day: say which, so nothing lands on the wrong day by surprise.
+                    val locale = Locale.forLanguageTag(stringResource(R.string.today_locale))
+                    val pattern = stringResource(R.string.today_date_pattern)
+                    val day = date.format(DateTimeFormatter.ofPattern(pattern, locale)).replaceFirstChar { it.titlecase(locale) }
+                    Text(
+                        stringResource(R.string.today_log_for_day, day), fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
             TextButton(onClick = onBack) { Text(stringResource(R.string.today_done), fontWeight = FontWeight.Bold) }
         }
         Row(

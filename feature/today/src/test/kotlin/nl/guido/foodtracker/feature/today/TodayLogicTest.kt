@@ -68,6 +68,34 @@ class TodayLogicTest {
     }
 
     @Test
+    fun `an earlier day offers every empty meal as a small line`() {
+        val day = todaySummary(listOf(line("Soup", 300.0, Meal.LUNCH)), emptyList(), 2000, currentMeal = null)
+        assertNull(day.nextEmptyMeal)
+        assertEquals(listOf(Meal.BREAKFAST, Meal.DINNER, Meal.SNACKS), day.earlierEmptyMeals)
+    }
+
+    @Test
+    fun `the arrows stop at today and routes carry only other days`() {
+        assertEquals(TODAY, nextDay(TODAY.minusDays(1), TODAY))
+        assertNull(nextDay(TODAY, TODAY))
+        assertNull(routeDate(TODAY, TODAY))
+        assertEquals(TODAY.minusDays(2), routeDate(TODAY.minusDays(2), TODAY))
+        assertEquals(TODAY, parseDate("2026-10-12"))
+        assertNull(parseDate("not a day"))
+        assertNull(parseDate(null))
+    }
+
+    @Test
+    fun `move keeps the lines and changes only the meal`() {
+        val lunch = listOf(line("Soup", 300.0, Meal.LUNCH), line("Bread", 150.0, Meal.LUNCH))
+        val moved = moveEntries(lunch, Meal.DINNER)
+        assertEquals(lunch.map { it.id }, moved.map { it.id })
+        assertTrue(moved.all { it.meal == Meal.DINNER })
+        assertEquals(listOf(Meal.BREAKFAST, Meal.DINNER, Meal.SNACKS), moveTargets(Meal.LUNCH))
+        assertTrue(moveTargets(Meal.DRINKS).isEmpty())
+    }
+
+    @Test
     fun `again on an empty meal repeats the most recent earlier day`() {
         val history = listOf(
             line("Pasta", 600.0, Meal.DINNER, TODAY.minusDays(3)),
