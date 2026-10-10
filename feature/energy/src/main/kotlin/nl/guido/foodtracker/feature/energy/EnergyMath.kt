@@ -31,6 +31,9 @@ internal object EnergyMath {
     /** Days with less than this logged are treated as "not fully logged" and skipped. */
     const val MIN_LOGGED_DAY_KCAL = 500.0
 
+    /** Days with less than this share of that day's target logged are clearly incomplete and skipped too. */
+    const val MIN_SHARE_OF_TARGET = 0.6
+
     /** At least this share of the days between weigh-ins must be logged before we learn from them. */
     const val MIN_LOGGED_SHARE = 0.5
 
@@ -83,8 +86,8 @@ internal object EnergyMath {
      *
      * From the third weekly weigh-in on, it compares what was eaten with how the weight trend moved:
      * maintenance = average eaten − trend × 7,700 kcal/kg. The correction moves half-way towards that,
-     * at most [MAX_STEP_KCAL] per week. Weeks with too little logging leave it unchanged, so a
-     * missed week never punishes the next one.
+     * at most [MAX_STEP_KCAL] per week. Only complete days count (see [isCompleteDay]); weeks with too
+     * few of them leave it unchanged, so a missed week never punishes the next one.
      */
     fun learnAdjustment(profile: UserProfile, weighIns: List<WeighIn>, intake: List<DayTotal>, today: LocalDate): List<AdjustmentStep> {
         val weekly = weeklyWeighIns(weighIns)
@@ -96,8 +99,10 @@ internal object EnergyMath {
             val from = window.first().date
             val to = window.last().date
             val days = ChronoUnit.DAYS.between(from, to)
-            val logged = intake.filter { it.date >= from && it.date < to && it.kcal >= MIN_LOGGED_DAY_KCAL }
-            if (days > 0 && logged.size >= days * MIN_LOGGED_SHARE) {
+            val dayTarget = targetAt(profile, window.last().kg, age, adjustment)
+            val logged = intake.filter { it.date >= from && it.date < to && isCompleteDay(it.kcal, dayTarget) }
+            val used = days > 0 && logged.size >= days * MIN_LOGGED_SHARE
+            if (used) {
                 val observed = logged.map { it.kcal }.average() - slopeKgPerDay(window) * KCAL_PER_KG
                 val formula = restingKcal(window.last().kg, profile.heightCm, age, profile.sex) * profile.activity.factor
                 val gap = observed - formula - adjustment
@@ -106,13 +111,50 @@ internal object EnergyMath {
                     adjustment = (adjustment + step).coerceIn(-MAX_ADJUSTMENT_KCAL, MAX_ADJUSTMENT_KCAL)
                 }
             }
-            steps += AdjustmentStep(weekly[i].date, adjustment)
+            steps += AdjustmentStep(
+                date = weekly[i].date,
+                adjustmentKcal = adjustment,
+                from = from,
+                completeDays = logged.size,
+                totalDays = days.toInt(),
+                used = used,
+            )
         }
         return steps
     }
+
+    /**
+     * The daily target as it stood during a learning window: the person's own number if they set one,
+     * else formula − pace + the correction learned so far, never under [MIN_TARGET_KCAL].
+     */
+    fun targetAt(profile: UserProfile, weightKg: Double, age: Int, adjustment: Int): Double {
+        profile.manualTargetKcal?.let { return it.toDouble() }
+        val maintenance = restingKcal(weightKg, profile.heightCm, age, profile.sex) * profile.activity.factor
+        val pace = kcalPerDayForPace(profile.weeklyPaceKg)
+        val deficit = when (direction(weightKg, profile.targetWeightKg)) {
+            Direction.LOSE -> pace
+            Direction.GAIN -> -pace
+            Direction.MAINTAIN -> 0.0
+        }
+        return (maintenance - deficit + adjustment).coerceAtLeast(MIN_TARGET_KCAL.toDouble())
+    }
+
+    /** A day counts as fully logged when it has at least 500 kcal and at least 60% of that day's target. */
+    fun isCompleteDay(kcal: Double, dayTargetKcal: Double): Boolean =
+        kcal >= MIN_LOGGED_DAY_KCAL && kcal >= dayTargetKcal * MIN_SHARE_OF_TARGET
 }
 
 internal enum class Direction { LOSE, GAIN, MAINTAIN }
 
-/** The learned correction right after the weigh-in on [date]. */
-internal data class AdjustmentStep(val date: LocalDate, val adjustmentKcal: Int)
+/**
+ * The learned correction right after the weigh-in on [date], learned from the days [from] up to [date]:
+ * [completeDays] of [totalDays] were fully logged, and [used] says whether that was enough to learn from.
+ */
+internal data class AdjustmentStep(
+    val date: LocalDate,
+    val adjustmentKcal: Int,
+    val from: LocalDate = date,
+    val completeDays: Int = 0,
+    val totalDays: Int = 0,
+    val used: Boolean = false,
+)

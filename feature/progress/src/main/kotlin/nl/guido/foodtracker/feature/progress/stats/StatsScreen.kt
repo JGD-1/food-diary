@@ -93,6 +93,17 @@ private fun ThisWeekCard(week: WeekStats, targetKcal: Int?) {
         } else {
             NoteText(stringResource(R.string.progress_stats_week_empty))
         }
+        if (targetKcal != null) {
+            Text(
+                stringResource(
+                    R.string.progress_stats_week_total,
+                    Format.kcal(week.totalKcal),
+                    Format.kcal(StatsMath.weekBudget(targetKcal)),
+                ),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
         WeekBars(week, targetKcal)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             week.days.forEach { day ->
@@ -113,7 +124,7 @@ private fun ThisWeekCard(week: WeekStats, targetKcal: Int?) {
             }
         }
         NoteText(
-            stringResource(if (targetKcal != null) R.string.progress_stats_week_note_target else R.string.progress_stats_week_note),
+            stringResource(if (targetKcal != null) R.string.progress_stats_week_note_budget else R.string.progress_stats_week_note),
         )
     }
 }

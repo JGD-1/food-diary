@@ -2,6 +2,7 @@ package nl.guido.foodtracker.feature.energy
 
 import nl.guido.foodtracker.core.model.Sex
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -85,5 +86,40 @@ class EnergyMathTest {
         val intake = dailyIntake(MONDAY.minusWeeks(11), MONDAY, 5000.0)
         val steps = EnergyMath.learnAdjustment(PROFILE, weighIns, intake, MONDAY)
         assertEquals(EnergyMath.MAX_ADJUSTMENT_KCAL, steps.last().adjustmentKcal)
+    }
+
+    @Test
+    fun daysUnderSixtyPercentOfTargetDoNotCount() {
+        // Target here is about 1,920 kcal; 900 kcal days are over 500 but clearly incomplete.
+        val weighIns = weeklyWeighIns(85.0, 85.0, 85.0)
+        val intake = dailyIntake(MONDAY.minusWeeks(2), MONDAY, 900.0)
+        val steps = EnergyMath.learnAdjustment(PROFILE, weighIns, intake, MONDAY)
+        assertEquals(listOf(0), steps.map { it.adjustmentKcal })
+        assertFalse(steps.single().used)
+        assertEquals(0, steps.single().completeDays)
+        assertEquals(14, steps.single().totalDays)
+    }
+
+    @Test
+    fun ownTargetSetsTheSixtyPercentLine() {
+        val profile = PROFILE.copy(manualTargetKcal = 1400)
+        assertTrue(EnergyMath.isCompleteDay(900.0, EnergyMath.targetAt(profile, 85.0, 36, 0)))
+        assertFalse(EnergyMath.isCompleteDay(800.0, EnergyMath.targetAt(profile, 85.0, 36, 0)))
+    }
+
+    @Test
+    fun aDayUnder500NeverCounts() {
+        assertFalse(EnergyMath.isCompleteDay(450.0, 600.0))
+    }
+
+    @Test
+    fun stepsSayWhichWeeksWereUsed() {
+        val weighIns = weeklyWeighIns(85.0, 85.0, 85.0, 85.0)
+        // Logging the last 11 days: 4 of 14 before the third weigh-in (skipped), 11 of 21 before the fourth (used).
+        val intake = dailyIntake(MONDAY.minusDays(11), MONDAY, 2300.0)
+        val steps = EnergyMath.learnAdjustment(PROFILE, weighIns, intake, MONDAY)
+        assertEquals(listOf(false, true), steps.map { it.used })
+        assertEquals(listOf(4, 11), steps.map { it.completeDays })
+        assertEquals(listOf(14, 21), steps.map { it.totalDays })
     }
 }

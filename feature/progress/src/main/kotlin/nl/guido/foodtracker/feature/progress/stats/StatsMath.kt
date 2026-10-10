@@ -20,6 +20,8 @@ internal data class WeekStats(
     val days: List<DayBar>,
     /** Average kcal per logged day, or null when nothing is logged yet. See [StatsMath.averagePerLoggedDay]. */
     val averageKcal: Double?,
+    /** Everything logged this week so far, today included. */
+    val totalKcal: Double,
     val drinksKcal: Double,
     /** Share of this week's kcal that came from drinks, 0 to 100. */
     val drinksPercent: Int,
@@ -62,6 +64,9 @@ internal object StatsMath {
         return counted.sumOf { totals.getValue(it) } / counted.size
     }
 
+    /** The week's budget: seven times the daily target, so a big Saturday can balance out over the week. */
+    fun weekBudget(dailyTargetKcal: Int): Double = 7.0 * dailyTargetKcal
+
     fun week(entries: List<LogEntry>, today: LocalDate): WeekStats {
         val from = weekStart(today)
         val to = from.plusDays(6)
@@ -96,6 +101,7 @@ internal object StatsMath {
             to = to,
             days = days,
             averageKcal = averagePerLoggedDay(totals, dates, today),
+            totalKcal = allKcal,
             drinksKcal = drinksKcal,
             drinksPercent = if (allKcal > 0) Math.round(drinksKcal / allKcal * 100).toInt() else 0,
             topDrinks = topDrinks,
