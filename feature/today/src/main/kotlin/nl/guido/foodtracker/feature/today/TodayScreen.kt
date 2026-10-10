@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -49,6 +51,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.inset
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -67,7 +70,7 @@ import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.ReviewSuggestion
 import nl.guido.foodtracker.core.model.WeeklyReview
-import nl.guido.foodtracker.core.ui.FoodColors
+import nl.guido.foodtracker.core.ui.FoodTheme
 import nl.guido.foodtracker.core.ui.Routes
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -208,6 +211,7 @@ private fun TodayContent(
                         onAgain = { onAgain(meal) },
                     )
                 }
+                if (summary.earlierEmptyMeals.isNotEmpty()) EarlierMeals(summary.earlierEmptyMeals, onAddTo)
             }
         }
         BottomActions(onLogFood, onScan, onWeigh, onEatOut)
@@ -298,6 +302,7 @@ private fun KcalRing(summary: TodaySummary) {
         else -> Triple(abs(left), R.string.today_kcal_over, R.string.today_ring_description_over)
     }
     val accent = MaterialTheme.colorScheme.primary
+    val track = FoodTheme.colors.accentTrack
     val inner = MaterialTheme.colorScheme.surface
     val spoken = stringResource(description, formatKcal(number))
     Box(
@@ -308,7 +313,7 @@ private fun KcalRing(summary: TodaySummary) {
             val ring = 20.dp.toPx()
             drawCircle(inner)
             inset(ring / 2) {
-                drawArc(FoodColors.AccentTrack, 0f, 360f, useCenter = false, style = Stroke(ring))
+                drawArc(track, 0f, 360f, useCenter = false, style = Stroke(ring))
                 if (summary.ringFraction > 0f) {
                     drawArc(
                         accent, -90f, 360f * summary.ringFraction, useCenter = false,
@@ -416,6 +421,23 @@ private fun AddMealCard(
     }
 }
 
+/** Small "+ Add breakfast" lines for meals earlier today that are still empty. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun EarlierMeals(meals: List<Meal>, onAddTo: (Meal) -> Unit) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        meals.forEach { meal ->
+            TextButton(
+                onClick = { onAddTo(meal) },
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                modifier = Modifier.heightIn(min = 48.dp),
+            ) {
+                Text(stringResource(addMeal(meal)), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+}
+
 @Composable
 private fun ReviewCard(review: WeeklyReview, onDismiss: () -> Unit) {
     Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.primaryContainer) {
@@ -460,36 +482,67 @@ private fun suggestionText(s: ReviewSuggestion): Int = when (s) {
     ReviewSuggestion.KEEP_GOING -> R.string.today_review_keep_going
 }
 
+/**
+ * Log food plus three shortcuts in one row. With large text the shortcuts move to their own
+ * row below, so no label gets cut off.
+ */
 @Composable
 private fun BottomActions(onLogFood: () -> Unit, onScan: () -> Unit, onWeigh: () -> Unit, onEatOut: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
+    val stacked = LocalDensity.current.fontScale >= LARGE_TEXT_SCALE
+    val logFood = @Composable { modifier: Modifier ->
         Button(
             onClick = onLogFood,
             shape = RoundedCornerShape(50),
             contentPadding = PaddingValues(horizontal = 12.dp),
-            modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+            modifier = modifier.heightIn(min = 56.dp),
         ) {
             Icon(TodayIcons.Add, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(6.dp))
             Text(stringResource(R.string.today_log_food_title), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
         }
-        Shortcut(TodayIcons.Scan, stringResource(R.string.today_scan), onScan)
-        Shortcut(TodayIcons.Weigh, stringResource(R.string.today_weigh), onWeigh)
-        Shortcut(TodayIcons.EatOut, stringResource(R.string.today_eat_out), onEatOut)
+    }
+    val shortcuts = @Composable { modifier: Modifier ->
+        Shortcut(TodayIcons.Scan, stringResource(R.string.today_scan), onScan, modifier)
+        Shortcut(TodayIcons.Weigh, stringResource(R.string.today_weigh), onWeigh, modifier)
+        Shortcut(TodayIcons.EatOut, stringResource(R.string.today_eat_out), onEatOut, modifier)
+    }
+    if (stacked) {
+        Column(
+            Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            logFood(Modifier.fillMaxWidth())
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                shortcuts(Modifier.weight(1f))
+            }
+        }
+    } else {
+        Row(
+            Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            logFood(Modifier.weight(1f))
+            shortcuts(Modifier)
+        }
     }
 }
 
+/** From this text size (Android's "large" and up) the bottom buttons take two rows. */
+private const val LARGE_TEXT_SCALE = 1.3f
+
 @Composable
-private fun Shortcut(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
+private fun Shortcut(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(18.dp),
         color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier.sizeIn(minWidth = 56.dp, minHeight = 56.dp),
+        modifier = modifier.sizeIn(minWidth = 56.dp, minHeight = 56.dp),
     ) {
         Column(
             Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
@@ -497,7 +550,10 @@ private fun Shortcut(icon: androidx.compose.ui.graphics.vector.ImageVector, labe
             verticalArrangement = Arrangement.Center,
         ) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
-            Text(label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+            Text(
+                label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 2,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            )
         }
     }
 }

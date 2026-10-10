@@ -44,6 +44,8 @@ internal data class TodaySummary(
     val drinks: MealSummary,
     /** The meal offered as "+ Add dinner": the first empty one from now on. */
     val nextEmptyMeal: Meal?,
+    /** Empty meals before the current one, offered as small "+ Add lunch" lines (forgot to log it). */
+    val earlierEmptyMeals: List<Meal>,
     /** What was eaten the last time for each meal, so "Again" works on an empty meal too. */
     val lastTime: Map<Meal, List<LogEntry>>,
 ) {
@@ -63,7 +65,8 @@ internal fun todaySummary(
 ): TodaySummary {
     val byMeal = todayEntries.groupBy { it.meal }
     val filled = FOOD_MEALS.filter { byMeal[it].orEmpty().isNotEmpty() }.map { MealSummary(it, byMeal.getValue(it)) }
-    val fromNow = FOOD_MEALS.drop(FOOD_MEALS.indexOf(currentMeal).coerceAtLeast(0))
+    val now = FOOD_MEALS.indexOf(currentMeal).coerceAtLeast(0)
+    val fromNow = FOOD_MEALS.drop(now)
     return TodaySummary(
         targetKcal = targetKcal,
         eaten = todayEntries.map { it.nutrients }.sum(),
@@ -71,6 +74,7 @@ internal fun todaySummary(
         filledMeals = filled,
         drinks = MealSummary(Meal.DRINKS, byMeal[Meal.DRINKS].orEmpty()),
         nextEmptyMeal = fromNow.firstOrNull { byMeal[it].isNullOrEmpty() },
+        earlierEmptyMeals = FOOD_MEALS.take(now).filter { byMeal[it].isNullOrEmpty() },
         lastTime = lastTimeByMeal(history),
     )
 }
