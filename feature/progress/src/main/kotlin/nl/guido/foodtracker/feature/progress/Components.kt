@@ -18,26 +18,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import nl.guido.foodtracker.core.ui.FoodTheme
 
-/** Small grey line above a big bold title, as at the top of each tab in the design. */
+/** The tab's small grey line under the shared header (e.g. "Weigh-in every Sunday"). */
 @Composable
-internal fun TabHeader(kicker: String, title: String, modifier: Modifier = Modifier) {
-    Column(modifier) {
-        Text(
-            kicker,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            title,
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = 32.sp,
-        )
-    }
+internal fun TabKicker(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text,
+        modifier = modifier,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 /** White rounded card holding one section of a tab. */

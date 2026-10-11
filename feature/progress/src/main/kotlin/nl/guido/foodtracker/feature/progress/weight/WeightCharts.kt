@@ -16,12 +16,10 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import nl.guido.foodtracker.core.ui.FoodTheme
 import nl.guido.foodtracker.feature.progress.Format
 import java.time.YearMonth
@@ -43,8 +41,8 @@ internal fun WeightLineChart(
     val measurer = rememberTextMeasurer()
     val accent = MaterialTheme.colorScheme.primary
     val secondary = MaterialTheme.colorScheme.onSurfaceVariant
-    val labelStyle = TextStyle(fontSize = 11.sp, color = secondary)
-    val valueStyle = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+    val labelStyle = MaterialTheme.typography.labelSmall.copy(color = secondary)
+    val valueStyle = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
 
     Canvas(
         modifier

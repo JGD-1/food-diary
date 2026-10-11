@@ -28,18 +28,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.WeighIn
+import nl.guido.foodtracker.core.ui.ScreenHeader
 import nl.guido.foodtracker.feature.progress.Format
 import nl.guido.foodtracker.feature.progress.NoteText
 import nl.guido.foodtracker.feature.progress.ProgressTrack
 import nl.guido.foodtracker.feature.progress.R
 import nl.guido.foodtracker.feature.progress.SectionCard
 import nl.guido.foodtracker.feature.progress.SectionTitle
-import nl.guido.foodtracker.feature.progress.TabHeader
+import nl.guido.foodtracker.feature.progress.TabKicker
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -64,19 +64,19 @@ internal fun WeightScreen(
     modifier: Modifier = Modifier,
 ) {
     // The cards scroll (large text sizes need room); the button stays at the bottom.
-    Column(modifier = modifier.fillMaxSize().padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp)) {
+    Column(modifier = modifier.fillMaxSize().padding(bottom = 12.dp)) {
+        ScreenHeader(title = stringResource(R.string.progress_weight_title), onBack = null, modifier = Modifier.padding(top = 4.dp))
         Column(
-            modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(bottom = 12.dp),
+            modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             val day = (state as? WeightUiState.Ready)?.summary?.weighInDay
-            TabHeader(
-                kicker = if (day != null) {
+            TabKicker(
+                if (day != null) {
                     stringResource(R.string.progress_weight_every, day.getDisplayName(TextStyle.FULL, Locale.getDefault()))
                 } else {
                     stringResource(R.string.progress_weight_weekly)
                 },
-                title = stringResource(R.string.progress_weight_title),
             )
             when (state) {
                 WeightUiState.Loading -> Unit
@@ -89,8 +89,8 @@ internal fun WeightScreen(
                 }
             }
         }
-        Button(onClick = onLogWeighIn, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            Text(stringResource(R.string.progress_weight_log), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+        Button(onClick = onLogWeighIn, modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth().heightIn(min = 56.dp)) {
+            Text(stringResource(R.string.progress_weight_log), style = MaterialTheme.typography.titleMedium)
         }
     }
 }
@@ -153,9 +153,7 @@ private fun ProgressCard(progress: WeightProgress) {
         ) {
             Text(
                 stringResource(R.string.progress_kg, Format.kg(progress.currentKg)),
-                fontSize = 40.sp,
-                fontWeight = FontWeight.ExtraBold,
-                lineHeight = 40.sp,
+                style = MaterialTheme.typography.displayMedium,
             )
             Text(
                 if (progress.reached) {

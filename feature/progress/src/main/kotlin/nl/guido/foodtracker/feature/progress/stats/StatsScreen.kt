@@ -38,16 +38,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.guido.foodtracker.core.ui.FoodTheme
+import nl.guido.foodtracker.core.ui.ScreenHeader
 import nl.guido.foodtracker.feature.progress.Format
 import nl.guido.foodtracker.feature.progress.NoteText
 import nl.guido.foodtracker.feature.progress.R
 import nl.guido.foodtracker.feature.progress.SectionCard
 import nl.guido.foodtracker.feature.progress.SectionTitle
-import nl.guido.foodtracker.feature.progress.TabHeader
+import nl.guido.foodtracker.feature.progress.TabKicker
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -70,14 +70,25 @@ internal fun StatsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp),
+            .verticalScroll(rememberScrollState()),
+    ) {
+        ScreenHeader(title = stringResource(R.string.progress_stats_title), onBack = null, modifier = Modifier.padding(top = 4.dp))
+        StatsCards(state, onEarlier, onLater, onOpenDay)
+    }
+}
+
+@Composable
+private fun StatsCards(
+    state: StatsUiState,
+    onEarlier: () -> Unit,
+    onLater: () -> Unit,
+    onOpenDay: (LocalDate) -> Unit,
+) {
+    Column(
+        modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        TabHeader(
-            kicker = stringResource(R.string.progress_stats_kicker),
-            title = stringResource(R.string.progress_stats_title),
-        )
+        TabKicker(stringResource(R.string.progress_stats_kicker))
         if (state is StatsUiState.Ready) {
             if (state.isFirstWeek && state.weeksBack == 0) FirstWeekCard()
             ThisWeekCard(state.week, state.targetKcal, state.weeksBack, onEarlier, onLater, onOpenDay)
@@ -119,7 +130,7 @@ private fun ThisWeekCard(
         }
         if (week.averageKcal != null) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom) {
-                Text(Format.kcal(week.averageKcal), fontSize = 34.sp, lineHeight = 36.sp, fontWeight = FontWeight.ExtraBold)
+                Text(Format.kcal(week.averageKcal), style = MaterialTheme.typography.displayMedium)
                 NoteText(
                     if (targetKcal != null) {
                         stringResource(R.string.progress_stats_average_target, Format.kcal(targetKcal.toDouble()))
@@ -206,9 +217,7 @@ private fun ProteinCard(week: WeekStats, proteinGoalG: Int?, isThisWeek: Boolean
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom) {
                 Text(
                     stringResource(R.string.progress_grams, Format.kcal(average)),
-                    fontSize = 28.sp,
-                    lineHeight = 30.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    style = MaterialTheme.typography.displaySmall,
                 )
                 NoteText(
                     if (proteinGoalG != null) {
@@ -336,8 +345,7 @@ private fun ByMonthCard(months: List<MonthAverage>) {
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         m.averageKcal?.let { Format.kcal(it) } ?: stringResource(R.string.progress_stats_no_value),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.labelSmall,
                         maxLines = 1,
                     )
                     val fraction = ((m.averageKcal ?: 0.0) / scale).toFloat()
@@ -392,8 +400,7 @@ private fun DrinksCard(week: WeekStats, isThisWeek: Boolean) {
             }
             Text(
                 stringResource(R.string.progress_kcal, Format.kcal(week.drinksKcal)),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
+                style = MaterialTheme.typography.headlineSmall,
                 maxLines = 1,
             )
         }

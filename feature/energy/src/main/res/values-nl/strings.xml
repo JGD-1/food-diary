@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="energy_back">Terug</string>
     <string name="energy_kcal">%1$s kcal</string>
     <string name="energy_times">× %1$s</string>
 

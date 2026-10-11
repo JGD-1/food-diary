@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="reminders_title">Herinnering</string>
-    <string name="reminders_back">Terug</string>
     <string name="reminders_intro">Een rustige herinnering om een maaltijd in te vullen, op een tijd die jij kiest (hooguit twee tijden). Verder niets. Hij staat alleen op deze telefoon.</string>
     <string name="reminders_switch">Dagelijkse herinnering</string>
     <string name="reminders_time">Tijd</string>
