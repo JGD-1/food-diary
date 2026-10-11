@@ -1,5 +1,6 @@
 package nl.guido.foodtracker.feature.today
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -24,8 +26,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -49,8 +51,10 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.inset
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -74,6 +78,7 @@ import nl.guido.foodtracker.core.ui.FoodTheme
 import nl.guido.foodtracker.core.ui.Routes
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -90,6 +95,7 @@ internal fun TodayRoute(
     val comingSoon = stringResource(R.string.today_coming_soon)
     val undo = stringResource(R.string.today_undo)
     val addedAgain = stringResource(R.string.today_added_again)
+    val andMore = stringResource(R.string.today_and_more)
     val removed = stringResource(R.string.today_removed)
     val addedTo = stringResource(R.string.today_added_to)
     val movedTo = stringResource(R.string.today_moved_to)
@@ -107,7 +113,10 @@ internal fun TodayRoute(
     LaunchedEffect(viewModel) {
         viewModel.eventFlow.collect { event ->
             val message = when (event) {
-                is TodayEvent.Added -> addedAgain.format(mealNames.getValue(event.meal).lowercase())
+                is TodayEvent.Added -> {
+                    val names = event.names.joinToString(", ")
+                    addedAgain.format(if (event.more > 0) andMore.format(names, event.more) else names)
+                }
                 is TodayEvent.Removed -> removed.format(event.entry.displayName)
                 is TodayEvent.Logged -> addedTo.format(event.name, mealNames.getValue(event.meal).lowercase())
                 is TodayEvent.Moved -> movedTo.format(mealNames.getValue(event.to).lowercase())
@@ -118,16 +127,22 @@ internal fun TodayRoute(
                 }
             }
             if (message != null) {
-                val result = snackbar.showSnackbar(message, actionLabel = undo, duration = SnackbarDuration.Short)
+                // "Again" can add several things at once, so its message stays longer to read and undo.
+                val duration = if (event is TodayEvent.Added) SnackbarDuration.Long else SnackbarDuration.Short
+                val result = snackbar.showSnackbar(message, actionLabel = undo, duration = duration)
                 if (result == SnackbarResult.ActionPerformed) viewModel.undo(event)
             }
         }
     }
 
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    val background = MaterialTheme.colorScheme.background
+    // An earlier day gets a light tint, so it never looks like today.
+    val earlierTint = MaterialTheme.colorScheme.primary.copy(alpha = EARLIER_DAY_TINT).compositeOver(background)
+    Box(Modifier.fillMaxSize().background(if (state?.isToday == false) earlierTint else background)) {
         state?.let { ui ->
             TodayContent(
                 ui = ui,
+                snackbar = snackbar,
                 onProfile = { open(Routes.PROFILE) },
                 onTarget = { open(Routes.ENERGY_TARGET) },
                 onDay = viewModel::showDay,
@@ -145,13 +160,16 @@ internal fun TodayRoute(
                 onEatOut = { open(Routes.eatOut(ui.dateArg), Routes.EAT_OUT) },
             )
         }
-        SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(bottom = 80.dp))
     }
 }
+
+/** How strongly an earlier day is tinted with the accent colour. */
+private const val EARLIER_DAY_TINT = 0.07f
 
 @Composable
 private fun TodayContent(
     ui: TodayUiState,
+    snackbar: SnackbarHostState,
     onProfile: () -> Unit,
     onTarget: () -> Unit,
     onDay: (LocalDate) -> Unit,
@@ -173,56 +191,57 @@ private fun TodayContent(
     var showMacros by rememberSaveable { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize()) {
-        Column(
-            Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Header(ui, onDay, onProfile)
-            RingSection(summary, ui.proteinGoalG, onTarget, onMacros = { showMacros = true })
-            ui.review?.let { ReviewCard(it, onDismiss = { onDismissReview(it) }) }
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                summary.filledMeals.forEach { meal ->
+        // The Undo message sits at the bottom of this box, so always just above the buttons, however tall they are.
+        Box(Modifier.weight(1f)) {
+            Column(
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Header(ui, onDay, onProfile)
+                if (ui.yesterdayEmpty) {
+                    TextButton(
+                        onClick = { onDay(ui.today.minusDays(1)) },
+                        contentPadding = PaddingValues(horizontal = 4.dp),
+                        modifier = Modifier.heightIn(min = 48.dp),
+                    ) {
+                        Text(stringResource(R.string.today_yesterday_empty), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+                RingSection(summary, ui.proteinGoalG, onTarget, onMacros = { showMacros = true })
+                ui.review?.let { ReviewCard(it, onDismiss = { onDismissReview(it) }) }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    summary.filledMeals.forEach { meal ->
+                        MealCard(
+                            title = stringResource(mealName(meal.meal)),
+                            items = entriesText(meal.entries),
+                            kcal = kcalText(meal.kcal, meal.hasEstimate),
+                            onClick = { openMeal = meal.meal },
+                        ) {
+                            AgainButton { onAgain(meal.meal) }
+                        }
+                    }
                     MealCard(
-                        title = stringResource(mealName(meal.meal)),
-                        items = entriesText(meal.entries),
-                        kcal = kcalText(meal.kcal, meal.hasEstimate),
-                        onClick = { openMeal = meal.meal },
+                        title = stringResource(R.string.today_meal_drinks),
+                        items = if (summary.drinks.entries.isEmpty()) stringResource(R.string.today_drinks_none)
+                        else entriesText(summary.drinks.entries),
+                        kcal = kcalText(summary.drinks.kcal, summary.drinks.hasEstimate),
+                        onClick = { if (summary.drinks.entries.isEmpty()) onAddTo(Meal.DRINKS) else openMeal = Meal.DRINKS },
                     ) {
-                        AgainButton { onAgain(meal.meal) }
+                        DrinkButton(TodayIcons.Scan, R.string.today_drink_scan, R.string.today_scan_drink, onScanDrink)
+                        DrinkButton(TodayIcons.Add, R.string.today_drink_add, R.string.today_add_drink) { onAddTo(Meal.DRINKS) }
                     }
-                }
-                MealCard(
-                    title = stringResource(R.string.today_meal_drinks),
-                    items = if (summary.drinks.entries.isEmpty()) stringResource(R.string.today_drinks_none)
-                    else entriesText(summary.drinks.entries),
-                    kcal = kcalText(summary.drinks.kcal, summary.drinks.hasEstimate),
-                    onClick = { if (summary.drinks.entries.isEmpty()) onAddTo(Meal.DRINKS) else openMeal = Meal.DRINKS },
-                ) {
-                    val scanLabel = stringResource(R.string.today_scan_drink)
-                    FilledTonalIconButton(
-                        onClick = onScanDrink,
-                        modifier = Modifier.size(40.dp).semantics { contentDescription = scanLabel },
-                    ) {
-                        Icon(TodayIcons.Scan, contentDescription = null, modifier = Modifier.size(18.dp))
+                    summary.nextEmptyMeal?.let { meal ->
+                        AddMealCard(
+                            meal = meal,
+                            lastTime = summary.lastTime[meal].orEmpty(),
+                            onAdd = { onAddTo(meal) },
+                            onAgain = { onAgain(meal) },
+                        )
                     }
-                    val label = stringResource(R.string.today_add_drink)
-                    FilledTonalIconButton(
-                        onClick = { onAddTo(Meal.DRINKS) },
-                        modifier = Modifier.size(40.dp).semantics { contentDescription = label },
-                    ) {
-                        Icon(TodayIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                    }
+                    if (summary.earlierEmptyMeals.isNotEmpty()) EarlierMeals(summary.earlierEmptyMeals, onAddTo)
                 }
-                summary.nextEmptyMeal?.let { meal ->
-                    AddMealCard(
-                        meal = meal,
-                        lastTime = summary.lastTime[meal].orEmpty(),
-                        onAdd = { onAddTo(meal) },
-                        onAgain = { onAgain(meal) },
-                    )
-                }
-                if (summary.earlierEmptyMeals.isNotEmpty()) EarlierMeals(summary.earlierEmptyMeals, onAddTo)
             }
+            SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(horizontal = 8.dp))
         }
         BottomActions(onLogFood, onScan, onWeigh, onEatOut)
     }
@@ -242,68 +261,122 @@ private fun TodayContent(
     if (showMacros) MacroSheet(summary.eaten, ui.proteinGoalG, onDismiss = { showMacros = false })
 }
 
-/** The day with ‹ › arrows to look at (and log on) earlier days, the title, and the profile button. */
+/**
+ * The day with ‹ › arrows to look at (and log on) earlier days, the title, and Settings.
+ * Today: the date above "Today". An earlier day: "Yesterday" or "3 days ago" above the full date,
+ * so the title says exactly which day it is. A dot on ‹ means a recent day has nothing logged.
+ */
 @Composable
 private fun Header(ui: TodayUiState, onDay: (LocalDate) -> Unit, onProfile: () -> Unit) {
     val locale = Locale.forLanguageTag(stringResource(R.string.today_locale))
     val pattern = stringResource(R.string.today_date_pattern)
     val date = ui.date
-    val dateText = remember(date, locale, pattern) { date.format(DateTimeFormatter.ofPattern(pattern, locale)) }
-    val title = when (date) {
-        ui.today -> stringResource(R.string.today_title)
-        ui.today.minusDays(1) -> stringResource(R.string.today_yesterday)
-        else -> remember(date, locale) { date.format(DateTimeFormatter.ofPattern("EEEE", locale)) }
+    val dateText = remember(date, locale, pattern) {
+        date.format(DateTimeFormatter.ofPattern(pattern, locale)).replaceFirstChar { it.titlecase(locale) }
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                DayArrow("‹", stringResource(R.string.today_previous_day)) { onDay(date.minusDays(1)) }
+    val daysAgo = ChronoUnit.DAYS.between(date, ui.today).toInt()
+    val (small, title) = when {
+        ui.isToday -> dateText to stringResource(R.string.today_title)
+        daysAgo == 1 -> stringResource(R.string.today_yesterday) to dateText
+        else -> stringResource(R.string.today_days_ago, daysAgo) to dateText
+    }
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                val emptyLabel = stringResource(R.string.today_previous_day_empty)
+                val previous = stringResource(R.string.today_previous_day)
+                DayArrow(
+                    icon = TodayIcons.Back,
+                    label = if (ui.emptyDays.isNotEmpty()) "$previous. $emptyLabel" else previous,
+                    dot = ui.emptyDays.isNotEmpty(),
+                ) { onDay(date.minusDays(1)) }
                 Text(
-                    dateText.replaceFirstChar { it.titlecase(locale) },
+                    small,
                     fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false),
                 )
                 if (ui.canGoForward) {
-                    DayArrow("›", stringResource(R.string.today_next_day)) { nextDay(date, ui.today)?.let(onDay) }
+                    DayArrow(TodayIcons.Forward, stringResource(R.string.today_next_day)) { nextDay(date, ui.today)?.let(onDay) }
                 }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    title.replaceFirstChar { it.titlecase(locale) },
-                    fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 34.sp,
-                    modifier = Modifier.weight(1f, fill = false).semantics { heading() },
-                )
-                if (!ui.isToday) {
-                    TextButton(onClick = { onDay(ui.today) }, modifier = Modifier.heightIn(min = 48.dp)) {
-                        Text(stringResource(R.string.today_back_to_today), fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
+            SettingsButton(ui.displayName, onProfile)
         }
-        val label = stringResource(R.string.today_profile)
-        Surface(
-            onClick = onProfile,
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surface,
-            modifier = Modifier.size(44.dp).semantics { contentDescription = label },
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(ui.displayName.take(1).uppercase(), fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                title,
+                fontSize = if (ui.isToday) 32.sp else 26.sp, fontWeight = FontWeight.ExtraBold,
+                lineHeight = if (ui.isToday) 34.sp else 30.sp,
+                modifier = Modifier.weight(1f, fill = false).semantics { heading() },
+            )
+            if (!ui.isToday) {
+                TextButton(onClick = { onDay(ui.today) }, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.today_back_to_today), fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
 }
 
-/** A ‹ or › button next to the date, big enough to tap. */
+/** One button with a gear, the word "Settings" and the person's letter: opens Profile and settings. */
 @Composable
-private fun DayArrow(symbol: String, label: String, onClick: () -> Unit) {
-    TextButton(
+private fun SettingsButton(displayName: String, onClick: () -> Unit) {
+    val label = stringResource(R.string.today_profile)
+    Surface(
         onClick = onClick,
-        contentPadding = PaddingValues(0.dp),
-        modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp).semantics { contentDescription = label },
+        shape = RoundedCornerShape(50),
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = label },
     ) {
-        Text(symbol, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Row(
+            Modifier.padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(TodayIcons.Settings, contentDescription = null, modifier = Modifier.size(20.dp))
+            Text(stringResource(R.string.today_settings), fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            Box(
+                Modifier.size(36.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    displayName.take(1).uppercase(), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
+    }
+}
+
+/** A ‹ or › button next to the date, big enough to tap; [dot] marks a recent empty day further back. */
+@Composable
+private fun DayArrow(icon: ImageVector, label: String, dot: Boolean = false, onClick: () -> Unit) {
+    IconButton(onClick = onClick, modifier = Modifier.size(48.dp).semantics { contentDescription = label }) {
+        Box {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp))
+            if (dot) {
+                Box(
+                    Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = (-2).dp).size(8.dp)
+                        .clip(CircleShape).background(MaterialTheme.colorScheme.primary),
+                )
+            }
+        }
+    }
+}
+
+/** "Scan" or "Add" on the Drinks card: icon and word, 48 dp high; [spoken] says it is for a drink. */
+@Composable
+private fun DrinkButton(icon: ImageVector, @StringRes text: Int, @StringRes spoken: Int, onClick: () -> Unit) {
+    val description = stringResource(spoken)
+    FilledTonalButton(
+        onClick = onClick,
+        contentPadding = PaddingValues(horizontal = 10.dp),
+        modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = description },
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(4.dp))
+        Text(stringResource(text), fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
     }
 }
 

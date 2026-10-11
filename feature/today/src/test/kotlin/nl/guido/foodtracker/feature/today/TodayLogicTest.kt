@@ -196,4 +196,33 @@ class TodayLogicTest {
         assertEquals("p2", portionFor(portions, "mine")?.id)
         assertNull(portionFor(portions, "other"))
     }
+
+    @Test
+    fun `recent days with nothing logged are found, once the app was in use`() {
+        val history = listOf(
+            line("Toast", 200.0, date = TODAY.minusDays(5)),
+            line("Soup", 300.0, date = TODAY.minusDays(2)),
+        )
+        // Yesterday and three days ago are empty; two days ago has soup.
+        assertEquals(listOf(TODAY.minusDays(1), TODAY.minusDays(3)), emptyRecentDays(history, TODAY, TODAY))
+        // Viewing yesterday: only days before it count.
+        assertEquals(listOf(TODAY.minusDays(3)), emptyRecentDays(history, TODAY.minusDays(1), TODAY))
+        // Viewing three days ago: nothing recent lies further back.
+        assertEquals(emptyList<Any>(), emptyRecentDays(history, TODAY.minusDays(3), TODAY))
+    }
+
+    @Test
+    fun `days before the first logged day are not called empty`() {
+        assertEquals(emptyList<Any>(), emptyRecentDays(emptyList(), TODAY, TODAY))
+        val startedTwoDaysAgo = listOf(line("Toast", 200.0, date = TODAY.minusDays(2)))
+        assertEquals(listOf(TODAY.minusDays(1)), emptyRecentDays(startedTwoDaysAgo, TODAY, TODAY))
+    }
+
+    @Test
+    fun `again names what it added, at most three`() {
+        val two = listOf(line("Yoghurt", 100.0), line("Muesli", 150.0))
+        assertEquals(listOf("Yoghurt", "Muesli") to 0, againNames(two))
+        val five = two + line("Banana", 90.0) + line("Honey", 40.0) + line("Coffee", 5.0)
+        assertEquals(listOf("Yoghurt", "Muesli", "Banana") to 2, againNames(five))
+    }
 }

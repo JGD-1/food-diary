@@ -34,6 +34,19 @@ internal object TodayIcons {
     val EatOut = lineIcon("EatOut", "M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 2-2 6 0 8v10")
     val Search = lineIcon("Search", "M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4")
     val Back = lineIcon("Back", "M15 5l-7 7 7 7")
+    val Forward = lineIcon("Forward", "M9 5l7 7-7 7")
+    val Settings = lineIcon(
+        "Settings",
+        "M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z",
+        "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 " +
+            "1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06" +
+            "a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09" +
+            "A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 " +
+            "1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 " +
+            "1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21" +
+            "a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z",
+        width = 1.8f,
+    )
 
     private fun lineIcon(name: String, vararg paths: String, width: Float = 2f): ImageVector =
         ImageVector.Builder(name, 24.dp, 24.dp, 24f, 24f).apply {
