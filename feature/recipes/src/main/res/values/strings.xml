@@ -112,4 +112,24 @@
     <string name="recipes_cooked_weight_none_hint">Without it, portions count as grams of the raw ingredients. For a pot you share out over days, use Cook a batch.</string>
     <string name="recipes_makes_pieces">Makes … pieces (optional)</string>
     <string name="recipes_makes_pieces_hint">For example 12 muffins. You can then log ½, 1 or 2 pieces.</string>
+    <string name="recipes_batch_change">Change batch</string>
+    <string name="recipes_batch_step_cooked_pan_hint">Put the pan with the food on the scale. Its empty weight comes off.</string>
+    <string name="recipes_batch_reading_with_pan">Scale reading, pan included</string>
+    <string name="recipes_batch_minus_pan">Minus %1$s (%2$s g): %3$s g of food</string>
+    <string name="recipes_batch_in_freezer">In the freezer</string>
+    <string name="recipes_batch_delete">Delete batch</string>
+    <string name="recipes_batch_delete_logged">A portion of this batch is already logged, so it stays. Tap Finished on the list when it\'s gone.</string>
+    <string name="recipes_batch_delete_question">Delete this batch for everyone?</string>
+    <string name="recipes_batch_left_pieces">About %1$s g left in the pot (%2$s pieces)</string>
+    <string name="recipes_pan_none">No pan</string>
+    <string name="recipes_pan_chip">%1$s · %2$s g</string>
+    <string name="recipes_pans_manage">Pans…</string>
+    <string name="recipes_pans_title">Pans</string>
+    <string name="recipes_pans_hint">Weigh each pan empty once. Then weigh the cooked food in its pan and the app takes the pan off.</string>
+    <string name="recipes_pan_name">Name, e.g. Big pot</string>
+    <string name="recipes_pan_empty_weight">Empty weight</string>
+    <string name="recipes_pan_add">Add pan</string>
+    <string name="recipes_freezer_section">In the freezer</string>
+    <string name="recipes_freezer_take_out">Take out</string>
+    <string name="recipes_freezer_put_in">Freeze</string>
 </resources>

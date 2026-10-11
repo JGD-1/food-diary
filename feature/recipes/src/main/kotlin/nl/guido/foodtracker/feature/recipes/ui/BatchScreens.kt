@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
@@ -35,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
@@ -45,6 +48,7 @@ import nl.guido.foodtracker.feature.recipes.BatchPortionViewModel
 import nl.guido.foodtracker.feature.recipes.NewBatchViewModel
 import nl.guido.foodtracker.feature.recipes.NewBatchViewModel.Weighing
 import nl.guido.foodtracker.feature.recipes.R
+import nl.guido.foodtracker.feature.recipes.RecipesRoutes
 import nl.guido.foodtracker.feature.recipes.logic.BATCH_SCALES
 import nl.guido.foodtracker.feature.recipes.logic.formatGrams
 import java.time.Instant
@@ -54,25 +58,43 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
 
-/** Step 1: weigh each ingredient going into the pot. Step 2: weigh the cooked batch. */
+/**
+ * Step 1: weigh each ingredient going into the pot. Step 2: weigh the cooked batch.
+ * Also "Change batch" (S10) for a saved one, with Delete while nothing is logged from it.
+ */
 @Composable
 internal fun NewBatchScreen(
     navController: NavController,
     savedState: SavedStateHandle,
     onSaved: (Id, LocalDate) -> Unit,
+    /** A changed batch was saved ([deleted] = false) or deleted. */
+    onClosed: (deleted: Boolean) -> Unit = {},
     vm: NewBatchViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
     var picking by rememberSaveable { mutableStateOf(false) }
+    var confirmDelete by rememberSaveable { mutableStateOf(false) }
+    var deleting by rememberSaveable { mutableStateOf(false) }
     CameraGrams(savedState, vm::onWeighed)
     LaunchedEffect(state.savedBatchId) { state.savedBatchId?.let { onSaved(it, state.cookedOn) } }
+    LaunchedEffect(state.closed) { if (state.closed) onClosed(deleting) }
+    val editing = state.editing != null
 
     Scaffold(
-        topBar = { RecipesTopBar(stringResource(R.string.recipes_cook_batch), onBack = { navController.popBackStack() }) },
+        topBar = {
+            RecipesTopBar(
+                stringResource(if (editing) R.string.recipes_batch_change else R.string.recipes_cook_batch),
+                onBack = { navController.popBackStack() },
+            )
+        },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
         if (state.loading) {
             Loading()
+            return@Scaffold
+        }
+        if (savedState.contains(RecipesRoutes.ARG_BATCH_ID) && !editing) {
+            Hint(stringResource(R.string.recipes_not_found), Modifier.padding(padding).padding(16.dp))
             return@Scaffold
         }
         Column(
@@ -118,14 +140,38 @@ internal fun NewBatchScreen(
             }
 
             SectionTitle(stringResource(R.string.recipes_batch_step_cooked))
-            Hint(stringResource(R.string.recipes_batch_step_cooked_hint))
+            Hint(stringResource(if (state.pan == null) R.string.recipes_batch_step_cooked_hint else R.string.recipes_batch_step_cooked_pan_hint))
+            PanChips(state.pan, vm::setPan)
             GramsField(
                 value = state.cookedText,
                 onValueChange = vm::setCooked,
-                label = stringResource(R.string.recipes_batch_cooked_weight),
+                label = stringResource(if (state.pan == null) R.string.recipes_batch_cooked_weight else R.string.recipes_batch_reading_with_pan),
                 onWeigh = cameraWeigh(navController) { vm.startWeighing(Weighing.Cooked) },
                 modifier = Modifier.fillMaxWidth(),
             )
+            val pan = state.pan
+            val cooked = state.cookedGrams
+            if (pan != null && cooked != null) {
+                Hint(stringResource(R.string.recipes_batch_minus_pan, pan.name, formatGrams(pan.grams), formatGrams(cooked)))
+            }
+            OutlinedTextField(
+                value = state.piecesText,
+                onValueChange = vm::setPieces,
+                label = { Text(stringResource(R.string.recipes_makes_pieces)) },
+                supportingText = { Text(stringResource(R.string.recipes_makes_pieces_hint)) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (editing) {
+                Row(
+                    Modifier.fillMaxWidth().toggleable(state.frozen, role = Role.Checkbox, onValueChange = vm::setFrozen),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(checked = state.frozen, onCheckedChange = null)
+                    Text(stringResource(R.string.recipes_batch_in_freezer), Modifier.padding(start = 8.dp))
+                }
+            }
 
             if (state.canSaveToRecipe) {
                 Row(
@@ -138,13 +184,34 @@ internal fun NewBatchScreen(
             }
 
             Button(onClick = vm::save, enabled = state.canSave, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                Text(stringResource(R.string.recipes_batch_save))
+                Text(stringResource(if (editing) R.string.recipes_save else R.string.recipes_batch_save))
+            }
+            if (editing) {
+                if (state.canDelete) {
+                    TextButton(onClick = { confirmDelete = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.recipes_batch_delete))
+                    }
+                } else {
+                    Hint(stringResource(R.string.recipes_batch_delete_logged))
+                }
             }
         }
     }
 
     if (picking) {
         FoodPicker(onPick = { vm.add(it); picking = false }, onClose = { picking = false })
+    }
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            text = { Text(stringResource(R.string.recipes_batch_delete_question)) },
+            confirmButton = {
+                TextButton(onClick = { confirmDelete = false; deleting = true; vm.delete() }) {
+                    Text(stringResource(R.string.recipes_delete))
+                }
+            },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.recipes_keep)) } },
+        )
     }
 }
 
@@ -203,10 +270,12 @@ internal fun BatchPortionScreen(
     navController: NavController,
     savedState: SavedStateHandle,
     onDone: () -> Unit,
+    onEdit: (Id) -> Unit,
     vm: BatchPortionViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
     CameraGrams(savedState, vm::onWeighed)
+    BatchChanged(savedState, vm::reload)
     LaunchedEffect(state.done) { if (state.done) onDone() }
 
     val batch = state.batch
@@ -235,9 +304,19 @@ internal fun BatchPortionScreen(
                     batch.total.kcal.roundToInt(),
                 ),
             )
-            state.gramsLeft?.let { Hint(stringResource(R.string.recipes_batch_left, formatGrams(it))) }
+            state.gramsLeft?.let { left ->
+                val pieces = state.piecesLeft
+                Hint(
+                    if (pieces == null) {
+                        stringResource(R.string.recipes_batch_left, formatGrams(left))
+                    } else {
+                        stringResource(R.string.recipes_batch_left_pieces, formatGrams(left), formatPieces(pieces))
+                    },
+                )
+            }
             SectionTitle(stringResource(R.string.recipes_batch_step_portion))
             Hint(stringResource(R.string.recipes_batch_step_portion_hint))
+            if (batch.pieces != null) PieceChips(state.portionLabel, vm::setPieces)
             GramsField(
                 value = state.gramsText,
                 onValueChange = vm::setGrams,
@@ -258,6 +337,7 @@ internal fun BatchPortionScreen(
             Button(onClick = vm::log, enabled = state.canLog, modifier = Modifier.fillMaxWidth().height(56.dp)) {
                 Text(stringResource(R.string.recipes_log_my_portion))
             }
+            TextButton(onClick = { onEdit(batch.id) }) { Text(stringResource(R.string.recipes_batch_change)) }
         }
     }
 }

@@ -15,6 +15,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -51,13 +53,17 @@ import androidx.navigation.NavController
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.core.model.Pan
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.ui.amountText
 import nl.guido.foodtracker.feature.recipes.FoodSearchViewModel
+import nl.guido.foodtracker.feature.recipes.PansViewModel
 import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.RecipesRoutes
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
 import nl.guido.foodtracker.feature.recipes.logic.PIECE_CHOICES
+import nl.guido.foodtracker.feature.recipes.logic.formatGrams
+import nl.guido.foodtracker.feature.recipes.logic.parseGrams
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -326,4 +332,95 @@ internal fun FoodPicker(onPick: (Food) -> Unit, onClose: () -> Unit) {
             }
         }
     }
+}
+
+/** Reloads [onChanged] once when coming back from "Change batch" (S10), so the screen shows the new numbers. */
+@Composable
+internal fun BatchChanged(savedState: SavedStateHandle, onChanged: () -> Unit) {
+    val changed by savedState.getStateFlow(RecipesRoutes.BATCH_CHANGED, false).collectAsState()
+    LaunchedEffect(changed) {
+        if (changed) {
+            onChanged()
+            savedState[RecipesRoutes.BATCH_CHANGED] = false
+        }
+    }
+}
+
+/** "3", "2.5": pieces left, to half a piece. */
+internal fun formatPieces(pieces: Double): String = formatGrams((pieces * 2).roundToInt() / 2.0)
+
+/**
+ * Weigh the cooked pot in its pan (S9): pick a saved pan and its empty weight comes off the
+ * scale reading. "Pans…" adds or removes the household's pans.
+ */
+@Composable
+internal fun PanChips(selected: Pan?, onSelect: (Pan?) -> Unit) {
+    val vm: PansViewModel = hiltViewModel()
+    val pans by vm.pans.collectAsState()
+    var managing by rememberSaveable { mutableStateOf(false) }
+    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilterChip(selected = selected == null, onClick = { onSelect(null) }, label = { Text(stringResource(R.string.recipes_pan_none)) })
+        pans.forEach { pan ->
+            FilterChip(
+                selected = selected?.id == pan.id,
+                onClick = { onSelect(pan) },
+                label = { Text(stringResource(R.string.recipes_pan_chip, pan.name, formatGrams(pan.grams))) },
+            )
+        }
+        AssistChip(onClick = { managing = true }, label = { Text(stringResource(R.string.recipes_pans_manage)) })
+    }
+    if (managing) {
+        PansDialog(
+            pans,
+            onAdd = vm::add,
+            onDelete = { id ->
+                if (selected?.id == id) onSelect(null)
+                vm.delete(id)
+            },
+            onClose = { managing = false },
+        )
+    }
+}
+
+@Composable
+private fun PansDialog(pans: List<Pan>, onAdd: (String, Double) -> Unit, onDelete: (String) -> Unit, onClose: () -> Unit) {
+    var name by rememberSaveable { mutableStateOf("") }
+    var gramsText by rememberSaveable { mutableStateOf("") }
+    val grams = parseGrams(gramsText)
+    AlertDialog(
+        onDismissRequest = onClose,
+        title = { Text(stringResource(R.string.recipes_pans_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Hint(stringResource(R.string.recipes_pans_hint))
+                pans.forEach { pan ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            stringResource(R.string.recipes_pan_chip, pan.name, formatGrams(pan.grams)),
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(onClick = { onDelete(pan.id) }) { Text(stringResource(R.string.recipes_remove)) }
+                    }
+                }
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text(stringResource(R.string.recipes_pan_name)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                GramsField(gramsText, { gramsText = it }, stringResource(R.string.recipes_pan_empty_weight), onWeigh = null)
+                OutlinedButton(
+                    onClick = {
+                        grams?.let { onAdd(name, it) }
+                        name = ""
+                        gramsText = ""
+                    },
+                    enabled = name.isNotBlank() && grams != null,
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text(stringResource(R.string.recipes_pan_add)) }
+            }
+        },
+        confirmButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.recipes_close)) } },
+    )
 }

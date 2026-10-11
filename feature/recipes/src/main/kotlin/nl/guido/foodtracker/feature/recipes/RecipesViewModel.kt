@@ -12,9 +12,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import nl.guido.foodtracker.core.data.repo.RecipeRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
+import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.feature.recipes.logic.OpenBatch
+import nl.guido.foodtracker.feature.recipes.logic.byFreezer
 import nl.guido.foodtracker.feature.recipes.logic.openBatches
 import java.time.LocalDate
 import javax.inject.Inject
@@ -32,6 +34,8 @@ internal class RecipesViewModel @Inject constructor(
         val pinned: List<Pinned> = emptyList(),
         val others: List<Recipe> = emptyList(),
         val batches: List<OpenBatch> = emptyList(),
+        /** Batches in the freezer (S15), in their own short list. */
+        val frozen: List<OpenBatch> = emptyList(),
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -43,12 +47,14 @@ internal class RecipesViewModel @Inject constructor(
             recipes.householdPortions(user.householdId),
         ) { all, pins, batches, portions ->
             val pinById = pins.associateBy { it.recipeId }
+            val lists = openBatches(batches, portions).byFreezer()
             val pinned = all.mapNotNull { r -> pinById[r.id]?.let { Pinned(r, it) } }.sortedBy { it.recipe.name.lowercase() }
             State(
                 loading = false,
                 pinned = pinned,
                 others = all.filter { it.id !in pinById }.sortedBy { it.name.lowercase() },
-                batches = openBatches(batches, portions),
+                batches = lists.inPot,
+                frozen = lists.frozen,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), State())
@@ -56,6 +62,11 @@ internal class RecipesViewModel @Inject constructor(
     /** "Finished": the batch leaves the list for everyone in the household. */
     fun finish(batchId: Id) {
         viewModelScope.launch { recipes.finishBatch(batchId, LocalDate.now()) }
+    }
+
+    /** Into or out of the freezer (S15), for everyone in the household. */
+    fun setFrozen(batch: Batch, frozen: Boolean) {
+        viewModelScope.launch { recipes.saveBatch(batch.copy(frozen = frozen)) }
     }
 
     /** Undo for Finished: puts the batch back on the list. */

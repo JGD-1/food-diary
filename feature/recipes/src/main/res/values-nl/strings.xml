@@ -112,4 +112,24 @@
     <string name="recipes_cooked_weight_none_hint">Zonder dit gewicht tellen porties in grammen van de rauwe ingrediënten. Voor een pan die je over dagen verdeelt: gebruik Grote pan koken.</string>
     <string name="recipes_makes_pieces">Levert … stuks op (niet verplicht)</string>
     <string name="recipes_makes_pieces_hint">Bijvoorbeeld 12 muffins. Je kunt dan ½, 1 of 2 stuks invoeren.</string>
+    <string name="recipes_batch_change">Pan aanpassen</string>
+    <string name="recipes_batch_step_cooked_pan_hint">Zet de kookpan met het eten op de weegschaal. Het lege gewicht gaat eraf.</string>
+    <string name="recipes_batch_reading_with_pan">Weegschaal, met kookpan</string>
+    <string name="recipes_batch_minus_pan">Min %1$s (%2$s g): %3$s g eten</string>
+    <string name="recipes_batch_in_freezer">In de vriezer</string>
+    <string name="recipes_batch_delete">Pan verwijderen</string>
+    <string name="recipes_batch_delete_logged">Er is al een portie uit deze pan ingevoerd, dus hij blijft staan. Tik op Op in de lijst als hij leeg is.</string>
+    <string name="recipes_batch_delete_question">Deze pan voor iedereen verwijderen?</string>
+    <string name="recipes_batch_left_pieces">Nog ongeveer %1$s g over in de pan (%2$s stuks)</string>
+    <string name="recipes_pan_none">Zonder kookpan</string>
+    <string name="recipes_pan_chip">%1$s · %2$s g</string>
+    <string name="recipes_pans_manage">Kookpannen…</string>
+    <string name="recipes_pans_title">Kookpannen</string>
+    <string name="recipes_pans_hint">Weeg elke kookpan één keer leeg. Weeg daarna het eten in de kookpan, dan haalt de app het gewicht van de kookpan eraf.</string>
+    <string name="recipes_pan_name">Naam, bijv. Grote pan</string>
+    <string name="recipes_pan_empty_weight">Leeg gewicht</string>
+    <string name="recipes_pan_add">Kookpan toevoegen</string>
+    <string name="recipes_freezer_section">In de vriezer</string>
+    <string name="recipes_freezer_take_out">Eruit halen</string>
+    <string name="recipes_freezer_put_in">Invriezen</string>
 </resources>
