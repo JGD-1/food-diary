@@ -54,6 +54,7 @@ internal fun RecipesScreen(
     onEdit: (Id?) -> Unit,
     onNewBatch: () -> Unit,
     onBatchPortion: (Id) -> Unit,
+    onEditBatch: (Id) -> Unit,
     vm: RecipesViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -92,6 +93,8 @@ internal fun RecipesScreen(
                     BatchCard(
                         open,
                         onWeigh = { onBatchPortion(id) },
+                        onEdit = { onEditBatch(id) },
+                        onFreezer = { vm.setFrozen(open.batch, true) },
                         onFinished = {
                             vm.finish(id)
                             scope.launch {
@@ -100,6 +103,12 @@ internal fun RecipesScreen(
                             }
                         },
                     )
+                }
+            }
+            if (state.frozen.isNotEmpty()) {
+                item { SectionTitle(stringResource(R.string.recipes_freezer_section)) }
+                items(state.frozen, key = { "frozen-" + it.batch.id }) { open ->
+                    FrozenRow(open, onTakeOut = { vm.setFrozen(open.batch, false) }, onEdit = { onEditBatch(open.batch.id) })
                 }
             }
             if (state.pinned.isNotEmpty()) {
@@ -150,9 +159,29 @@ private fun RecipeCard(name: String, detail: String, onOpen: () -> Unit, onEdit:
 
 private val cookedDate = DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefault())
 
+/** A batch in the freezer: one short line, with "Take out" to put it back in the pot list. */
+@Composable
+private fun FrozenRow(open: OpenBatch, onTakeOut: () -> Unit, onEdit: () -> Unit) {
+    Card(Modifier.fillMaxWidth().clickable(onClick = onEdit)) {
+        Row(Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(open.batch.name, style = MaterialTheme.typography.titleSmall)
+                Hint(
+                    stringResource(
+                        R.string.recipes_batch_cooked_left,
+                        open.batch.cookedOn.format(cookedDate),
+                        formatGrams(open.gramsLeft),
+                    ),
+                )
+            }
+            TextButton(onClick = onTakeOut) { Text(stringResource(R.string.recipes_freezer_take_out)) }
+        }
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun BatchCard(open: OpenBatch, onWeigh: () -> Unit, onFinished: () -> Unit) {
+private fun BatchCard(open: OpenBatch, onWeigh: () -> Unit, onEdit: () -> Unit, onFreezer: () -> Unit, onFinished: () -> Unit) {
     val batch = open.batch
     Card(Modifier.fillMaxWidth().clickable(onClick = onWeigh)) {
         Column(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 8.dp, end = 8.dp)) {
@@ -168,6 +197,8 @@ private fun BatchCard(open: OpenBatch, onWeigh: () -> Unit, onFinished: () -> Un
                 Modifier.fillMaxWidth().padding(top = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
             ) {
+                TextButton(onClick = onEdit) { Text(stringResource(R.string.recipes_edit)) }
+                TextButton(onClick = onFreezer) { Text(stringResource(R.string.recipes_freezer_put_in)) }
                 TextButton(onClick = onFinished) { Text(stringResource(R.string.recipes_batch_finished)) }
                 OutlinedButton(onClick = onWeigh) { Text(stringResource(R.string.recipes_weigh_my_portion)) }
             }

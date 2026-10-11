@@ -40,6 +40,11 @@ internal object RecipesRoutes {
     fun dateArg(value: String?, today: LocalDate): LocalDate =
         value?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: today
 
+    /** Set on the screen below "Change batch" when the batch was changed, so it reloads (S10). */
+    const val BATCH_CHANGED = "recipes_batch_changed"
+    const val BATCH_EDIT = Routes.BATCH_EDIT
+    fun batchEdit(batchId: Id) = Routes.batchEdit(batchId)
+
     /** The camera's scale reader (stream 2). It hands back grams under [CAMERA_GRAMS] before closing. */
     const val CAMERA_SCALE = Routes.CAMERA_SCALE
     const val CAMERA_GRAMS = CameraResult.GRAMS

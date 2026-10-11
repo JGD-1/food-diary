@@ -40,6 +40,7 @@ fun NavGraphBuilder.recipesScreens(navController: NavController) {
             onEdit = { navController.navigate(RecipesRoutes.edit(it)) },
             onNewBatch = { navController.navigate(RecipesRoutes.newBatch()) },
             onBatchPortion = { navController.navigate(RecipesRoutes.batchPortion(it)) },
+            onEditBatch = { navController.navigate(RecipesRoutes.batchEdit(it)) },
         )
     }
     composable(RecipesRoutes.EDIT, arguments = optionalRecipeId) { entry ->
@@ -84,6 +85,23 @@ fun NavGraphBuilder.recipesScreens(navController: NavController) {
             navController = navController,
             savedState = entry.savedStateHandle,
             onDone = { navController.popBackStack() },
+            onEdit = { navController.navigate(RecipesRoutes.batchEdit(it)) },
+        )
+    }
+    composable(RecipesRoutes.BATCH_EDIT, arguments = listOf(navArgument(RecipesRoutes.ARG_BATCH_ID) { type = NavType.StringType })) { entry ->
+        NewBatchScreen(
+            navController = navController,
+            savedState = entry.savedStateHandle,
+            onSaved = { _, _ -> },
+            onClosed = { deleted ->
+                if (deleted) {
+                    // A deleted batch can't be shown any more, so go back past its portion screen too.
+                    if (!navController.popBackStack(RecipesRoutes.BATCH_PORTION, inclusive = true)) navController.popBackStack()
+                } else {
+                    navController.previousBackStackEntry?.savedStateHandle?.set(RecipesRoutes.BATCH_CHANGED, true)
+                    navController.popBackStack()
+                }
+            },
         )
     }
 }

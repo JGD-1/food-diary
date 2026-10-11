@@ -1,9 +1,12 @@
 package nl.guido.foodtracker.feature.recipes.logic
 
+import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.Ingredient
+import nl.guido.foodtracker.core.model.Pan
 import nl.guido.foodtracker.core.model.Nutrients
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
@@ -46,5 +49,46 @@ class BatchCookingTest {
         assertTrue(cookDateAllowed(today, today))
         assertTrue(cookDateAllowed(today.minusDays(5), today))
         assertFalse(cookDateAllowed(today.plusDays(1), today))
+    }
+
+    @Test
+    fun `the empty pan comes off the scale reading`() {
+        val pot = Pan("p1", "home", "Big pot", 1250.0)
+        assertEquals(830.0, cookedFromReading(2080.0, pot)!!, 0.001)
+        assertEquals(2080.0, cookedFromReading(2080.0, null)!!, 0.001)
+        assertNull(cookedFromReading(1200.0, pot))
+        assertNull(cookedFromReading(null, pot))
+    }
+
+    @Test
+    fun `pieces follow half and double, never below one`() {
+        assertEquals(6, scaledPieces(12, 1.0, 0.5))
+        assertEquals(24, scaledPieces(12, 1.0, 2.0))
+        assertEquals(12, scaledPieces(24, 2.0, 1.0))
+        assertEquals(1, scaledPieces(1, 1.0, 0.5))
+    }
+
+    @Test
+    fun `pieces left come from grams left`() {
+        val batch = Batch("b1", "home", null, "Lasagne", emptyList(), 1200.0, LocalDate.of(2026, 10, 11), pieces = 6)
+        assertEquals(2.5, batch.piecesLeft(500.0)!!, 0.001)
+        assertNull(batch.copy(pieces = null).piecesLeft(500.0))
+    }
+
+    @Test
+    fun `frozen batches get their own list`() {
+        val day = LocalDate.of(2026, 10, 11)
+        val soup = OpenBatch(Batch("a", "home", null, "Soup", emptyList(), 1000.0, day), 1000.0)
+        val chili = OpenBatch(Batch("b", "home", null, "Chili", emptyList(), 1000.0, day, frozen = true), 800.0)
+        val lists = listOf(soup, chili).byFreezer()
+        assertEquals(listOf(soup), lists.inPot)
+        assertEquals(listOf(chili), lists.frozen)
+    }
+
+    @Test
+    fun `scaling drops a label that no longer fits`() {
+        val eggs = line("100").copy(amountLabel = "2 eggs")
+        assertNull(listOf(eggs).rescaled(1.0, 2.0).single().amountLabel)
+        assertEquals("2 eggs", listOf(eggs).rescaled(1.0, 1.0).single().amountLabel)
     }
 }
