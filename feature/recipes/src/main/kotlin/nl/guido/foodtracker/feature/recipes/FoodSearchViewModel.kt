@@ -43,9 +43,10 @@ internal class FoodSearchViewModel @Inject constructor(
         job?.cancel()
         _state.value = _state.value.copy(searching = true)
         job = viewModelScope.launch {
-            val local = orNothing { foods.search(query, 30).first() }
+            // The food source puts the plain, everyday food first; the plain text match only adds what it missed.
             val found = orNothing { foodSource.search(query) }
-            _state.value = State(searchedFor = query, results = (local + found).distinctBy { it.id })
+            val local = orNothing { foods.search(query, 30).first() }
+            _state.value = State(searchedFor = query, results = (found + local).distinctBy { it.id })
         }
     }
 
