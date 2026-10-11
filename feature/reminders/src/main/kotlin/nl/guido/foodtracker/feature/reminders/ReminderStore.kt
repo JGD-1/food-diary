@@ -20,7 +20,7 @@ class ReminderStore @Inject constructor(@ApplicationContext context: Context) {
         prefs.edit()
             .putBoolean(KEY_ENABLED, value.enabled)
             .putInt(KEY_MINUTE_OF_DAY, minuteOfDay(value.time))
-            .putInt(KEY_SECOND_MINUTE_OF_DAY, value.secondTime?.let(::minuteOfDay) ?: -1)
+            .putInt(KEY_SECOND_MINUTE_OF_DAY, value.secondTime?.let { minuteOfDay(it) } ?: -1)
             .apply()
         _settings.value = value
     }
