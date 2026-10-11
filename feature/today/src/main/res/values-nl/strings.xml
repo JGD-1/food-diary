@@ -7,6 +7,10 @@
     <string name="today_profile">Profiel en instellingen</string>
     <string name="today_yesterday">Gisteren</string>
     <string name="today_previous_day">Vorige dag</string>
+    <string name="today_days_ago">%1$d dagen geleden</string>
+    <string name="today_yesterday_empty">Gisteren is nog leeg ›</string>
+    <string name="today_previous_day_empty">Op een van de laatste dagen staat nog niets</string>
+    <string name="today_settings">Instellingen</string>
     <string name="today_next_day">Volgende dag</string>
     <string name="today_back_to_today">Terug naar vandaag</string>
 
@@ -44,6 +48,8 @@
     <string name="today_last_time">Vorige keer: %1$s</string>
     <string name="today_scan_drink">Drankje scannen</string>
     <string name="today_add_drink">Drankje toevoegen</string>
+    <string name="today_drink_scan">Scannen</string>
+    <string name="today_drink_add">Toevoegen</string>
     <string name="today_drinks_none">Nog niets</string>
     <string name="today_amount_grams">%1$s g</string>
     <string name="today_amount_ml">%1$s ml</string>
@@ -61,7 +67,8 @@
     <string name="today_eat_out">Uit eten</string>
 
     <!-- Meldingen met Ongedaan maken -->
-    <string name="today_added_again">Opnieuw toegevoegd aan %1$s</string>
+    <string name="today_added_again">Nog eens toegevoegd: %1$s</string>
+    <string name="today_and_more">%1$s en nog %2$d</string>
     <string name="today_removed">%1$s weggehaald</string>
     <string name="today_added">%1$s toegevoegd</string>
     <string name="today_added_to">%1$s toegevoegd aan %2$s</string>

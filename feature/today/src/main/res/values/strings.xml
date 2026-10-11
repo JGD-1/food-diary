@@ -10,6 +10,10 @@
     <string name="today_previous_day">Previous day</string>
     <string name="today_next_day">Next day</string>
     <string name="today_back_to_today">Back to today</string>
+    <string name="today_days_ago">%1$d days ago</string>
+    <string name="today_yesterday_empty">Yesterday is still empty ›</string>
+    <string name="today_previous_day_empty">A recent day has nothing logged yet</string>
+    <string name="today_settings">Settings</string>
 
     <!-- The ring -->
     <string name="today_kcal_left">kcal left</string>
@@ -45,6 +49,8 @@
     <string name="today_last_time">Last time: %1$s</string>
     <string name="today_scan_drink">Scan a drink</string>
     <string name="today_add_drink">Add a drink</string>
+    <string name="today_drink_scan">Scan</string>
+    <string name="today_drink_add">Add</string>
     <string name="today_drinks_none">None yet</string>
     <string name="today_amount_grams">%1$s g</string>
     <string name="today_amount_ml">%1$s ml</string>
@@ -62,7 +68,8 @@
     <string name="today_eat_out">Eat out</string>
 
     <!-- Messages with Undo -->
-    <string name="today_added_again">Added again to %1$s</string>
+    <string name="today_added_again">Added again: %1$s</string>
+    <string name="today_and_more">%1$s and %2$d more</string>
     <string name="today_removed">Removed %1$s</string>
     <string name="today_added">Added %1$s</string>
     <string name="today_added_to">Added %1$s to %2$s</string>

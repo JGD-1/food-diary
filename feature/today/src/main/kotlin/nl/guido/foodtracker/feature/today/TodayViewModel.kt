@@ -46,16 +46,20 @@ internal data class TodayUiState(
     /** Optional daily protein goal from the profile, shown on the macro line. */
     val proteinGoalG: Int?,
     val review: WeeklyReview?,
+    /** Recent days with nothing logged that lie before this day (a dot on ‹, "Yesterday is still empty"). */
+    val emptyDays: List<LocalDate> = emptyList(),
 ) {
     val isToday: Boolean get() = date == today
     val canGoForward: Boolean get() = nextDay(date, today) != null
     /** For routes: null when viewing today, so plain routes keep working. */
     val dateArg: LocalDate? get() = routeDate(date, today)
+    val yesterdayEmpty: Boolean get() = isToday && today.minusDays(1) in emptyDays
 }
 
 /** One-off things the screen reacts to: a message with Undo, or opening another screen. */
 internal sealed interface TodayEvent {
-    data class Added(val meal: Meal, val count: Int, val ids: List<Id>) : TodayEvent
+    /** "Again" logged [names] (at most three) plus [more] other items. */
+    data class Added(val meal: Meal, val names: List<String>, val more: Int, val ids: List<Id>) : TodayEvent
     /** [portion] is the shared pot portion that went with a batch line, put back on Undo. */
     data class Removed(val entry: LogEntry, val portion: BatchPortion? = null) : TodayEvent
     /** A meal's lines moved to another meal; [before] puts them back. */
@@ -123,6 +127,7 @@ internal class TodayViewModel @Inject constructor(
                     summary = todaySummary(todayEntries, days, goals.targetKcal, if (isToday) now.meal else null),
                     proteinGoalG = goals.proteinG,
                     review = if (isToday) reviewToShow(now.date, weekly, dismissedWeek) else null,
+                    emptyDays = emptyRecentDays(days, day, now.date),
                 )
             }
         }
@@ -162,9 +167,10 @@ internal class TodayViewModel @Inject constructor(
         val current = state.value ?: return
         val copies = copyEntries(againSource(current.summary, meal), current.date, Instant.now(), meal)
         if (copies.isEmpty()) return
+        val (names, more) = againNames(copies)
         viewModelScope.launch {
             copies.forEach { diary.save(it) }
-            events.send(TodayEvent.Added(meal, copies.size, copies.map { it.id }))
+            events.send(TodayEvent.Added(meal, names, more, copies.map { it.id }))
         }
     }
 

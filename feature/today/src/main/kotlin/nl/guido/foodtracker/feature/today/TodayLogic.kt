@@ -184,3 +184,23 @@ internal fun extraNutrients(n: Nutrients): List<Pair<ExtraNutrient, Double>> = l
 /** The pot portion that was saved with diary line [entryId]. */
 internal fun portionFor(portions: List<BatchPortion>, entryId: Id): BatchPortion? =
     portions.firstOrNull { it.logEntryId == entryId }
+
+/** How many days back Today looks for days with nothing logged. */
+internal const val RECENT_DAYS = 3L
+
+/**
+ * Days among the last [RECENT_DAYS] before [today] that have nothing logged, and lie before the
+ * day being viewed ([viewed]), so going back with ‹ reaches them. Days before the first logged
+ * day in [history] don't count: the person wasn't using the app yet.
+ */
+internal fun emptyRecentDays(history: List<LogEntry>, viewed: LocalDate, today: LocalDate): List<LocalDate> {
+    val logged = history.mapTo(HashSet()) { it.date }
+    val first = logged.minOrNull() ?: return emptyList()
+    return (1..RECENT_DAYS).map { today.minusDays(it) }.filter { it < viewed && it > first && it !in logged }
+}
+
+/** The names "Again" shows in its message: at most [max], plus how many more there are. */
+internal fun againNames(entries: List<LogEntry>, max: Int = 3): Pair<List<String>, Int> {
+    val names = entries.map { it.displayName }.distinct()
+    return names.take(max) to (names.size - max).coerceAtLeast(0)
+}
