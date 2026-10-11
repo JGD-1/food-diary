@@ -105,7 +105,7 @@ internal fun ProfileScreen(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        // S1: the NEVO licence allows additions only when clearly marked as such.
+        // S1: the readable names are the app's addition (NEVO licence: additions must be clearly marked).
         Text(
             stringResource(R.string.energy_plain_names_note),
             style = MaterialTheme.typography.bodyMedium,
