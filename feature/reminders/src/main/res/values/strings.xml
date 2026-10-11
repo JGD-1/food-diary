@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="reminders_title">Reminder</string>
-    <string name="reminders_back">Back</string>
     <string name="reminders_intro">A gentle reminder to log a meal, at a time you choose (two times at most). Nothing else. It is set on this phone only.</string>
     <string name="reminders_switch">Daily reminder</string>
     <string name="reminders_time">Time</string>
