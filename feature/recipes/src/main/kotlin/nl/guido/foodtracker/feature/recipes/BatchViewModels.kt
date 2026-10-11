@@ -14,11 +14,11 @@ import nl.guido.foodtracker.core.data.repo.RecipeRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
 import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.BatchPortion
-import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Ingredient
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.core.model.PickedFood
 import nl.guido.foodtracker.core.model.Pan
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
@@ -163,9 +163,9 @@ internal class NewBatchViewModel @Inject constructor(
     }
 
     fun setName(name: String) = _state.update { it.copy(name = name) }
-    fun add(food: Food) {
+    fun add(picked: PickedFood) {
         viewModelScope.launch {
-            val line = ingredientFoods.line(food)
+            val line = ingredientFoods.line(picked) ?: return@launch
             _state.update { it.copy(lines = it.lines + line) }
         }
     }

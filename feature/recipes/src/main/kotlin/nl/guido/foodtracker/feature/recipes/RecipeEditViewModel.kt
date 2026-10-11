@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nl.guido.foodtracker.core.data.repo.RecipeRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
-import nl.guido.foodtracker.core.model.Food
+import nl.guido.foodtracker.core.model.PickedFood
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.newId
@@ -74,9 +74,9 @@ internal class RecipeEditViewModel @Inject constructor(
     }
 
     fun setName(name: String) = _state.update { it.copy(name = name) }
-    fun add(food: Food) {
+    fun add(picked: PickedFood) {
         viewModelScope.launch {
-            val line = ingredientFoods.line(food)
+            val line = ingredientFoods.line(picked) ?: return@launch
             _state.update { it.copy(lines = it.lines + line) }
         }
     }

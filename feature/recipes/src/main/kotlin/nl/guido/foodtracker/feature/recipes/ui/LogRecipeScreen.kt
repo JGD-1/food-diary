@@ -35,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import nl.guido.foodtracker.core.ui.FoodPickPurpose
 import nl.guido.foodtracker.feature.recipes.LogRecipeViewModel
 import nl.guido.foodtracker.feature.recipes.LogRecipeViewModel.Weighing
 import nl.guido.foodtracker.feature.recipes.R
@@ -55,9 +56,9 @@ internal fun LogRecipeScreen(
     vm: LogRecipeViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
-    var picking by rememberSaveable { mutableStateOf(false) }
     var namingVariant by rememberSaveable { mutableStateOf(false) }
     CameraGrams(savedState, vm::onWeighed)
+    PickedFoods(savedState) { vm.addExtra(it) }
     LaunchedEffect(state.done) { if (state.done) onDone() }
 
     val recipe = state.recipe
@@ -106,7 +107,7 @@ internal fun LogRecipeScreen(
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { picking = true }) { Text(stringResource(R.string.recipes_add_extra)) }
+                OutlinedButton(onClick = { openFoodPick(navController, FoodPickPurpose.EXTRA) }) { Text(stringResource(R.string.recipes_add_extra)) }
                 if (state.extras.isNotEmpty()) {
                     TextButton(onClick = { namingVariant = true }, enabled = state.canSaveVariant) { Text(stringResource(R.string.recipes_save_as_variant)) }
                 }
@@ -157,9 +158,6 @@ internal fun LogRecipeScreen(
         }
     }
 
-    if (picking) {
-        FoodPicker(onPick = { vm.addExtra(it); picking = false }, onClose = { picking = false })
-    }
     if (namingVariant) {
         VariantNameDialog(
             onSave = { vm.saveAsVariant(it); namingVariant = false },

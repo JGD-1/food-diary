@@ -13,9 +13,9 @@ import kotlinx.coroutines.launch
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.RecipeRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
-import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.core.model.PickedFood
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.RecipeVariant
@@ -106,10 +106,10 @@ internal class LogRecipeViewModel @Inject constructor(
     /** Switching variant keeps the same share of the dish, so the suggested amount follows along. */
     fun chooseVariant(variant: RecipeVariant?) = changeDish { it.copy(variant = variant) }
 
-    fun addExtra(food: Food) {
+    fun addExtra(picked: PickedFood) {
         viewModelScope.launch {
-            val line = ingredientFoods.line(food)
-            _state.update { it.copy(extras = it.extras + line) }
+            val line = ingredientFoods.line(picked) ?: return@launch
+            changeDish { it.copy(extras = it.extras + line) }
         }
     }
 

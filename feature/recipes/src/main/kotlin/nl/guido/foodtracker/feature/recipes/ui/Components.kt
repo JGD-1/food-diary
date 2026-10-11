@@ -1,6 +1,5 @@
 package nl.guido.foodtracker.feature.recipes.ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
@@ -9,9 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -20,13 +16,11 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -42,21 +36,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
-import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
 import nl.guido.foodtracker.core.model.Pan
+import nl.guido.foodtracker.core.model.PickedFood
 import nl.guido.foodtracker.core.model.Portion
+import nl.guido.foodtracker.core.ui.FoodPickPurpose
+import nl.guido.foodtracker.core.ui.FoodPickResult
+import nl.guido.foodtracker.core.ui.Routes
 import nl.guido.foodtracker.core.ui.amountText
-import nl.guido.foodtracker.feature.recipes.FoodSearchViewModel
 import nl.guido.foodtracker.feature.recipes.PansViewModel
 import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.RecipesRoutes
@@ -267,69 +260,19 @@ internal fun CameraGrams(savedState: SavedStateHandle, onGrams: (Double) -> Unit
     }
 }
 
-/** Full-screen search to pick a food for a recipe, a batch or an extra. */
+/** Opens the shared food picker (S21); the choice comes back through [PickedFoods]. */
+internal fun openFoodPick(navController: NavController, purpose: FoodPickPurpose) {
+    navController.navigate(Routes.foodPick(purpose))
+}
+
+/** Hands a food chosen in the shared picker to [onPicked] once, when coming back to this screen. */
 @Composable
-internal fun FoodPicker(onPick: (Food) -> Unit, onClose: () -> Unit) {
-    val vm: FoodSearchViewModel = hiltViewModel()
-    val state by vm.state.collectAsState()
-    var query by rememberSaveable { mutableStateOf("") }
-    Dialog(
-        onDismissRequest = { vm.clear(); onClose() },
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
-        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        stringResource(R.string.recipes_find_food),
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.weight(1f),
-                    )
-                    TextButton(onClick = { vm.clear(); onClose() }) { Text(stringResource(R.string.recipes_close)) }
-                }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        label = { Text(stringResource(R.string.recipes_find_food_hint)) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        keyboardActions = KeyboardActions(onSearch = { vm.search(query) }),
-                        modifier = Modifier.weight(1f),
-                    )
-                    OutlinedButton(onClick = { vm.search(query) }) { Text(stringResource(R.string.recipes_search)) }
-                }
-                when {
-                    state.searching -> Hint(stringResource(R.string.recipes_searching))
-                    state.searchedOnline && state.results.isEmpty() -> Hint(stringResource(R.string.recipes_nothing_found))
-                    state.searchedFor != null && state.results.isEmpty() -> Hint(stringResource(R.string.recipes_nothing_on_phone))
-                }
-                // Online search only once the person asks for it (Open Food Facts rules).
-                if (state.searchedFor != null && !state.searchedOnline && !state.searching) {
-                    OutlinedButton(onClick = vm::searchOnline, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.recipes_search_online))
-                    }
-                }
-                LazyColumn {
-                    items(state.results, key = { it.id }) { food ->
-                        Column(
-                            Modifier
-                                .fillMaxWidth()
-                                .clickable { vm.clear(); onPick(food) }
-                                .padding(vertical = 12.dp),
-                        ) {
-                            Text(food.name, style = MaterialTheme.typography.bodyLarge)
-                            Hint(
-                                listOfNotNull(
-                                    food.brand,
-                                    stringResource(R.string.recipes_kcal_per_100g, food.per100g.kcal.roundToInt()),
-                                ).joinToString(" · "),
-                            )
-                        }
-                        HorizontalDivider()
-                    }
-                }
-            }
+internal fun PickedFoods(savedState: SavedStateHandle, onPicked: (PickedFood) -> Unit) {
+    val text by savedState.getStateFlow<String?>(FoodPickResult.KEY, null).collectAsState()
+    LaunchedEffect(text) {
+        text?.let {
+            savedState.remove<String>(FoodPickResult.KEY)
+            FoodPickResult.decode(it)?.let(onPicked)
         }
     }
 }
