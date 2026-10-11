@@ -7,6 +7,7 @@ import nl.guido.foodtracker.core.model.Nutrients
 import nl.guido.foodtracker.core.model.Portion
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Duration
@@ -56,6 +57,25 @@ class ReminderLogicTest {
         val default = ReminderSettings()
         assertFalse(default.enabled)
         assertEquals(lunchTime, default.time)
+    }
+
+    @Test fun secondTimeIsOptional() {
+        val one = ReminderSettings(enabled = true)
+        assertEquals(lunchTime, one.timeFor(0))
+        assertNull(one.timeFor(1))
+        val two = one.copy(secondTime = LocalTime.of(19, 0))
+        assertEquals(LocalTime.of(19, 0), two.timeFor(1))
+        assertNull(two.timeFor(2))
+    }
+
+    @Test fun suggestedSecondTime() {
+        assertEquals(LocalTime.of(19, 0), ReminderSettings.suggestedSecond(lunchTime))
+        assertEquals(lunchTime, ReminderSettings.suggestedSecond(LocalTime.of(18, 0)))
+    }
+
+    @Test fun firstSlotKeepsItsOldJobName() {
+        assertEquals("daily-reminder", ReminderScheduler.workName(0))
+        assertEquals("daily-reminder-2", ReminderScheduler.workName(1))
     }
 
     private fun entry(meal: Meal) = LogEntry(

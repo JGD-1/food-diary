@@ -210,7 +210,8 @@ private fun OverTimeCard(summary: WeightSummary) {
             goalLabel = stringResource(R.string.progress_weight_goal, target),
             description = description,
         )
-        if (summary.points.isEmpty()) NoteText(description)
+        // First week: a short example of what fills in (finding S28).
+        if (summary.points.size < 2) NoteText(stringResource(R.string.progress_weight_graph_first, target))
     }
 }
 
@@ -236,6 +237,7 @@ private fun WeekToWeekCard(summary: WeightSummary, today: LocalDate) {
                 stringResource(R.string.progress_weight_changes_empty)
             },
         )
+        if (summary.changes.isEmpty()) NoteText(stringResource(R.string.progress_weight_changes_first))
         NoteText(trendText(summary, today))
     }
 }

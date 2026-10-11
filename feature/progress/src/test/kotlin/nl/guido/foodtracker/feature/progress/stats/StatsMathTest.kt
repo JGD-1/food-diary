@@ -6,6 +6,7 @@ import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
 import nl.guido.foodtracker.core.model.Portion
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -20,10 +21,10 @@ class StatsMathTest {
 
     private var counter = 0
 
-    private fun entry(date: LocalDate, kcal: Double, meal: Meal = Meal.LUNCH, name: String = "Food") = LogEntry(
+    private fun entry(date: LocalDate, kcal: Double, meal: Meal = Meal.LUNCH, name: String = "Food", protein: Double = 0.0) = LogEntry(
         id = "e${counter++}", userId = "u", date = date, meal = meal,
         what = Logged.FoodRef("f", name), portion = Portion(100.0),
-        nutrients = Nutrients(kcal, 0.0, 0.0, 0.0), isEstimate = false, createdAt = Instant.EPOCH,
+        nutrients = Nutrients(kcal, protein, 0.0, 0.0), isEstimate = false, createdAt = Instant.EPOCH,
     )
 
     @Test
@@ -139,5 +140,34 @@ class StatsMathTest {
     @Test
     fun `entries are loaded from the oldest month shown`() {
         assertEquals(LocalDate.of(2026, 5, 1), StatsMath.firstDayNeeded(today))
+    }
+
+    @Test
+    fun `protein per day and its average over the same finished logged days`() {
+        val monday = LocalDate.of(2026, 10, 5)
+        val entries = listOf(
+            entry(monday, 500.0, protein = 30.0),
+            entry(monday, 700.0, protein = 50.0),
+            entry(monday.plusDays(1), 1500.0, protein = 60.0),
+            entry(today, 400.0, protein = 20.0),
+        )
+        val week = StatsMath.week(entries, today)
+        assertEquals(80.0, week.days[0].proteinG, 0.001)
+        assertEquals(0.0, week.days[2].proteinG, 0.001)
+        // Monday 80 g and Tuesday 60 g; today is still being filled in.
+        assertEquals(70.0, week.averageProteinG!!, 0.001)
+    }
+
+    @Test
+    fun `no protein average when nothing is logged`() {
+        assertNull(StatsMath.week(emptyList(), today).averageProteinG)
+    }
+
+    @Test
+    fun `first week until something is logged before this Monday`() {
+        val monday = LocalDate.of(2026, 10, 5)
+        assertTrue(StatsMath.isFirstWeek(emptyList(), today))
+        assertTrue(StatsMath.isFirstWeek(listOf(entry(monday, 500.0)), today))
+        assertFalse(StatsMath.isFirstWeek(listOf(entry(monday.minusDays(1), 500.0)), today))
     }
 }

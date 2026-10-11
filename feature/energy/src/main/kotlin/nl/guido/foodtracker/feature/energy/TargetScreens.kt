@@ -233,7 +233,11 @@ private fun LearningWeeks(steps: List<AdjustmentStep>) {
                     if (step.used) R.string.energy_week_used else R.string.energy_week_skipped,
                     shortDate(step.date),
                 ),
-                body = stringResource(R.string.energy_week_days, step.completeDays, step.totalDays),
+                body = stringResource(
+                    if (step.used) R.string.energy_week_days else R.string.energy_week_days_skipped,
+                    step.completeDays,
+                    step.totalDays,
+                ),
             )
         }
     }

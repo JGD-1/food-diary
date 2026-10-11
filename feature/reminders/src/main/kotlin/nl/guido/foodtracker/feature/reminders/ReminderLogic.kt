@@ -6,10 +6,29 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
 
-/** The one reminder: on or off, and the time of day it shows. Kept on this phone only. */
-data class ReminderSettings(val enabled: Boolean = false, val time: LocalTime = DEFAULT_TIME) {
+/**
+ * The reminder: on or off, the time of day it shows, and an optional second time (two at most).
+ * Kept on this phone only.
+ */
+data class ReminderSettings(
+    val enabled: Boolean = false,
+    val time: LocalTime = DEFAULT_TIME,
+    val secondTime: LocalTime? = null,
+) {
+    /** The time for reminder [slot] (0 = first, 1 = second), or null when that slot is not set. */
+    fun timeFor(slot: Int): LocalTime? = when (slot) {
+        0 -> time
+        1 -> secondTime
+        else -> null
+    }
+
     companion object {
         val DEFAULT_TIME: LocalTime = LocalTime.of(12, 30)
+        const val SLOTS = 2
+
+        /** Suggested second time: the evening, or lunch when the first one is already in the evening. */
+        fun suggestedSecond(first: LocalTime): LocalTime =
+            if (first < LocalTime.of(17, 0)) LocalTime.of(19, 0) else DEFAULT_TIME
     }
 }
 

@@ -24,8 +24,9 @@
     <string name="energy_weeks_title">Weeks used for learning</string>
     <string name="energy_weeks_body">A day counts when at least %1$d%% of your target is logged. A weigh-in is used when at least half of the days before it count.</string>
     <string name="energy_week_used">Weigh-in %1$s: used</string>
-    <string name="energy_week_skipped">Weigh-in %1$s: skipped</string>
+    <string name="energy_week_skipped">Weigh-in %1$s: not used</string>
     <string name="energy_week_days">%1$d of %2$d days complete</string>
+    <string name="energy_week_days_skipped">%1$d of %2$d days complete. Not enough days logged that week, so it isn\'t used. That\'s fine.</string>
     <string name="energy_line_total_title">Daily target</string>
     <string name="energy_line_minimum">Kept at %1$s kcal, a sensible minimum.</string>
     <string name="energy_weight_from_weigh_in">Weight used: %1$s kg, from your weigh-in on %2$s.</string>

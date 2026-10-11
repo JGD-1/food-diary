@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.EnergyRepository
+import nl.guido.foodtracker.core.data.repo.ProfileRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
 import java.time.LocalDate
 import javax.inject.Inject
@@ -24,6 +25,10 @@ internal sealed interface StatsUiState {
         val months: List<MonthAverage>,
         /** Daily kcal target, or null until a profile exists. */
         val targetKcal: Int?,
+        /** Daily protein goal from the profile, or null when none is set. */
+        val proteinGoalG: Int? = null,
+        /** Nothing logged before this week yet: the cards explain what will fill in. */
+        val isFirstWeek: Boolean = false,
         val today: LocalDate,
         /** 0 = this week, 1 = last week, and so on. */
         val weeksBack: Int = 0,
@@ -36,6 +41,7 @@ internal class StatsViewModel @Inject constructor(
     session: SessionRepository,
     diary: DiaryRepository,
     energy: EnergyRepository,
+    profiles: ProfileRepository,
 ) : ViewModel() {
 
     private val weeksBack = MutableStateFlow(0)
@@ -49,11 +55,13 @@ internal class StatsViewModel @Inject constructor(
                 StatsMath.weekStart(today).plusDays(6),
             )
             // The same daily target as Today and the target screen (stream 4), null until there's a profile.
-            combine(entries, energy.target) { list, target ->
+            combine(entries, energy.target, profiles.profile(user.userId)) { list, target, profile ->
                 StatsUiState.Ready(
                     week = StatsMath.week(list, today, back),
                     months = StatsMath.months(list, today),
                     targetKcal = target?.targetKcal,
+                    proteinGoalG = profile?.proteinGoalG,
+                    isFirstWeek = StatsMath.isFirstWeek(list, today),
                     today = today,
                     weeksBack = back,
                 )

@@ -76,4 +76,18 @@
     <string name="progress_stats_drinks_none">Deze week geen drinken ingevuld.</string>
     <string name="progress_stats_drinks_one">%1$d%% van alle calorieën · vooral %2$s</string>
     <string name="progress_stats_drinks_two">%1$d%% van alle calorieën · vooral %2$s en %3$s</string>
+
+    <!-- Protein and first-week notes (S6, S28) -->
+    <string name="progress_grams">%1$s g</string>
+    <string name="progress_stats_first_title">Je eerste week</string>
+    <string name="progress_stats_first_body">Het overzicht vult zich terwijl je invult. Elke dag krijgt een balk en je ziet je gemiddelde, bijvoorbeeld “%1$s kcal per dag gemiddeld”. Vanaf volgende maand vergelijkt Per maand je maanden.</string>
+    <string name="progress_stats_protein_title">Eiwit</string>
+    <string name="progress_stats_protein_average">eiwit per dag gemiddeld</string>
+    <string name="progress_stats_protein_average_goal">eiwit per dag gemiddeld · doel %1$s g</string>
+    <string name="progress_stats_protein_note_goal">Stippellijn: je eiwitdoel.</string>
+    <string name="progress_stats_protein_desc">Eiwit per dag in gram: %1$s</string>
+    <string name="progress_stats_protein_empty">Je eiwit per dag verschijnt hier zodra je deze week iets invult.</string>
+    <string name="progress_stats_protein_empty_past">Die week niets ingevuld.</string>
+    <string name="progress_weight_graph_first">Elke wekelijkse weging zet hier een punt. Na een paar weken vormen de punten een lijn naar je doel van %1$s kg, bijvoorbeeld 82,0, 81,6, 81,3 kg.</string>
+    <string name="progress_weight_changes_first">Vanaf je tweede weging laat een balk de verandering per week zien, bijvoorbeeld −0,4 kg.</string>
 </resources>
