@@ -111,9 +111,11 @@ internal fun FoodPickScreen(onPicked: (PickedFood) -> Unit, onBack: () -> Unit, 
 
 @Composable
 private fun PickRow(food: Food, viewModel: FoodPickViewModel) {
+    // S1: the app's readable name is the main name; the unchanged NEVO name stays visible under it.
+    val readable = viewModel.readableName(food)
     FoodRow(
-        title = food.name,
-        plainLine = viewModel.plainLine(food),
+        title = readable ?: food.name,
+        plainLine = food.name.takeIf { readable != null },
         detail = foodDetail(food),
         onClick = { viewModel.choose(food) },
     )
@@ -181,8 +183,10 @@ private fun AmountSheet(step: PickAmount, purpose: FoodPickPurpose, onDismiss: (
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Column {
-                Text(food.name, style = MaterialTheme.typography.titleLarge)
-                step.plainLine?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+                Text(step.readableName ?: food.name, style = MaterialTheme.typography.titleLarge)
+                if (step.readableName != null) {
+                    Text(food.name, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 Text(foodDetail(food), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             OutlinedTextField(

@@ -38,7 +38,7 @@ internal sealed interface OnlinePick {
 }
 
 /** The food waiting for its amount, with its chips. */
-internal data class PickAmount(val food: Food, val plainLine: String?, val chips: List<PickChip>, val pieceWords: PieceWords?)
+internal data class PickAmount(val food: Food, val readableName: String?, val chips: List<PickChip>, val pieceWords: PieceWords?)
 
 /** How the picker names pieces of the chosen food: "1 egg", "2 eggs". */
 internal fun interface PieceWords {
@@ -126,7 +126,7 @@ internal class FoodPickViewModel @Inject constructor(
             val language = pieces.language()
             amount.value = PickAmount(
                 food = food,
-                plainLine = names.plain(food),
+                readableName = names.plain(food),
                 chips = pickChips(food, piece, language),
                 pieceWords = piece?.let { p -> PieceWords { count -> p.label(count, language) } },
             )
@@ -137,8 +137,8 @@ internal class FoodPickViewModel @Inject constructor(
         amount.value = null
     }
 
-    /** The app's own plain line under a NEVO name (S1). */
-    fun plainLine(food: Food): String? = names.plain(food)
+    /** The app's readable name for a NEVO food (S1); null when the NEVO name has no short forms. */
+    fun readableName(food: Food): String? = names.plain(food)
 
     private suspend fun search(text: String): List<Food> {
         // The food source puts the plain, everyday food first; the plain text match only adds what it missed.

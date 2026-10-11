@@ -12,36 +12,36 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 
-/** S1: the app's plain line under NEVO names; the NEVO name itself stays as it is. */
+/** S1: the app's readable name for NEVO foods; the NEVO name itself stays as it is. */
 class PlainNamesTest {
     private val forms = File("src/main/assets/$SHORT_FORMS_ASSET").bufferedReader().use { ShortFormsParser.parse(it) }
     private val en = forms.getValue("en")
     private val nl = forms.getValue("nl")
 
     @Test fun shortFormsWrittenOut() {
-        assertEquals("without skin, average", en.plainLine("Apple wo skin av"))
-        assertEquals("with skin, average", en.plainLine("Apple w skin av"))
-        assertEquals("average", en.plainLine("Kiwi fruit av"))
-        assertEquals("liquid 97% fat <17g saturated fatty acids unsalted", en.plainLine("Cooking fat liq 97% fat <17g sat fa unsalted"))
-        assertEquals("with fibre, vitamin and minerals", en.plainLine("Biscuit multigrain several flavours fortified w fibre, vit and min"))
-        assertEquals("prepared with semi-skimmed milk without fat", en.plainLine("Potatoes mashed fresh prep w s-sk milk wo fat"))
+        assertEquals("Apple, without skin, average", en.readableName("Apple wo skin av"))
+        assertEquals("Apple, with skin, average", en.readableName("Apple w skin av"))
+        assertEquals("Kiwi fruit, average", en.readableName("Kiwi fruit av"))
+        assertEquals("Cooking fat, liquid 97% fat <17g saturated fatty acids unsalted", en.readableName("Cooking fat liq 97% fat <17g sat fa unsalted"))
+        assertEquals("Biscuit multigrain several flavours fortified, with fibre, vitamin and minerals", en.readableName("Biscuit multigrain several flavours fortified w fibre, vit and min"))
+        assertEquals("Potatoes mashed fresh, prepared with semi-skimmed milk without fat", en.readableName("Potatoes mashed fresh prep w s-sk milk wo fat"))
     }
 
     @Test fun dutchShortForms() {
-        assertEquals("met schil, gemiddeld", nl.plainLine("Appel m schil gem"))
-        assertEquals("zonder schil, gemiddeld", nl.plainLine("Appel z schil gem"))
-        assertEquals("gemiddelde van fijn en grof", nl.plainLine("Tarwebrood volkoren gem v fijn en grof"))
+        assertEquals("Appel, met schil, gemiddeld", nl.readableName("Appel m schil gem"))
+        assertEquals("Appel, zonder schil, gemiddeld", nl.readableName("Appel z schil gem"))
+        assertEquals("Tarwebrood volkoren, gemiddelde van fijn en grof", nl.readableName("Tarwebrood volkoren gem v fijn en grof"))
         assertEquals(
-            "vloeibaar 80% vet <17 g verzadigde vetzuren ongezouten",
-            nl.plainLine("Margarine vlb 80% vet <17 g verz vetz ongezouten"),
+            "Margarine, vloeibaar 80% vet <17 g verzadigde vetzuren ongezouten",
+            nl.readableName("Margarine vlb 80% vet <17 g verz vetz ongezouten"),
         )
     }
 
     @Test fun noLineWithoutShortForms() {
-        assertNull(en.plainLine("Banana"))
-        assertNull(nl.plainLine("Melk halfvolle"))
+        assertNull(en.readableName("Banana"))
+        assertNull(nl.readableName("Melk halfvolle"))
         // Dutch compound marks ("kippen-") are no short forms.
-        assertNull(nl.plainLine("Ei kippen- gebakken"))
+        assertNull(nl.readableName("Ei kippen- gebakken"))
     }
 
     @Test fun manyNevoNamesGetALineAndNoneIsChanged() {
@@ -62,6 +62,6 @@ class PlainNamesTest {
     @Test fun onlyForNevoFoods() {
         val names = BundledFoodNames({ forms }, { "en" })
         assertNull(names.plain(food("Yoghurt w fruit", source = FoodOrigin.OFF)))
-        assertEquals("with fruit", names.plain(food("Yoghurt w fruit")))
+        assertEquals("Yoghurt, with fruit", names.plain(food("Yoghurt w fruit")))
     }
 }

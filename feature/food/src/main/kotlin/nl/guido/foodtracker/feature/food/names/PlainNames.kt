@@ -20,11 +20,11 @@ internal class ShortForms(forms: Map<String, String>) {
     private val longest = byWords.keys.maxOfOrNull { it.size } ?: 1
 
     /**
-     * The app's plain line for a NEVO name (S1): the name from its first short form on, with the short
-     * forms written out, e.g. "Apple wo skin av" → "without skin, average". The NEVO name itself is not
-     * changed: this line is shown under it. Null when the name has no short forms.
+     * The app's readable full name for a NEVO name (S1): the short forms written out, the added part set
+     * off with a comma, e.g. "Apple wo skin av" → "Apple, without skin, average". It is shown as the main
+     * name; the NEVO name itself is not changed and stays visible under it. Null when the name has no short forms.
      */
-    fun plainLine(name: String): String? {
+    fun readableName(name: String): String? {
         val words = name.split(' ').filter(String::isNotEmpty)
         val out = mutableListOf<String>()
         var firstChange = -1
@@ -50,7 +50,9 @@ internal class ShortForms(forms: Map<String, String>) {
             }
         }
         if (firstChange < 0) return null
-        return out.drop(firstChange).joinToString(" ").trimEnd(',')
+        val head = out.take(firstChange).joinToString(" ").trimEnd(',')
+        val tail = out.drop(firstChange).joinToString(" ").trimEnd(',')
+        return if (head.isEmpty()) tail.replaceFirstChar { it.uppercase() } else "$head, $tail"
     }
 
     private companion object {
@@ -73,8 +75,9 @@ internal object ShortFormsParser {
 }
 
 /**
- * The app's plain line under NEVO names (S1), in the phone's language, from the bundled list of NEVO
- * short forms. Only for NEVO foods; the line is the app's addition (named so on Profile → Data sources).
+ * The app's readable full name for NEVO foods (S1), in the phone's language, from the bundled list of NEVO
+ * short forms. Screens show it as the main name with the unchanged NEVO name as a small line under it.
+ * Only for NEVO foods; the readable name is the app's addition (named so on Profile → Data sources).
  */
 @Singleton
 internal class BundledFoodNames(
@@ -93,7 +96,7 @@ internal class BundledFoodNames(
         if (food.source != FoodOrigin.NEVO) return null
         val lang = if (language() == "nl") "nl" else "en"
         val table = forms[lang] ?: return null
-        val line = lines.getOrPut("$lang:${food.name}") { table.plainLine(food.name) ?: NONE }
+        val line = lines.getOrPut("$lang:${food.name}") { table.readableName(food.name) ?: NONE }
         return line as? String
     }
 

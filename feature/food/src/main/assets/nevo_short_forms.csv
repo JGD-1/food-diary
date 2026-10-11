@@ -1,5 +1,5 @@
 # The app's own plain words for the short forms in NEVO food names (an addition, not NEVO data).
-# The NEVO name is never changed; the app shows these words on a line under it ("with skin, average").
+# The NEVO name is never changed; the app shows its readable name ("Apple, with skin, average") with the NEVO name under it.
 # language|short form (one or two words, as written in NEVO)|plain words
 en|w|with
 en|wo|without
