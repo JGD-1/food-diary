@@ -20,12 +20,15 @@ internal fun searchWords(text: String): List<String> =
  * 3. the "average" version (NEVO "av"/"gem") first; dried, tinned, juice, syrup, powder, gluten-free
  *    and the like after; then shorter names.
  * Own foods come just before basic foods, cached Open Food Facts products count as dishes.
+ * Foods in [everyday] (what the typed everyday word stands for, S2) come before all others, in that order,
+ * even when their name doesn't hold the typed word.
  */
 internal fun rankFoods(
     text: String,
     candidates: List<Food>,
     limit: Int = 50,
     nevo: Map<Id, NevoInfo> = emptyMap(),
+    everyday: List<Id> = emptyList(),
 ): List<Food> {
     val words = searchWords(text)
     if (words.isEmpty()) return emptyList()
@@ -35,7 +38,8 @@ internal fun rankFoods(
             val info = nevo[food.id]
             val names = listOfNotNull(food.name, info?.english, info?.dutch).distinct().map(::searchWords)
             val all = names.flatten() + searchWords(food.brand ?: "")
-            if (!words.all { word -> all.any { fits(word, it) != null } }) return@mapNotNull null
+            val everydayAt = everyday.indexOf(food.id).let { if (it < 0) everyday.size else it }
+            if (everydayAt == everyday.size && !words.all { word -> all.any { fits(word, it) != null } }) return@mapNotNull null
             val first = words.first()
             val quality = names.mapNotNull { name -> name.withIndex().mapNotNull { (i, w) -> fits(first, w, i) }.minOrNull() }
                 .minOrNull() ?: QUALITY_BRAND
@@ -45,6 +49,7 @@ internal fun rankFoods(
             Ranked(
                 food,
                 listOf(
+                    everydayAt,
                     if (names.any { it.joinToString(" ") == phrase }) 0 else 1,
                     if (strong) 0 else if (quality <= 3) 1 else 2,
                     if (namesGroup) 0 else 1,
@@ -89,7 +94,7 @@ private fun fits(typed: String, word: String, index: Int = 1): Int? = when {
 private const val QUALITY_BRAND = 5
 
 /** Same word, allowing English and Dutch plurals ("apples", "appels", "eieren"). */
-private fun same(a: String, b: String): Boolean {
+internal fun same(a: String, b: String): Boolean {
     if (a == b) return true
     val (short, long) = if (a.length <= b.length) a to b else b to a
     return long.startsWith(short) && long.removePrefix(short) in PLURAL_ENDINGS

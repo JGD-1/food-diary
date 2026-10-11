@@ -1,0 +1,44 @@
+# Everyday words (Dutch and English) for NEVO foods whose NEVO name uses other words,
+# so "havermout" finds oat flakes and "boterham" finds bread. The app's own list, not NEVO data.
+# The first NEVO code is the usual pick; search shows these foods first, in this order.
+# words (;)|NEVO codes (;)
+havermout;haver;oats;oatmeal;porridge oats|213
+pap;porridge|288
+boterham;sneetje brood;bammetje;sandwich;slice of bread|246;236;248
+broodje;bolletje;bread roll;roll|230
+hagelslag;sprinkles;chocolate sprinkles|1311;1962;1963
+patat;friet;patatje;fries;french fries|2107;1679;1456
+koffie;bakje koffie;coffee|644;2476
+cappuccino|2476
+latte;koffie verkeerd|5039
+thee;kopje thee;tea|645
+cola;frisdrank;fris;soda;fizzy drink;soft drink|395;1523;400
+melk;milk|286;279;294
+yoghurt;yogurt|1502;278;301
+boter;butter|879;310
+ei;eitje;gekookt ei;egg;boiled egg|84;83;1314
+gebakken ei;spiegelei;fried egg|1314
+rijst;rice|658;1014
+pasta;spaghetti;macaroni;penne|659;811
+aardappel;aardappels;potato;potatoes|2325;1
+gehakt;mince;minced meat|1434;1405
+kip;kipfilet;chicken;chicken breast|1392;1634
+sperziebonen;green beans;string beans|951;50
+wrap;tortilla|2359
+rijstwafel;rice cake;rice cracker|1481
+knäckebröd;knackebrod;crispbread|229
+beschuit;rusk|227;655
+ontbijtkoek;gingerbread|240
+stroopwafel;syrup waffle|713
+tosti;toastie;grilled cheese|5354
+mayo|451
+drop;licorice;liquorice|522;520
+water;kraanwater;tap water|598
+bier;biertje;pils;pilsje;beer;lager|390
+kaas;plakje kaas;cheese|513;2758
+chocolademelk;chocomel;chocolate milk|272
+sinaasappelsap;jus d'orange;orange juice|410;2755
+appelsap;apple juice|383
+cornflakes|2081
+popcorn|630
+hummus|3207

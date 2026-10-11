@@ -13,6 +13,8 @@ import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.feature.food.nevo.NevoImporter
 import nl.guido.foodtracker.feature.food.nevo.NevoInfo
 import nl.guido.foodtracker.feature.food.off.OpenFoodFacts
+import nl.guido.foodtracker.feature.food.search.EverydayWords
+import nl.guido.foodtracker.feature.food.search.EverydayWordsAsset
 import nl.guido.foodtracker.feature.food.search.matchesWords
 import nl.guido.foodtracker.feature.food.search.rankFoods
 import nl.guido.foodtracker.feature.food.search.searchWords
@@ -33,9 +35,11 @@ internal class RealFoodSource(
     /** NEVO food id to both names and group; also tells which NEVO rows the app uses. */
     private val nevoInfo: suspend () -> Map<Id, NevoInfo>,
     private val clock: () -> Long = System::currentTimeMillis,
+    /** Everyday words for NEVO foods ("havermout" → oat flakes, S2). */
+    private val everydayWords: suspend () -> EverydayWords = { EverydayWords.EMPTY },
 ) : FoodSource {
-    @Inject constructor(foods: FoodRepository, off: OpenFoodFacts, nevo: NevoImporter) :
-        this(foods, off, { nevo.ensureImported() }, { nevo.info() }) {
+    @Inject constructor(foods: FoodRepository, off: OpenFoodFacts, nevo: NevoImporter, everyday: EverydayWordsAsset) :
+        this(foods, off, { nevo.ensureImported() }, { nevo.info() }, everydayWords = { everyday.get() }) {
         // Import NEVO in the background as soon as anything needs foods, so the first search is quick.
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { runCatching { nevo.ensureImported() } }
     }
@@ -72,9 +76,13 @@ internal class RealFoodSource(
         val known = found.mapTo(HashSet()) { it.id }
         val byOtherName = nevo.filter { (id, info) -> id !in known && matchesWords(words, listOf(info.english, info.dutch)) }
             .keys.take(300).mapNotNull { foods.get(it) }
+        known += byOtherName.map { it.id }
+        // Foods the typed everyday word stands for, even when their NEVO name uses other words.
+        val everyday = runCatching { everydayWords().foodsFor(text) }.getOrDefault(emptyList())
+        val byEveryday = everyday.filter { it !in known }.mapNotNull { foods.get(it) }
         // NEVO rows the app doesn't use (per 100 ml) may still be on phones from an older version.
-        val candidates = (found + byOtherName).filter { it.source != FoodOrigin.NEVO || nevo.isEmpty() || it.id in nevo }
-        return rankFoods(text, candidates, nevo = nevo)
+        val candidates = (found + byOtherName + byEveryday).filter { it.source != FoodOrigin.NEVO || nevo.isEmpty() || it.id in nevo }
+        return rankFoods(text, candidates, nevo = nevo, everyday = everyday)
     }
 
     override suspend fun searchOnline(text: String): List<Food> {

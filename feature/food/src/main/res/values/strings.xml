@@ -22,4 +22,26 @@
     <string name="food_meal_lunch">Lunch</string>
     <string name="food_meal_dinner">Dinner</string>
     <string name="food_meal_snacks">Snacks</string>
+    <!-- Shared food picker (S21) -->
+    <string name="food_pick_title_ingredient">Add ingredient</string>
+    <string name="food_pick_title_extra">Add extra</string>
+    <string name="food_pick_search_label">Find a food</string>
+    <string name="food_pick_search_hint">For example: oats, egg, milk</string>
+    <string name="food_pick_start">Type a few letters to find a food. Ingredients you used before show up here.</string>
+    <string name="food_pick_recent">Recently used</string>
+    <string name="food_pick_on_phone">On your phone</string>
+    <string name="food_pick_search_online">Search online for “%1$s”</string>
+    <string name="food_pick_searching_online">Searching Open Food Facts…</string>
+    <string name="food_pick_online">Online</string>
+    <string name="food_pick_online_nothing">Nothing found online. Try other words.</string>
+    <string name="food_pick_online_unreachable">Couldn\'t reach Open Food Facts. Check the internet.</string>
+    <string name="food_pick_amount">Amount</string>
+    <string name="food_pick_unit_g">g</string>
+    <string name="food_pick_unit_ml">ml</string>
+    <string name="food_pick_serving">1 serving</string>
+    <string name="food_pick_pack">Whole pack</string>
+    <string name="food_pick_kcal">%1$d kcal</string>
+    <string name="food_pick_add_recipe">Add to recipe</string>
+    <string name="food_pick_add_batch">Add to the pot</string>
+    <string name="food_pick_add_extra">Add extra</string>
 </resources>

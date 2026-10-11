@@ -5,8 +5,10 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import nl.guido.foodtracker.core.ui.FoodPickResult
 import nl.guido.foodtracker.core.ui.Routes
 import nl.guido.foodtracker.feature.food.eatout.EatOutScreen
+import nl.guido.foodtracker.feature.food.pick.FoodPickScreen
 
 /** Screens owned by this module. The app calls this once when it builds the navigation. */
 fun NavGraphBuilder.foodScreens(navController: NavController) {
@@ -19,5 +21,18 @@ fun NavGraphBuilder.foodScreens(navController: NavController) {
         ),
     ) {
         EatOutScreen(onDone = { navController.popBackStack() })
+    }
+    // Routes.foodPick(purpose): the shared food picker (S21); hands back FoodPickResult to the opener.
+    composable(
+        route = "${Routes.FOOD_PICK}?${Routes.ARG_PURPOSE}={${Routes.ARG_PURPOSE}}",
+        arguments = listOf(navArgument(Routes.ARG_PURPOSE) { type = NavType.StringType; nullable = true; defaultValue = null }),
+    ) {
+        FoodPickScreen(
+            onPicked = { picked ->
+                navController.previousBackStackEntry?.savedStateHandle?.set(FoodPickResult.KEY, FoodPickResult.encode(picked))
+                navController.popBackStack()
+            },
+            onBack = { navController.popBackStack() },
+        )
     }
 }
