@@ -50,6 +50,7 @@ import kotlin.math.roundToInt
 internal fun MealSheet(
     meal: Meal,
     entries: List<LogEntry>,
+    readable: Map<String, String>,
     onDismiss: () -> Unit,
     onChangeAmount: (LogEntry, Double) -> Unit,
     onRemove: (LogEntry) -> Unit,
@@ -76,7 +77,7 @@ internal fun MealSheet(
             }
             entries.forEachIndexed { index, entry ->
                 if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-                EntryRow(entry, onChangeAmount, onRemove)
+                EntryRow(entry, entry.shown(readable), onChangeAmount, onRemove)
             }
             Button(
                 onClick = onAddMore,
@@ -120,12 +121,18 @@ private fun MoveButton(targets: List<Meal>, onMove: (Meal) -> Unit) {
 }
 
 @Composable
-private fun EntryRow(entry: LogEntry, onChangeAmount: (LogEntry, Double) -> Unit, onRemove: (LogEntry) -> Unit) {
+private fun EntryRow(entry: LogEntry, name: ShownName, onChangeAmount: (LogEntry, Double) -> Unit, onRemove: (LogEntry) -> Unit) {
     var editing by rememberSaveable(entry.id) { mutableStateOf(false) }
     var text by rememberSaveable(entry.id, entry.portion.grams) { mutableStateOf(formatAmount(entry.portion.grams)) }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(entry.displayName, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            Column(Modifier.weight(1f)) {
+                Text(name.title, style = MaterialTheme.typography.titleMedium)
+                // The original NEVO name, unchanged, under the app's readable name (S1).
+                name.original?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
             Text(
                 stringResource(R.string.today_kcal_unit, kcalText(entry.nutrients.kcal.roundToInt(), entry.isEstimate)),
                 style = MaterialTheme.typography.titleMedium,
@@ -162,7 +169,7 @@ private fun EntryRow(entry: LogEntry, onChangeAmount: (LogEntry, Double) -> Unit
             } else {
                 val amount = entryAmountText(entry)
                 if (canChangeAmount(entry)) {
-                    val description = stringResource(R.string.today_change_amount, entry.displayName)
+                    val description = stringResource(R.string.today_change_amount, name.title)
                     TextButton(
                         onClick = { editing = true },
                         modifier = Modifier.semantics { contentDescription = "$description, $amount" },

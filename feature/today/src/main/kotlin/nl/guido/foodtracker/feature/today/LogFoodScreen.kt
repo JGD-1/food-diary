@@ -66,7 +66,6 @@ import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.LogEntry
-import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.ui.FoodRow
@@ -130,14 +129,14 @@ internal fun LogFoodRoute(
                 onRecipe = viewModel::openRecipe,
                 onBatch = viewModel::openBatch,
                 onAllRecipes = { open(Routes.RECIPES) },
-                plainName = viewModel::plainName,
+                readableName = viewModel::readableName,
             )
             ui.amount?.let { step ->
                 AmountSheet(
                     step = step,
                     meal = mealFor(step.pick.isDrink, ui.meal),
                     pin = ui.amountPin,
-                    plainLine = step.pick.food?.let(viewModel::plainName),
+                    readable = step.pick.food?.let(viewModel::readableName),
                     onDismiss = viewModel::closeAmount,
                     onWeigh = { open(Routes.CAMERA_SCALE, Routes.CAMERA) },
                     onAdd = viewModel::add,
@@ -167,7 +166,7 @@ private fun LogFoodContent(
     onRecipe: (Recipe) -> Unit,
     onBatch: (Batch) -> Unit,
     onAllRecipes: () -> Unit,
-    plainName: (Food) -> String?,
+    readableName: (Food) -> String?,
 ) {
     Column(Modifier.fillMaxSize()) {
         ScreenHeader(
@@ -253,9 +252,10 @@ private fun LogFoodContent(
                     )
                 }
                 items(ui.pinnedFoods, key = { "pin-food-" + it.favourite.id }) { pin ->
+                    val shown = shownName(pin.food.name, readableName(pin.food))
                     FoodRow(
-                        title = pin.food.name,
-                        plainLine = plainName(pin.food),
+                        title = shown.title,
+                        plainLine = shown.original,
                         detail = pin.usualGrams?.let { amountText(pin.favourite.usualPortion?.label, it, pin.food.isDrink) },
                         onClick = { onChoosePin(pin) },
                     )
@@ -272,12 +272,11 @@ private fun LogFoodContent(
             if (ui.recent.isNotEmpty()) {
                 section(R.string.today_section_recent)
                 items(ui.recent, key = { "recent-" + it.id }) { entry ->
-                    val name = entry.displayName
-                    val quickLabel = stringResource(R.string.today_quick_add_description, name)
-                    val foodId = (entry.what as? Logged.FoodRef)?.foodId
+                    val shown = entry.shown(ui.recentReadable)
+                    val quickLabel = stringResource(R.string.today_quick_add_description, shown.title)
                     FoodRow(
-                        title = name,
-                        plainLine = foodId?.let { ui.recentPlain[it] },
+                        title = shown.title,
+                        plainLine = shown.original,
                         detail = (if (entry.isEstimate) "" else entryAmountText(entry) + " · ") +
                             stringResource(R.string.today_kcal_unit, kcalText(entry.nutrients.kcal.roundToInt(), entry.isEstimate)),
                         onClick = { onChooseEntry(entry) },
@@ -297,9 +296,9 @@ private fun LogFoodContent(
             if (searching) {
                 if (ui.found.isNotEmpty()) {
                     section(R.string.today_section_foods)
-                    items(ui.found, key = { "found-" + it.id }) { food -> FoodItem(food, plainName(food)) { onChooseFood(food) } }
+                    items(ui.found, key = { "found-" + it.id }) { food -> FoodItem(food, readableName(food)) { onChooseFood(food) } }
                 }
-                onlineSection(ui, onSearchOnline) { food -> FoodItem(food, plainName(food)) { onChooseFood(food) } }
+                onlineSection(ui, onSearchOnline) { food -> FoodItem(food, readableName(food)) { onChooseFood(food) } }
                 // Not in any list (a market stall, a friend's dish): log it with your own kcal in Eat out.
                 item(key = "type-kcal") {
                     FoodRow(
@@ -368,10 +367,14 @@ private fun Note(text: Int) {
     Text(stringResource(text), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
 }
 
-/** A food in a list: its name, the app's plain line (S1), and "NEVO · 52 kcal per 100 g". */
+/**
+ * A food in a list: the app's readable name, the original NEVO name under it (S1),
+ * and "NEVO · 52 kcal per 100 g".
+ */
 @Composable
-private fun FoodItem(food: Food, plainLine: String?, onClick: () -> Unit) {
-    FoodRow(title = food.name, plainLine = plainLine, detail = foodDetail(food), onClick = onClick)
+private fun FoodItem(food: Food, readable: String?, onClick: () -> Unit) {
+    val shown = shownName(food.name, readable)
+    FoodRow(title = shown.title, plainLine = shown.original, detail = foodDetail(food), onClick = onClick)
 }
 
 /**
@@ -405,7 +408,7 @@ private fun AmountSheet(
     step: AmountStep,
     meal: Meal,
     pin: PinnedFood?,
-    plainLine: String?,
+    readable: String?,
     onDismiss: () -> Unit,
     onWeigh: () -> Unit,
     onAdd: (grams: Double, label: String?) -> Unit,
@@ -427,8 +430,12 @@ private fun AmountSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Column {
-                Text(pick.name, style = MaterialTheme.typography.titleLarge)
-                if (plainLine != null) Text(plainLine, style = MaterialTheme.typography.bodyMedium)
+                val shown = shownName(pick.name, readable)
+                Text(shown.title, style = MaterialTheme.typography.titleLarge)
+                // The original NEVO name, unchanged, under the app's readable name (S1).
+                shown.original?.let {
+                    Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
             Text(
                 stringResource(if (pick.isDrink) R.string.today_per_100ml else R.string.today_per_100g, formatKcal(pick.per100g.kcal)),

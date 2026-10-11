@@ -26,6 +26,7 @@ import nl.guido.foodtracker.core.data.repo.ProfileRepository
 import nl.guido.foodtracker.core.data.repo.RecipeRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
 import nl.guido.foodtracker.core.model.BatchPortion
+import nl.guido.foodtracker.core.model.FoodNames
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Logged
@@ -35,7 +36,9 @@ import nl.guido.foodtracker.core.ui.Routes
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.Optional
 import javax.inject.Inject
+import kotlin.jvm.optionals.getOrNull
 
 internal data class TodayUiState(
     /** The day being viewed; logging from this screen goes to this day. */
@@ -48,6 +51,8 @@ internal data class TodayUiState(
     val review: WeeklyReview?,
     /** Recent days with nothing logged that lie before this day (a dot on ‹, "Yesterday is still empty"). */
     val emptyDays: List<LocalDate> = emptyList(),
+    /** The app's readable names (S1) for the foods on this day, by food id. */
+    val readable: Map<Id, String> = emptyMap(),
 ) {
     val isToday: Boolean get() = date == today
     val canGoForward: Boolean get() = nextDay(date, today) != null
@@ -87,6 +92,8 @@ internal class TodayViewModel @Inject constructor(
     private val profiles: ProfileRepository,
     private val recipes: RecipeRepository,
     private val reviewPrefs: ReviewPrefs,
+    /** The app's readable names under NEVO names (S1), bound by feature/food. */
+    private val foodNames: Optional<FoodNames>,
 ) : ViewModel() {
 
     private val moment: Flow<Moment> = flow {
@@ -120,18 +127,35 @@ internal class TodayViewModel @Inject constructor(
                 reviewPrefs.dismissedOn,
             ) { todayEntries, days, goals, weekly, dismissedWeek ->
                 val isToday = day == now.date
+                val summary = todaySummary(todayEntries, days, goals.targetKcal, if (isToday) now.meal else null)
                 TodayUiState(
                     date = day,
                     today = now.date,
                     displayName = user.displayName,
-                    summary = todaySummary(todayEntries, days, goals.targetKcal, if (isToday) now.meal else null),
+                    summary = summary,
                     proteinGoalG = goals.proteinG,
                     review = if (isToday) reviewToShow(now.date, weekly, dismissedWeek) else null,
                     emptyDays = emptyRecentDays(days, day, now.date),
+                    // Today's lines and "Last time" lines, so both show readable names.
+                    readable = readableNames(todayEntries + summary.lastTime.values.flatten()),
                 )
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Readable names (S1) for the foods in [entries], looked up once per change of the day's lines. */
+    private suspend fun readableNames(entries: List<LogEntry>): Map<Id, String> {
+        val names = foodNames.getOrNull() ?: return emptyMap()
+        return entries.mapNotNull { it.foodId }.distinct().mapNotNull { id ->
+            val food = foods.get(id) ?: return@mapNotNull null
+            val name = try {
+                names.plain(food)
+            } catch (e: Exception) {
+                null
+            }
+            name?.takeIf { it.isNotBlank() }?.let { id to it }
+        }.toMap()
+    }
 
     /** Shows another day: earlier days only, today is the last one. */
     fun showDay(date: LocalDate) {

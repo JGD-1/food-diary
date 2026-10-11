@@ -109,7 +109,7 @@ internal fun addToMeal(meal: Meal): Int = when (meal) {
 
 /** "Greek yoghurt 200 g" or "Club sandwich · restaurant, 450–680". */
 @Composable
-internal fun entryText(entry: LogEntry): String {
+internal fun entryText(entry: LogEntry, readable: Map<String, String> = emptyMap()): String {
     val what = entry.what
     if (what is Logged.Restaurant) {
         val e = what.estimate
@@ -117,7 +117,7 @@ internal fun entryText(entry: LogEntry): String {
         return if (e.low == e.high) stringResource(R.string.today_restaurant_item_single, what.dish, formatKcal(e.typical))
         else stringResource(R.string.today_restaurant_item, what.dish, formatKcal(e.low), formatKcal(e.high))
     }
-    return "${entry.displayName} ${entryAmountText(entry)}"
+    return "${entry.shown(readable).title} ${entryAmountText(entry)}"
 }
 
 /** The one amount format (S27): "1 apple ≈ 150 g", or "150 g" / "250 ml" without a label. */
@@ -125,7 +125,8 @@ internal fun entryAmountText(entry: LogEntry): String =
     amountText(entry.portion.label, entry.portion.grams, isDrink = entry.meal == Meal.DRINKS)
 
 @Composable
-internal fun entriesText(entries: List<LogEntry>): String = entries.map { entryText(it) }.joinToString(", ")
+internal fun entriesText(entries: List<LogEntry>, readable: Map<String, String> = emptyMap()): String =
+    entries.map { entryText(it, readable) }.joinToString(", ")
 
 /** "380", or "≈ 560" when an estimate is part of it. */
 @Composable
