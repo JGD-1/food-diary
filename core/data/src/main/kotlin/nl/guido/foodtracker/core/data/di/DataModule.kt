@@ -12,6 +12,7 @@ import dagger.hilt.components.SingletonComponent
 import nl.guido.foodtracker.core.data.db.FoodDatabase
 import nl.guido.foodtracker.core.data.db.MIGRATION_1_2
 import nl.guido.foodtracker.core.data.db.MIGRATION_2_3
+import nl.guido.foodtracker.core.data.db.MIGRATION_3_4
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.data.repo.ProfileRepository
@@ -22,6 +23,7 @@ import nl.guido.foodtracker.core.data.repo.RoomProfileRepository
 import nl.guido.foodtracker.core.data.repo.RoomRecipeRepository
 import nl.guido.foodtracker.core.data.repo.SyncEntry
 import nl.guido.foodtracker.core.model.CommonPortions
+import nl.guido.foodtracker.core.model.FoodNames
 import javax.inject.Singleton
 
 @Module
@@ -31,7 +33,7 @@ internal object DatabaseModule {
     @Singleton
     fun database(@ApplicationContext context: Context): FoodDatabase =
         Room.databaseBuilder(context, FoodDatabase::class.java, "food-diary.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .build()
 
     @Provides fun foodDao(db: FoodDatabase) = db.foodDao()
@@ -57,4 +59,7 @@ internal abstract class OptionalBindingsModule {
 
     /** feature/food binds the bundled common-pieces list; until then Optional.empty(). */
     @BindsOptionalOf abstract fun commonPortions(): CommonPortions
+
+    /** feature/food binds the plain-language name lines (S1); until then Optional.empty(). */
+    @BindsOptionalOf abstract fun foodNames(): FoodNames
 }

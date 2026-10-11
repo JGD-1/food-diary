@@ -8,6 +8,7 @@ import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
+import nl.guido.foodtracker.core.model.Pan
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.RecipeVariant
 import nl.guido.foodtracker.core.model.TargetBreakdown
@@ -67,6 +68,14 @@ interface RecipeRepository {
 
     /** "Finished": the batch leaves the list for everyone. Null [on] puts it back. */
     suspend fun finishBatch(batchId: Id, on: LocalDate?)
+
+    /** Removes a batch for everyone (soft delete, so it syncs). Callers offer it only when nothing is logged from it. */
+    suspend fun deleteBatch(batchId: Id)
+
+    /** The household's pans with their empty weight (S9). */
+    fun pans(householdId: Id): Flow<List<Pan>>
+    suspend fun savePan(pan: Pan)
+    suspend fun deletePan(id: Id)
 }
 
 /** Profile and weigh-ins. Private to each person. */

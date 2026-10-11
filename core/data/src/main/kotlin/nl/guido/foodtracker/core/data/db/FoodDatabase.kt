@@ -21,8 +21,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         WeighInEntity::class,
         FavouriteEntity::class,
         BatchPortionEntity::class,
+        PanEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class FoodDatabase : RoomDatabase() {
@@ -81,5 +82,24 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_batch_portion_batchId` ON `batch_portion` (`batchId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_batch_portion_householdId` ON `batch_portion` (`householdId`)")
+    }
+}
+
+/**
+ * Version 4 (findings S1-S28): pieces and cooked weight on recipes, pieces and "Frozen" on batches,
+ * and the shared pan table. Only adds things: every existing row keeps its numbers.
+ * (Ingredient.amountLabel lives inside the existing ingredients JSON, so no column for it.)
+ */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `recipe` ADD COLUMN `pieces` INTEGER")
+        db.execSQL("ALTER TABLE `recipe` ADD COLUMN `cookedWeightG` REAL")
+        db.execSQL("ALTER TABLE `batch` ADD COLUMN `pieces` INTEGER")
+        db.execSQL("ALTER TABLE `batch` ADD COLUMN `frozen` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `pan` (`id` TEXT NOT NULL, `householdId` TEXT NOT NULL, `name` TEXT NOT NULL, " +
+                "`grams` REAL NOT NULL, `updatedAt` INTEGER NOT NULL, `deleted` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_pan_householdId` ON `pan` (`householdId`)")
     }
 }

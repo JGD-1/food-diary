@@ -14,6 +14,7 @@ import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
+import nl.guido.foodtracker.core.model.Pan
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.RecipeVariant
 import nl.guido.foodtracker.core.model.UserProfile
@@ -70,6 +71,11 @@ internal class RoomRecipeRepository @Inject constructor(private val dao: RecipeD
     override suspend fun savePortion(portion: BatchPortion) = dao.upsertPortion(portion.toEntity(now()))
     override suspend fun deletePortion(id: Id) = dao.markPortionDeleted(id, now())
     override suspend fun finishBatch(batchId: Id, on: LocalDate?) = dao.finishBatch(batchId, on?.toString(), now())
+    override suspend fun deleteBatch(batchId: Id) = dao.markBatchDeleted(batchId, now())
+    override fun pans(householdId: Id): Flow<List<Pan>> =
+        dao.pans(householdId).map { rows -> rows.map { it.toModel() } }
+    override suspend fun savePan(pan: Pan) = dao.upsertPan(pan.toEntity(now()))
+    override suspend fun deletePan(id: Id) = dao.markPanDeleted(id, now())
 }
 
 internal class RoomProfileRepository @Inject constructor(private val dao: ProfileDao) : ProfileRepository {

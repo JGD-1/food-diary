@@ -27,6 +27,16 @@ interface CommonPortions {
     suspend fun forFood(food: Food): List<Portion>
 }
 
+/**
+ * The app's own plain-language line under a food name (S1), e.g. "with skin, average" under a NEVO name.
+ * NEVO names themselves are never changed (licence); this line is the app's addition.
+ * Bound by feature/food; optional, so callers inject Optional<FoodNames>.
+ */
+interface FoodNames {
+    /** Null when there is nothing to add. */
+    fun plain(food: Food): String?
+}
+
 /** Gives a kcal range for a restaurant dish described in words. Swappable provider. */
 interface RestaurantEstimator {
     suspend fun estimate(dish: String): Estimate

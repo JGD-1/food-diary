@@ -29,3 +29,10 @@ data class Portion(val grams: Double, val label: String? = null)
 /** A restaurant estimate in kcal, shown as a range ("450–680") and marked as an estimate. */
 @Serializable
 data class Estimate(val low: Int, val typical: Int, val high: Int)
+
+/**
+ * A food chosen in the shared food picker (S21): which food, how many grams, and how it was
+ * entered ("2 eggs", "1 serving"; null = typed grams). Handed back as JSON, see core/ui FoodPickResult.
+ */
+@Serializable
+data class PickedFood(val foodId: Id, val grams: Double, val label: String? = null)

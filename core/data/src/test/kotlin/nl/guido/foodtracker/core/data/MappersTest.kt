@@ -16,6 +16,7 @@ import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.core.model.Pan
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
 import org.junit.Assert.assertEquals
@@ -88,5 +89,30 @@ class MappersTest {
             proteinGoalG = 120,
         )
         assertEquals(profile, profile.toEntity(now = 5).toModel())
+    }
+
+    @Test
+    fun version4FieldsRoundTrip() {
+        val recipe = Recipe(
+            id = "r1", householdId = "h1", name = "Muffins",
+            ingredients = listOf(Ingredient("f1", "Egg", 120.0, Nutrients(140.0, 12.0, 1.0, 10.0), amountLabel = "2 eggs")),
+            pieces = 12, cookedWeightG = 640.0,
+        )
+        assertEquals(recipe, recipe.toEntity(now = 5).toModel())
+        val batch = Batch(
+            id = "b1", householdId = "h1", recipeId = "r1", name = "Soup", ingredients = recipe.ingredients,
+            cookedWeightG = 1800.0, cookedOn = LocalDate.of(2026, 10, 11), pieces = 6, frozen = true,
+        )
+        assertEquals(batch, batch.toEntity(now = 5).toModel())
+        val pan = Pan("p1", "h1", "Big pot", 1450.0)
+        assertEquals(pan, pan.toEntity(now = 5).toModel())
+    }
+
+    @Test
+    fun ingredientsSavedBeforeVersion4StillRead() {
+        val old = Recipe("r1", "h1", "Chili", listOf(Ingredient("f1", "Beans", 400.0, Nutrients(100.0, 7.0, 13.0, 0.5))))
+            .toEntity(now = 5)
+            .copy(ingredientsJson = """[{"foodId":"f1","name":"Beans","grams":400.0,"per100g":{"kcal":100.0,"protein":7.0,"carbs":13.0,"fat":0.5}}]""")
+        assertEquals(null, old.toModel().ingredients.single().amountLabel)
     }
 }

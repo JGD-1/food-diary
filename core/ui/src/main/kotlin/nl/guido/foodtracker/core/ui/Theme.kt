@@ -2,6 +2,7 @@ package nl.guido.foodtracker.core.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -10,6 +11,9 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
 /**
  * Colours: "Forest green", chosen in the design review (decisions.md, 9 Oct 2026).
@@ -107,6 +111,36 @@ private fun FoodPalette.scheme(dark: Boolean) =
         onErrorContainer = accentStrong,
     )
 
+private fun style(size: Int, line: Int, weight: FontWeight) =
+    TextStyle(fontSize = size.sp, lineHeight = line.sp, fontWeight = weight)
+
+/**
+ * The one type scale (S20). Screens use these styles (MaterialTheme.typography.X), never their own
+ * fontSize, so all text grows together with the phone's text-size setting.
+ *  - displayLarge: the big number in Today's ring (shrinks to fit there)
+ *  - headlineLarge: tab titles ("Today", "Weight", "Stats"); headlineSmall: big numbers on cards
+ *  - titleLarge: screen headers (ScreenHeader); titleMedium: card titles, food and meal names
+ *  - bodyLarge: normal text; bodyMedium: second lines; bodySmall: small print
+ *  - labelLarge: buttons and chips; labelMedium/labelSmall: small captions, chart labels
+ */
+val FoodTypography = Typography(
+    displayLarge = style(44, 50, FontWeight.ExtraBold),
+    displayMedium = style(34, 40, FontWeight.ExtraBold),
+    displaySmall = style(28, 34, FontWeight.Bold),
+    headlineLarge = style(32, 38, FontWeight.ExtraBold),
+    headlineMedium = style(24, 30, FontWeight.Bold),
+    headlineSmall = style(22, 28, FontWeight.Bold),
+    titleLarge = style(22, 28, FontWeight.Bold),
+    titleMedium = style(16, 22, FontWeight.Bold),
+    titleSmall = style(14, 20, FontWeight.SemiBold),
+    bodyLarge = style(16, 22, FontWeight.Normal),
+    bodyMedium = style(14, 20, FontWeight.Normal),
+    bodySmall = style(13, 18, FontWeight.Normal),
+    labelLarge = style(14, 20, FontWeight.SemiBold),
+    labelMedium = style(12, 16, FontWeight.Medium),
+    labelSmall = style(11, 16, FontWeight.Medium),
+)
+
 private val LocalFoodPalette = staticCompositionLocalOf { LightFoodPalette }
 
 /** Follows the phone's dark mode setting unless [darkTheme] says otherwise. */
@@ -114,7 +148,7 @@ private val LocalFoodPalette = staticCompositionLocalOf { LightFoodPalette }
 fun FoodTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     val palette = if (darkTheme) DarkFoodPalette else LightFoodPalette
     CompositionLocalProvider(LocalFoodPalette provides palette) {
-        MaterialTheme(colorScheme = palette.scheme(darkTheme), content = content)
+        MaterialTheme(colorScheme = palette.scheme(darkTheme), typography = FoodTypography, content = content)
     }
 }
 

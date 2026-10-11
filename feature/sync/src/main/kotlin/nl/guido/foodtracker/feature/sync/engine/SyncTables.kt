@@ -88,7 +88,7 @@ object SyncTables {
         "recipe", "recipes", Scope.HOUSEHOLD, "householdId",
         listOf(
             text("id"), text("householdId"), text("name"), text("ingredientsJson"), bool("pinned"),
-            text("usualPortionJson"),
+            text("usualPortionJson"), long("pieces"), double("cookedWeightG"),
         ) + stamps,
     )
     val recipeVariant = SyncTable(
@@ -103,7 +103,7 @@ object SyncTables {
         "batch", "batches", Scope.HOUSEHOLD, "householdId",
         listOf(
             text("id"), text("householdId"), text("recipeId"), text("name"), text("ingredientsJson"),
-            double("cookedWeightG"), text("cookedOn"), text("finishedOn"),
+            double("cookedWeightG"), text("cookedOn"), text("finishedOn"), long("pieces"), bool("frozen"),
         ) + stamps,
     )
     val batchPortion = SyncTable(
@@ -112,9 +112,13 @@ object SyncTables {
             text("id"), text("batchId"), text("householdId"), text("userId"), double("grams"), text("logEntryId"),
         ) + stamps,
     )
+    val pan = SyncTable(
+        "pan", "pans", Scope.HOUSEHOLD, "householdId",
+        listOf(text("id"), text("householdId"), text("name"), double("grams")) + stamps,
+    )
 
-    val all = listOf(profile, logEntry, weighIn, food, recipe, recipeVariant, favourite, batch, batchPortion)
-    val household = listOf(recipe, recipeVariant, batch, batchPortion)
+    val all = listOf(profile, logEntry, weighIn, food, recipe, recipeVariant, favourite, batch, batchPortion, pan)
+    val household = listOf(recipe, recipeVariant, batch, batchPortion, pan)
 }
 
 /** Phone row → JSON for Supabase. */
