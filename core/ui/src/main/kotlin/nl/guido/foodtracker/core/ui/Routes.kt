@@ -1,7 +1,9 @@
 package nl.guido.foodtracker.core.ui
 
 import nl.guido.foodtracker.core.model.Id
+import kotlinx.serialization.json.Json
 import nl.guido.foodtracker.core.model.Meal
+import nl.guido.foodtracker.core.model.PickedFood
 import java.net.URLEncoder
 import java.time.LocalDate
 
@@ -20,6 +22,9 @@ object Routes {
     const val ARG_FOOD_ID = "foodId"
     /** Weigh-in to change (weigh-in?id=). Missing = a new weigh-in. */
     const val ARG_ID = "id"
+    /** Shared food picker: who asked (FoodPickPurpose name), so it can say "Add to recipe" etc. */
+    const val ARG_PURPOSE = "purpose"
+    const val ARG_BATCH_ID = "batchId"
 
     // Bottom tabs
     const val TODAY = "today"
@@ -41,6 +46,8 @@ object Routes {
     const val DAY = "day/{$ARG_DATE}"        // Today for another day (opened from Stats); P1 registers it
     const val FOOD_EDIT = "food-edit/{$ARG_FOOD_ID}" // P2 (camera's food form, pre-filled)
     const val REMINDERS = "reminders"        // P5 (feature/reminders)
+    const val FOOD_PICK = "food-pick"        // Q1 (feature/food): shared food picker, see FoodPickResult
+    const val BATCH_EDIT = "batch-edit/{$ARG_BATCH_ID}" // Q2 (feature/recipes)
 
     fun recipeLog(recipeId: Id, meal: Meal? = null, date: LocalDate? = null) =
         withArgs("recipe-log/$recipeId", ARG_MEAL to meal?.name, ARG_DATE to date?.toString())
@@ -57,6 +64,8 @@ object Routes {
     fun day(date: LocalDate) = "day/$date"
     fun weighIn(id: Id? = null) = withArgs(WEIGH_IN, ARG_ID to id)
     fun foodEdit(foodId: Id) = "food-edit/${encode(foodId)}"
+    fun foodPick(purpose: FoodPickPurpose) = withArgs(FOOD_PICK, ARG_PURPOSE to purpose.name)
+    fun batchEdit(batchId: Id) = "batch-edit/${encode(batchId)}"
 
     /** Adds the extras that are set as "?a=1&b=2", text safely encoded. */
     fun withArgs(route: String, vararg args: Pair<String, String?>): String {
@@ -81,4 +90,19 @@ object OpenScreen {
 object CameraResult {
     const val FOOD_ID = "camera_food_id"
     const val GRAMS = "camera_grams"
+}
+
+/** Who opened the shared food picker (S21); the picker words its button to match. */
+enum class FoodPickPurpose { RECIPE_INGREDIENT, BATCH_INGREDIENT, EXTRA }
+
+/**
+ * The shared food picker hands its choice back to the screen that opened it:
+ * the picker sets previousBackStackEntry.savedStateHandle[KEY] = encode(picked) and goes back;
+ * the opener reads currentBackStackEntry.savedStateHandle.remove<String>(KEY)?.let(::decode).
+ */
+object FoodPickResult {
+    const val KEY = "food_pick_result"
+    private val json = Json { ignoreUnknownKeys = true }
+    fun encode(picked: PickedFood): String = json.encodeToString(PickedFood.serializer(), picked)
+    fun decode(text: String): PickedFood? = runCatching { json.decodeFromString(PickedFood.serializer(), text) }.getOrNull()
 }

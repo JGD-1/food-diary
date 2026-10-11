@@ -10,6 +10,8 @@ data class Ingredient(
     val name: String,
     val grams: Double,
     val per100g: Nutrients,
+    /** How the amount was entered, e.g. "2 eggs" or "1 serving" (S13). Null = typed grams. */
+    val amountLabel: String? = null,
 ) {
     val nutrients: Nutrients get() = per100g.forGrams(grams)
 }
@@ -22,6 +24,10 @@ data class Recipe(
     val ingredients: List<Ingredient>,
     val pinned: Boolean = false,
     val usualPortion: Portion? = null,
+    /** "Makes … pieces" (S11), e.g. 12 muffins. Null = not made in pieces. */
+    val pieces: Int? = null,
+    /** Weight of the whole dish after cooking or baking (S12). Null = portions are raw ingredient grams. */
+    val cookedWeightG: Double? = null,
 ) {
     val totalGrams: Double get() = ingredients.sumOf { it.grams }
     val total: Nutrients get() = ingredients.map { it.nutrients }.sum()
@@ -49,6 +55,10 @@ data class Batch(
     val cookedOn: LocalDate,
     /** Set when someone taps "Finished"; the batch then leaves the list. Null = still in the pot. */
     val finishedOn: LocalDate? = null,
+    /** "Makes … pieces" (S11). Null = not made in pieces. */
+    val pieces: Int? = null,
+    /** In the freezer (S15): shown in its own short list. */
+    val frozen: Boolean = false,
 ) {
     val total: Nutrients get() = ingredients.map { it.nutrients }.sum()
 
@@ -84,4 +94,12 @@ data class Favourite(
     val recipeId: Id? = null,
     val usualPortion: Portion? = null,
     val foodId: Id? = null,
+)
+
+/** A household's pan with its empty weight (S9), so cooked pot = scale reading − pan. */
+data class Pan(
+    val id: Id,
+    val householdId: Id,
+    val name: String,
+    val grams: Double,
 )

@@ -93,6 +93,18 @@ interface RecipeDao {
 
     @Query("UPDATE batch SET finishedOn = :finishedOn, updatedAt = :now WHERE id = :id")
     suspend fun finishBatch(id: String, finishedOn: String?, now: Long)
+
+    @Query("UPDATE batch SET deleted = 1, updatedAt = :now WHERE id = :id")
+    suspend fun markBatchDeleted(id: String, now: Long)
+
+    @Query("SELECT * FROM pan WHERE householdId = :householdId AND deleted = 0 ORDER BY name")
+    fun pans(householdId: String): Flow<List<PanEntity>>
+
+    @Upsert
+    suspend fun upsertPan(pan: PanEntity)
+
+    @Query("UPDATE pan SET deleted = 1, updatedAt = :now WHERE id = :id")
+    suspend fun markPanDeleted(id: String, now: Long)
 }
 
 @Dao

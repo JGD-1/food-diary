@@ -62,6 +62,8 @@ data class RecipeEntity(
     val usualPortionJson: String?,
     val updatedAt: Long,
     val deleted: Boolean = false,
+    val pieces: Int? = null,
+    val cookedWeightG: Double? = null,
 )
 
 @Entity(tableName = "recipe_variant", indices = [Index("baseRecipeId")])
@@ -86,6 +88,8 @@ data class BatchEntity(
     val updatedAt: Long,
     val deleted: Boolean = false,
     val finishedOn: String? = null,
+    val pieces: Int? = null,
+    val frozen: Boolean = false,
 )
 
 @Entity(tableName = "profile")
@@ -135,6 +139,17 @@ data class BatchPortionEntity(
     val userId: String,
     val grams: Double,
     val logEntryId: String?,
+    val updatedAt: Long,
+    val deleted: Boolean = false,
+)
+
+/** A pan and its empty weight (S9), shared in the household. */
+@Entity(tableName = "pan", indices = [Index("householdId")])
+data class PanEntity(
+    @PrimaryKey val id: String,
+    val householdId: String,
+    val name: String,
+    val grams: Double,
     val updatedAt: Long,
     val deleted: Boolean = false,
 )

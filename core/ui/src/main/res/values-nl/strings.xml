@@ -5,4 +5,10 @@
     <string name="placeholder_body">Aan dit deel wordt nog gewerkt.</string>
     <!-- NEVO-licentie: deze regel moet letterlijk in de app staan (op Profiel) -->
     <string name="nevo_attribution">Gebaseerd op gegevens uit NEVO-online versie 2025/9.0, RIVM, Bilthoven</string>
+    <string name="core_back">Terug</string>
+    <string name="core_source_nevo">NEVO</string>
+    <string name="core_source_off">Open Food Facts</string>
+    <string name="core_source_own">Mijn product</string>
+    <string name="core_per_100g">%1$s kcal per 100 g</string>
+    <string name="core_per_100ml">%1$s kcal per 100 ml</string>
 </resources>

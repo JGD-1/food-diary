@@ -70,4 +70,14 @@ class SyncTablesTest {
     fun `batch portions are pushed after their batch`() {
         assertTrue(SyncTables.all.indexOf(SyncTables.batch) < SyncTables.all.indexOf(SyncTables.batchPortion))
     }
+
+    @Test
+    fun `version 4 fields and pans sync`() {
+        val names = { t: nl.guido.foodtracker.feature.sync.engine.SyncTable -> t.columns.map { it.remote } }
+        assertTrue(names(SyncTables.recipe).containsAll(listOf("pieces", "cooked_weight_g")))
+        assertTrue(names(SyncTables.batch).containsAll(listOf("pieces", "frozen")))
+        assertEquals("pans", SyncTables.pan.remote)
+        assertTrue(SyncTables.pan in SyncTables.household)
+        assertTrue(SyncTables.pan in SyncTables.all)
+    }
 }

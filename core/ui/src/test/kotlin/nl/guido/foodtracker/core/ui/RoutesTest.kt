@@ -1,6 +1,7 @@
 package nl.guido.foodtracker.core.ui
 
 import nl.guido.foodtracker.core.model.Meal
+import nl.guido.foodtracker.core.model.PickedFood
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.LocalDate
@@ -24,6 +25,8 @@ class RoutesTest {
         assertEquals("weigh-in?id=w1", Routes.weighIn("w1"))
         assertEquals("day/2026-10-08", Routes.day(day))
         assertEquals("food-edit/f1", Routes.foodEdit("f1"))
+        assertEquals("food-pick?purpose=RECIPE_INGREDIENT", Routes.foodPick(FoodPickPurpose.RECIPE_INGREDIENT))
+        assertEquals("batch-edit/b1", Routes.batchEdit("b1"))
     }
 
     @Test
@@ -35,5 +38,12 @@ class RoutesTest {
     @Test
     fun `extras join an existing query`() {
         assertEquals("camera?mode=scale&date=2026-10-08", Routes.withArgs(Routes.CAMERA_SCALE, Routes.ARG_DATE to day.toString()))
+    }
+
+    @Test
+    fun `picked food survives the trip back`() {
+        val picked = PickedFood("f1", 120.0, "2 eggs")
+        assertEquals(picked, FoodPickResult.decode(FoodPickResult.encode(picked)))
+        assertEquals(null, FoodPickResult.decode("not json"))
     }
 }

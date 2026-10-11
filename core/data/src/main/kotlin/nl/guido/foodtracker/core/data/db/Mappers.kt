@@ -13,6 +13,7 @@ import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.core.model.Pan
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.RecipeVariant
@@ -62,6 +63,7 @@ internal fun RecipeEntity.toModel() = Recipe(
     ingredients = json.decodeFromString(ingredientList, ingredientsJson),
     pinned = pinned,
     usualPortion = usualPortionJson?.let { json.decodeFromString(Portion.serializer(), it) },
+    pieces = pieces, cookedWeightG = cookedWeightG,
 )
 
 internal fun Recipe.toEntity(now: Long) = RecipeEntity(
@@ -69,7 +71,7 @@ internal fun Recipe.toEntity(now: Long) = RecipeEntity(
     ingredientsJson = json.encodeToString(ingredientList, this.ingredients),
     pinned = pinned,
     usualPortionJson = usualPortion?.let { json.encodeToString(Portion.serializer(), it) },
-    updatedAt = now,
+    updatedAt = now, pieces = pieces, cookedWeightG = cookedWeightG,
 )
 
 internal fun RecipeVariantEntity.toModel() = RecipeVariant(
@@ -86,14 +88,14 @@ internal fun BatchEntity.toModel() = Batch(
     id = id, householdId = householdId, recipeId = recipeId, name = name,
     ingredients = json.decodeFromString(ingredientList, ingredientsJson),
     cookedWeightG = cookedWeightG, cookedOn = LocalDate.parse(cookedOn),
-    finishedOn = finishedOn?.let(LocalDate::parse),
+    finishedOn = finishedOn?.let(LocalDate::parse), pieces = pieces, frozen = frozen,
 )
 
 internal fun Batch.toEntity(now: Long) = BatchEntity(
     id = id, householdId = householdId, recipeId = recipeId, name = name,
     ingredientsJson = json.encodeToString(ingredientList, this.ingredients),
     cookedWeightG = cookedWeightG, cookedOn = cookedOn.toString(), updatedAt = now,
-    finishedOn = finishedOn?.toString(),
+    finishedOn = finishedOn?.toString(), pieces = pieces, frozen = frozen,
 )
 
 internal fun ProfileEntity.toModel() = UserProfile(
@@ -134,3 +136,8 @@ internal fun BatchPortion.toEntity(now: Long) = BatchPortionEntity(
     id = id, batchId = batchId, householdId = householdId, userId = userId, grams = grams,
     logEntryId = logEntryId, updatedAt = now,
 )
+
+internal fun PanEntity.toModel() = Pan(id = id, householdId = householdId, name = name, grams = grams)
+
+internal fun Pan.toEntity(now: Long) =
+    PanEntity(id = id, householdId = householdId, name = name, grams = grams, updatedAt = now)

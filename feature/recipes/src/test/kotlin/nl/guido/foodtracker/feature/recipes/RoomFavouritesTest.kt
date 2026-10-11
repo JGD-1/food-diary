@@ -11,6 +11,7 @@ import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Id
+import nl.guido.foodtracker.core.model.Pan
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.RecipeVariant
@@ -40,6 +41,10 @@ class RoomFavouritesTest {
         override suspend fun savePortion(portion: BatchPortion) = Unit
         override suspend fun deletePortion(id: Id) = Unit
         override suspend fun finishBatch(batchId: Id, on: LocalDate?) = Unit
+        override suspend fun deleteBatch(batchId: Id) = Unit
+        override fun pans(householdId: Id): Flow<List<Pan>> = emptyFlow()
+        override suspend fun savePan(pan: Pan) = Unit
+        override suspend fun deletePan(id: Id) = Unit
     }
 
     private val repo = FakeRepo()
