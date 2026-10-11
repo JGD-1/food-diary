@@ -43,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import nl.guido.foodtracker.core.ui.FoodPickPurpose
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.feature.recipes.BatchPortionViewModel
 import nl.guido.foodtracker.feature.recipes.NewBatchViewModel
@@ -72,10 +73,10 @@ internal fun NewBatchScreen(
     vm: NewBatchViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
-    var picking by rememberSaveable { mutableStateOf(false) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     var deleting by rememberSaveable { mutableStateOf(false) }
     CameraGrams(savedState, vm::onWeighed)
+    PickedFoods(savedState) { vm.add(it) }
     LaunchedEffect(state.savedBatchId) { state.savedBatchId?.let { onSaved(it, state.cookedOn) } }
     LaunchedEffect(state.closed) { if (state.closed) onClosed(deleting) }
     val editing = state.editing != null
@@ -132,7 +133,7 @@ internal fun NewBatchScreen(
                     onChoice = { vm.chooseAmount(line.key, it) },
                 )
             }
-            OutlinedButton(onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(onClick = { openFoodPick(navController, FoodPickPurpose.BATCH_INGREDIENT) }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.recipes_add_ingredient))
             }
             if (state.lines.isNotEmpty()) {
@@ -198,9 +199,6 @@ internal fun NewBatchScreen(
         }
     }
 
-    if (picking) {
-        FoodPicker(onPick = { vm.add(it); picking = false }, onClose = { picking = false })
-    }
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },

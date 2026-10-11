@@ -31,6 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import nl.guido.foodtracker.core.ui.FoodPickPurpose
 import nl.guido.foodtracker.core.model.sum
 import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.RecipeEditViewModel
@@ -48,9 +49,9 @@ internal fun RecipeEditScreen(
     vm: RecipeEditViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
-    var picking by rememberSaveable { mutableStateOf(false) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     CameraGrams(savedState, vm::onWeighed)
+    PickedFoods(savedState) { vm.add(it) }
     LaunchedEffect(state.done) { if (state.done) onDone(state.deleted) }
 
     Scaffold(
@@ -88,7 +89,7 @@ internal fun RecipeEditScreen(
                     onChoice = { vm.chooseAmount(line.key, it) },
                 )
             }
-            OutlinedButton(onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(onClick = { openFoodPick(navController, FoodPickPurpose.RECIPE_INGREDIENT) }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.recipes_add_ingredient))
             }
             val filled = state.lines.filledIn()
@@ -132,9 +133,6 @@ internal fun RecipeEditScreen(
         }
     }
 
-    if (picking) {
-        FoodPicker(onPick = { vm.add(it); picking = false }, onClose = { picking = false })
-    }
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },

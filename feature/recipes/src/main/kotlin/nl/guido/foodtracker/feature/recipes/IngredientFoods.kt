@@ -5,8 +5,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.model.CommonPortions
 import nl.guido.foodtracker.core.model.Food
+import nl.guido.foodtracker.core.model.PickedFood
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
+import nl.guido.foodtracker.feature.recipes.logic.formatGrams
 import nl.guido.foodtracker.feature.recipes.logic.portionChoices
 import java.util.Optional
 import javax.inject.Inject
@@ -24,8 +26,12 @@ internal class IngredientFoods @Inject constructor(
         packLabel = context.getString(R.string.recipes_amount_pack),
     )
 
-    /** A new line for a food picked just now. */
-    suspend fun line(food: Food): EditableIngredient = EditableIngredient.of(food, choicesFor(food))
+    /** A new line for a food picked in the shared picker (S21), with its amount and label ("2 eggs"). Null if the food is gone. */
+    suspend fun line(picked: PickedFood): EditableIngredient? {
+        val food = runCatching { foods.get(picked.foodId) }.getOrNull() ?: return null
+        return EditableIngredient.of(food, choicesFor(food))
+            .copy(gramsText = formatGrams(picked.grams), amountLabel = picked.label)
+    }
 
     /** Lines loaded from a saved recipe or batch, with their foods looked up on the phone. */
     suspend fun enrich(lines: List<EditableIngredient>): List<EditableIngredient> = lines.map { line ->

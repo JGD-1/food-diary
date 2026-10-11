@@ -38,7 +38,6 @@
     <string name="recipes_weigh">Wegen</string>
     <string name="recipes_remove">Weghalen</string>
     <string name="recipes_kcal">%1$d kcal</string>
-    <string name="recipes_kcal_per_100g">%1$d kcal per 100 g</string>
     <string name="recipes_macros">Eiwit %1$d g · Koolhydraten %2$d g · Vet %3$d g</string>
     <string name="recipes_for_day">Voor %1$s</string>
     <string name="recipes_meal_breakfast">Ontbijt</string>
@@ -48,13 +47,6 @@
     <string name="recipes_meal_drinks">Drinken</string>
 
     <!-- Een product zoeken -->
-    <string name="recipes_find_food">Product zoeken</string>
-    <string name="recipes_find_food_hint">Typ een product en tik op Zoeken</string>
-    <string name="recipes_search">Zoeken</string>
-    <string name="recipes_searching">Zoeken…</string>
-    <string name="recipes_nothing_found">Niets gevonden. Probeer een ander woord.</string>
-    <string name="recipes_nothing_on_phone">Nog niet op je telefoon. Probeer online te zoeken.</string>
-    <string name="recipes_search_online">Online zoeken</string>
     <string name="recipes_close">Sluiten</string>
 
     <!-- Een recept toevoegen -->
