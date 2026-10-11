@@ -1,0 +1,58 @@
+# The app's own plain words for the short forms in NEVO food names (an addition, not NEVO data).
+# The NEVO name is never changed; the app shows its readable name ("Apple, with skin, average") with the NEVO name under it.
+# language|short form (one or two words, as written in NEVO)|plain words
+en|w|with
+en|wo|without
+en|av|average
+en|prep|prepared
+en|unprep|unprepared
+en|s-sk|semi-skimmed
+en|semi-sk|semi-skimmed
+en|sat fa|saturated fatty acids
+en|sat|saturated
+en|fa|fatty acids
+en|CHO|carbohydrates
+en|conc|concentrate
+en|liq|liquid
+en|sol|solid
+en|excl|excluding
+en|incl|including
+en|vit|vitamin
+en|min|minerals
+en|prod|product
+en|mths|months
+en|wk|weeks
+en|p|per
+en|approx|approximately
+en|veg|vegetables
+en|choc|chocolate
+en|chol|cholesterol
+# A few English NEVO names still carry Dutch short forms.
+en|m|with
+en|z|without
+en|toev|additions
+nl|m|met
+nl|z|zonder
+nl|gem v|gemiddelde van
+nl|gem|gemiddeld
+nl|v|van
+nl|obv|op basis van
+nl|toev|toevoegingen
+nl|verz vetz|verzadigde vetzuren
+nl|verz|verzadigd
+nl|vetz|vetzuren
+nl|KH|koolhydraten
+nl|vlb|vloeibaar
+nl|hv|halfvolle
+nl|mnd|maanden
+nl|vit|vitamine
+nl|min|mineralen
+nl|p|per
+nl|ongez|ongezouten
+nl|excl|exclusief
+nl|incl|inclusief
+nl|ca|circa
+nl|ea|en andere
+nl|ed|en dergelijke
+nl|hoh|half-om-half
+nl|leverprod|leverproducten

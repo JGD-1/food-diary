@@ -22,4 +22,26 @@
     <string name="food_meal_lunch">Lunch</string>
     <string name="food_meal_dinner">Avondeten</string>
     <string name="food_meal_snacks">Tussendoortjes</string>
+    <!-- Shared food picker (S21) -->
+    <string name="food_pick_title_ingredient">Ingrediënt toevoegen</string>
+    <string name="food_pick_title_extra">Extra toevoegen</string>
+    <string name="food_pick_search_label">Zoek een voedingsmiddel</string>
+    <string name="food_pick_search_hint">Bijvoorbeeld: havermout, ei, melk</string>
+    <string name="food_pick_start">Typ een paar letters om iets te zoeken. Ingrediënten die je eerder gebruikte, staan hier.</string>
+    <string name="food_pick_recent">Laatst gebruikt</string>
+    <string name="food_pick_on_phone">Op je telefoon</string>
+    <string name="food_pick_search_online">Online zoeken naar “%1$s”</string>
+    <string name="food_pick_searching_online">Zoeken in Open Food Facts…</string>
+    <string name="food_pick_online">Online</string>
+    <string name="food_pick_online_nothing">Online niets gevonden. Probeer andere woorden.</string>
+    <string name="food_pick_online_unreachable">Open Food Facts is niet bereikbaar. Controleer je internet.</string>
+    <string name="food_pick_amount">Hoeveelheid</string>
+    <string name="food_pick_unit_g">g</string>
+    <string name="food_pick_unit_ml">ml</string>
+    <string name="food_pick_serving">1 portie</string>
+    <string name="food_pick_pack">Hele verpakking</string>
+    <string name="food_pick_kcal">%1$d kcal</string>
+    <string name="food_pick_add_recipe">Toevoegen aan recept</string>
+    <string name="food_pick_add_batch">Toevoegen aan de pan</string>
+    <string name="food_pick_add_extra">Extra toevoegen</string>
 </resources>
