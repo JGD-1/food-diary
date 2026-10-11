@@ -10,8 +10,14 @@ import java.time.temporal.TemporalAdjusters
 
 internal enum class DayKind { PAST, TODAY, FUTURE }
 
-/** One day of this week. [kcal] is 0 for a day with nothing logged. */
-internal data class DayBar(val date: LocalDate, val kcal: Double, val logged: Boolean, val kind: DayKind)
+/** One day of this week. [kcal] and [proteinG] are 0 for a day with nothing logged. */
+internal data class DayBar(
+    val date: LocalDate,
+    val kcal: Double,
+    val logged: Boolean,
+    val kind: DayKind,
+    val proteinG: Double = 0.0,
+)
 
 internal data class WeekStats(
     val from: LocalDate,
@@ -20,6 +26,8 @@ internal data class WeekStats(
     val days: List<DayBar>,
     /** Average kcal per logged day, or null when nothing is logged yet. See [StatsMath.averagePerLoggedDay]. */
     val averageKcal: Double?,
+    /** Average grams of protein per logged day, counted over the same days as [averageKcal]. */
+    val averageProteinG: Double? = null,
     /** Everything logged this week so far, today included. */
     val totalKcal: Double,
     val drinksKcal: Double,
@@ -49,8 +57,11 @@ internal object StatsMath {
     fun firstDayNeeded(today: LocalDate, weeksBack: Int = 0): LocalDate =
         minOf(YearMonth.from(today).minusMonths((MONTHS_SHOWN - 1).toLong()).atDay(1), weekStart(today).minusWeeks(weeksBack.toLong()))
 
-    fun dayTotals(entries: List<LogEntry>): Map<LocalDate, Double> =
-        entries.groupBy { it.date }.mapValues { (_, list) -> list.sumOf { it.nutrients.kcal } }
+    fun dayTotals(entries: List<LogEntry>, amount: (LogEntry) -> Double = { it.nutrients.kcal }): Map<LocalDate, Double> =
+        entries.groupBy { it.date }.mapValues { (_, list) -> list.sumOf(amount) }
+
+    /** True while nothing is logged before this week: the person is in their first week with the app. */
+    fun isFirstWeek(entries: List<LogEntry>, today: LocalDate): Boolean = entries.none { it.date < weekStart(today) }
 
     /**
      * Average over the days that have something logged, so a day you didn't log doesn't count as
@@ -73,11 +84,13 @@ internal object StatsMath {
         val to = from.plusDays(6)
         val inWeek = entries.filter { it.date in from..to }
         val totals = dayTotals(inWeek)
+        val protein = dayTotals(inWeek) { it.nutrients.protein }
         val dates = (0L..6L).map { from.plusDays(it) }
         val days = dates.map { date ->
             DayBar(
                 date = date,
                 kcal = totals[date] ?: 0.0,
+                proteinG = protein[date] ?: 0.0,
                 logged = date in totals,
                 kind = when {
                     date < today -> DayKind.PAST
@@ -102,6 +115,7 @@ internal object StatsMath {
             to = to,
             days = days,
             averageKcal = averagePerLoggedDay(totals, dates, today),
+            averageProteinG = averagePerLoggedDay(protein, dates, today),
             totalKcal = allKcal,
             drinksKcal = drinksKcal,
             drinksPercent = if (allKcal > 0) Math.round(drinksKcal / allKcal * 100).toInt() else 0,

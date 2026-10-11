@@ -36,6 +36,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -78,7 +79,9 @@ internal fun StatsScreen(
             title = stringResource(R.string.progress_stats_title),
         )
         if (state is StatsUiState.Ready) {
+            if (state.isFirstWeek && state.weeksBack == 0) FirstWeekCard()
             ThisWeekCard(state.week, state.targetKcal, state.weeksBack, onEarlier, onLater, onOpenDay)
+            ProteinCard(state.week, state.proteinGoalG, isThisWeek = state.weeksBack == 0, onOpenDay)
             ByMonthCard(state.months)
             DrinksCard(state.week, isThisWeek = state.weeksBack == 0)
         }
@@ -140,7 +143,16 @@ private fun ThisWeekCard(
                 fontWeight = FontWeight.SemiBold,
             )
         }
-        WeekBars(week, targetKcal, onOpenDay)
+        WeekBars(
+            week = week,
+            value = { it.kcal },
+            line = targetKcal?.toDouble(),
+            description = stringResource(
+                R.string.progress_stats_week_desc,
+                week.days.filter { it.logged }.joinToString { "${dayName(it.date)} ${Format.kcal(it.kcal)}" },
+            ),
+            onOpenDay = onOpenDay,
+        )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             week.days.forEach { day ->
                 val isToday = day.kind == DayKind.TODAY
@@ -173,23 +185,80 @@ private fun ThisWeekCard(
     }
 }
 
+/** Before anything older is logged: a short example of what the Stats tab will show (finding S28). */
+@Composable
+private fun FirstWeekCard() {
+    SectionCard {
+        SectionTitle(stringResource(R.string.progress_stats_first_title))
+        NoteText(stringResource(R.string.progress_stats_first_body, Format.kcal(EXAMPLE_KCAL)))
+    }
+}
+
+private const val EXAMPLE_KCAL = 1850.0
+
+/** Protein per day, next to the kcal week: average per logged day, a bar per day, the goal as a dashed line (S6). */
+@Composable
+private fun ProteinCard(week: WeekStats, proteinGoalG: Int?, isThisWeek: Boolean, onOpenDay: (LocalDate) -> Unit) {
+    SectionCard {
+        SectionTitle(stringResource(R.string.progress_stats_protein_title))
+        val average = week.averageProteinG
+        if (average != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom) {
+                Text(
+                    stringResource(R.string.progress_grams, Format.kcal(average)),
+                    fontSize = 28.sp,
+                    lineHeight = 30.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
+                NoteText(
+                    if (proteinGoalG != null) {
+                        stringResource(R.string.progress_stats_protein_average_goal, Format.kcal(proteinGoalG.toDouble()))
+                    } else {
+                        stringResource(R.string.progress_stats_protein_average)
+                    },
+                    modifier = Modifier.padding(bottom = 4.dp),
+                )
+            }
+            WeekBars(
+                week = week,
+                value = { it.proteinG },
+                line = proteinGoalG?.toDouble(),
+                description = stringResource(
+                    R.string.progress_stats_protein_desc,
+                    week.days.filter { it.logged }.joinToString { "${dayName(it.date)} ${Format.kcal(it.proteinG)}" },
+                ),
+                onOpenDay = onOpenDay,
+                height = 72.dp,
+            )
+            if (proteinGoalG != null) NoteText(stringResource(R.string.progress_stats_protein_note_goal))
+        } else {
+            NoteText(stringResource(if (isThisWeek) R.string.progress_stats_protein_empty else R.string.progress_stats_protein_empty_past))
+        }
+    }
+}
+
+private fun dayName(date: LocalDate): String = date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
+
 /**
  * A bar per day, Monday to Sunday: finished days filled, today outlined (it fills up as you log),
- * days still to come and days with nothing logged as a thin stub. The dashed line is the target.
+ * days still to come and days with nothing logged as a thin stub. The dashed [line] is the target or goal.
  */
 @Composable
-private fun WeekBars(week: WeekStats, targetKcal: Int?, onOpenDay: (LocalDate) -> Unit) {
+private fun WeekBars(
+    week: WeekStats,
+    value: (DayBar) -> Double,
+    line: Double?,
+    description: String,
+    onOpenDay: (LocalDate) -> Unit,
+    height: Dp = 110.dp,
+) {
     val accent = MaterialTheme.colorScheme.primary
     val lineColor = MaterialTheme.colorScheme.onSurfaceVariant
     val track = FoodTheme.colors.accentTrack
-    val description = stringResource(
-        R.string.progress_stats_week_desc,
-        week.days.filter { it.logged }.joinToString { "${it.date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${Format.kcal(it.kcal)}" },
-    )
     Canvas(
         Modifier
             .fillMaxWidth()
-            .height(110.dp)
+            .height(height)
             .semantics { contentDescription = description }
             // Tap a bar to open that day on Today; days still to come do nothing.
             .pointerInput(week) {
@@ -203,14 +272,14 @@ private fun WeekBars(week: WeekStats, targetKcal: Int?, onOpenDay: (LocalDate) -
         val gap = 10.dp.toPx()
         val barWidth = (size.width - gap * 6) / 7
         val top = 6.dp.toPx()
-        val scale = max(max(week.days.maxOf { it.kcal }, (targetKcal ?: 0).toDouble()), 1.0)
+        val scale = max(max(week.days.maxOf(value), line ?: 0.0), 1.0)
         fun heightFor(kcal: Double) = ((kcal / scale) * (size.height - top)).toFloat()
         val stub = 4.dp.toPx()
         val corner = CornerRadius(6.dp.toPx())
 
         week.days.forEachIndexed { i, day ->
             val left = i * (barWidth + gap)
-            val h = heightFor(day.kcal)
+            val h = heightFor(value(day))
             when {
                 !day.logged || h < stub -> drawRoundRect(
                     color = track,
@@ -236,8 +305,8 @@ private fun WeekBars(week: WeekStats, targetKcal: Int?, onOpenDay: (LocalDate) -
                 )
             }
         }
-        if (targetKcal != null && targetKcal > 0) {
-            val y = size.height - heightFor(targetKcal.toDouble())
+        if (line != null && line > 0) {
+            val y = size.height - heightFor(line)
             drawLine(
                 color = lineColor,
                 start = Offset(0f, y),

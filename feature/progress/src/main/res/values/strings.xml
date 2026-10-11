@@ -76,4 +76,18 @@
     <string name="progress_stats_drinks_none">No drinks logged this week.</string>
     <string name="progress_stats_drinks_one">%1$d%% of all calories · mostly %2$s</string>
     <string name="progress_stats_drinks_two">%1$d%% of all calories · mostly %2$s and %3$s</string>
+
+    <!-- Protein and first-week notes (S6, S28) -->
+    <string name="progress_grams">%1$s g</string>
+    <string name="progress_stats_first_title">Your first week</string>
+    <string name="progress_stats_first_body">Stats fills in as you log. Each day gets a bar, and you\'ll see your average, for example “%1$s kcal a day on average”. From next month, By month compares your months.</string>
+    <string name="progress_stats_protein_title">Protein</string>
+    <string name="progress_stats_protein_average">protein a day on average</string>
+    <string name="progress_stats_protein_average_goal">protein a day on average · goal %1$s g</string>
+    <string name="progress_stats_protein_note_goal">Dashed line: your protein goal.</string>
+    <string name="progress_stats_protein_desc">Protein per day in grams: %1$s</string>
+    <string name="progress_stats_protein_empty">Your protein per day shows here once you log something this week.</string>
+    <string name="progress_stats_protein_empty_past">Nothing logged that week.</string>
+    <string name="progress_weight_graph_first">Each weekly weigh-in adds a dot here. After a few weeks the dots make a line toward your goal of %1$s kg, for example 82.0, 81.6, 81.3 kg.</string>
+    <string name="progress_weight_changes_first">From your second weigh-in, a bar shows the change each week, for example −0.4 kg.</string>
 </resources>

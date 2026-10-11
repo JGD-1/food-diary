@@ -19,22 +19,29 @@ class ReminderStore @Inject constructor(@ApplicationContext context: Context) {
     fun save(value: ReminderSettings) {
         prefs.edit()
             .putBoolean(KEY_ENABLED, value.enabled)
-            .putInt(KEY_MINUTE_OF_DAY, value.time.hour * 60 + value.time.minute)
+            .putInt(KEY_MINUTE_OF_DAY, minuteOfDay(value.time))
+            .putInt(KEY_SECOND_MINUTE_OF_DAY, value.secondTime?.let { minuteOfDay(it) } ?: -1)
             .apply()
         _settings.value = value
     }
 
     private fun read(): ReminderSettings {
         val default = ReminderSettings()
-        val minuteOfDay = prefs.getInt(KEY_MINUTE_OF_DAY, -1)
         return ReminderSettings(
             enabled = prefs.getBoolean(KEY_ENABLED, default.enabled),
-            time = if (minuteOfDay in 0 until 24 * 60) LocalTime.of(minuteOfDay / 60, minuteOfDay % 60) else default.time,
+            time = timeOf(prefs.getInt(KEY_MINUTE_OF_DAY, -1)) ?: default.time,
+            secondTime = timeOf(prefs.getInt(KEY_SECOND_MINUTE_OF_DAY, -1)),
         )
     }
+
+    private fun minuteOfDay(time: LocalTime): Int = time.hour * 60 + time.minute
+
+    private fun timeOf(minuteOfDay: Int): LocalTime? =
+        if (minuteOfDay in 0 until 24 * 60) LocalTime.of(minuteOfDay / 60, minuteOfDay % 60) else null
 
     private companion object {
         const val KEY_ENABLED = "enabled"
         const val KEY_MINUTE_OF_DAY = "minute_of_day"
+        const val KEY_SECOND_MINUTE_OF_DAY = "second_minute_of_day"
     }
 }

@@ -16,7 +16,7 @@ import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.ui.OpenScreen
 import nl.guido.foodtracker.core.ui.Routes
 
-/** Shows the reminder notification; tapping it opens Log food for that meal. */
+/** Shows a reminder notification (one per time slot); tapping it opens Log food for that meal. */
 internal object ReminderNotifier {
     private const val CHANNEL_ID = "daily-reminder"
     private const val NOTIFICATION_ID = 1001
@@ -29,7 +29,7 @@ internal object ReminderNotifier {
     }
 
     @SuppressLint("MissingPermission") // checked by canNotify just below
-    fun show(context: Context, meal: Meal) {
+    fun show(context: Context, slot: Int, meal: Meal) {
         if (!canNotify(context)) return
         val manager = NotificationManagerCompat.from(context)
         manager.createNotificationChannel(
@@ -40,24 +40,24 @@ internal object ReminderNotifier {
             .setSmallIcon(R.drawable.reminders_ic_notification)
             .setContentTitle(context.getString(notifyTitle(meal)))
             .setContentText(context.getString(R.string.reminders_notify_body))
-            .setContentIntent(openLogFood(context, meal))
+            .setContentIntent(openLogFood(context, slot, meal))
             .setAutoCancel(true)
             .build()
         try {
-            manager.notify(NOTIFICATION_ID, notification)
+            manager.notify(NOTIFICATION_ID + slot, notification)
         } catch (_: SecurityException) {
             // Permission taken away in the meantime: nothing to show.
         }
     }
 
     /** Opens the app (MainActivity, found by package) with the Log food route; an open app gets it as a new intent. */
-    private fun openLogFood(context: Context, meal: Meal): PendingIntent? {
+    private fun openLogFood(context: Context, slot: Int, meal: Meal): PendingIntent? {
         val launch = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: return null
         launch.putExtra(OpenScreen.EXTRA_ROUTE, Routes.logFood(meal))
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         return PendingIntent.getActivity(
             context,
-            0,
+            slot,
             launch,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )

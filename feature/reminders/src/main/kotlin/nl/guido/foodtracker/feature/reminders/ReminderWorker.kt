@@ -12,7 +12,7 @@ import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
 import java.time.LocalDate
 
-/** The daily job: shows "Log lunch?" unless that meal is already logged, then plans tomorrow's job. */
+/** The daily job for one reminder time: shows "Log lunch?" unless that meal is already logged, then plans tomorrow's job. */
 class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     /** How the job reaches the app's shared parts (WorkManager creates it, not Hilt). */
@@ -27,15 +27,18 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
     override suspend fun doWork(): Result {
         val parts = EntryPointAccessors.fromApplication(applicationContext, Parts::class.java)
         val settings = parts.reminderStore().settings.value
-        if (!settings.enabled) return Result.success()
+        // Jobs planned before there were two times have no slot: they are the first one.
+        val slot = inputData.getInt(ReminderScheduler.KEY_SLOT, 0)
+        val time = settings.timeFor(slot)
+        if (!settings.enabled || time == null) return Result.success()
         // Plan tomorrow first, so a problem below never stops the reminder for good.
-        ReminderScheduler.planNext(applicationContext, settings)
-        val meal = mealForTime(settings.time)
+        ReminderScheduler.planNext(applicationContext, slot, time)
+        val meal = mealForTime(time)
         val logged = runCatching {
             val userId = parts.sessionRepository().currentUser.value.userId
             parts.diaryRepository().entries(userId, LocalDate.now()).first()
         }.getOrDefault(emptyList())
-        if (shouldRemind(logged, meal)) ReminderNotifier.show(applicationContext, meal)
+        if (shouldRemind(logged, meal)) ReminderNotifier.show(applicationContext, slot, meal)
         return Result.success()
     }
 }

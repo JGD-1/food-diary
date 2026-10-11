@@ -17,6 +17,12 @@ internal class RemindersViewModel @Inject constructor(
 
     fun setTime(time: LocalTime) = update(settings.value.copy(time = time))
 
+    fun addSecondTime() = update(settings.value.let { it.copy(secondTime = ReminderSettings.suggestedSecond(it.time)) })
+
+    fun setSecondTime(time: LocalTime) = update(settings.value.copy(secondTime = time))
+
+    fun removeSecondTime() = update(settings.value.copy(secondTime = null))
+
     private fun update(value: ReminderSettings) {
         store.save(value)
         scheduler.apply(value)

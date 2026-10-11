@@ -55,14 +55,14 @@ import nl.guido.foodtracker.core.model.Meal
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-/** Profile → Reminders: switch the one daily reminder on or off and pick its time. */
+/** Profile → Reminders: switch the daily reminder on or off, pick its time, and optionally a second time. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var canNotify by remember { mutableStateOf(ReminderNotifier.canNotify(context)) }
-    var showPicker by remember { mutableStateOf(false) }
+    var pickerSlot by remember { mutableStateOf<Int?>(null) }
     // Coming back from the phone settings: check again.
     LifecycleResumeEffect(Unit) {
         canNotify = ReminderNotifier.canNotify(context)
@@ -120,25 +120,39 @@ internal fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel =
                         Text(stringResource(R.string.reminders_switch), style = MaterialTheme.typography.titleMedium)
                         Switch(checked = settings.enabled, onCheckedChange = null)
                     }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Column {
-                            Text(stringResource(R.string.reminders_time), style = MaterialTheme.typography.titleMedium)
-                            Text(formatTime(context, settings.time), style = MaterialTheme.typography.headlineSmall)
+                    TimeRow(
+                        label = stringResource(if (settings.secondTime == null) R.string.reminders_time else R.string.reminders_first_time),
+                        time = formatTime(context, settings.time),
+                        onChange = { pickerSlot = 0 },
+                    )
+                    val second = settings.secondTime
+                    if (second == null) {
+                        OutlinedButton(
+                            onClick = viewModel::addSecondTime,
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                        ) {
+                            Text(stringResource(R.string.reminders_add_second))
                         }
-                        OutlinedButton(onClick = { showPicker = true }, modifier = Modifier.heightIn(min = 48.dp)) {
-                            Text(stringResource(R.string.reminders_change_time))
+                    } else {
+                        TimeRow(
+                            label = stringResource(R.string.reminders_second_time),
+                            time = formatTime(context, second),
+                            onChange = { pickerSlot = 1 },
+                        )
+                        TextButton(
+                            onClick = viewModel::removeSecondTime,
+                            modifier = Modifier.align(Alignment.End).heightIn(min = 48.dp),
+                        ) {
+                            Text(stringResource(R.string.reminders_remove_second))
                         }
                     }
                 }
             }
-            val meal = mealForTime(settings.time)
-            val title = stringResource(notifyTitle(meal))
-            Note(stringResource(R.string.reminders_preview, formatTime(context, settings.time), title))
-            Note(stringResource(R.string.reminders_skip_note, stringResource(mealName(meal))))
+            for (time in listOfNotNull(settings.time, settings.secondTime)) {
+                val meal = mealForTime(time)
+                Note(stringResource(R.string.reminders_preview, formatTime(context, time), stringResource(notifyTitle(meal))))
+            }
+            Note(stringResource(R.string.reminders_skip_note_any))
             if (settings.enabled && !canNotify) {
                 Note(stringResource(R.string.reminders_blocked))
                 OutlinedButton(
@@ -151,26 +165,46 @@ internal fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel =
         }
     }
 
-    if (showPicker) {
+    val slot = pickerSlot
+    val pickerTime = slot?.let(settings::timeFor)
+    if (slot != null && pickerTime != null) {
         val state = rememberTimePickerState(
-            initialHour = settings.time.hour,
-            initialMinute = settings.time.minute,
+            initialHour = pickerTime.hour,
+            initialMinute = pickerTime.minute,
             is24Hour = DateFormat.is24HourFormat(context),
         )
         AlertDialog(
-            onDismissRequest = { showPicker = false },
+            onDismissRequest = { pickerSlot = null },
             title = { Text(stringResource(R.string.reminders_picker_title)) },
             text = { TimePicker(state = state) },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.setTime(LocalTime.of(state.hour, state.minute))
-                    showPicker = false
+                    val picked = LocalTime.of(state.hour, state.minute)
+                    if (slot == 0) viewModel.setTime(picked) else viewModel.setSecondTime(picked)
+                    pickerSlot = null
                 }) { Text(stringResource(R.string.reminders_picker_ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.reminders_picker_cancel)) }
+                TextButton(onClick = { pickerSlot = null }) { Text(stringResource(R.string.reminders_picker_cancel)) }
             },
         )
+    }
+}
+
+@Composable
+private fun TimeRow(label: String, time: String, onChange: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Column {
+            Text(label, style = MaterialTheme.typography.titleMedium)
+            Text(time, style = MaterialTheme.typography.headlineSmall)
+        }
+        OutlinedButton(onClick = onChange, modifier = Modifier.heightIn(min = 48.dp)) {
+            Text(stringResource(R.string.reminders_change_time))
+        }
     }
 }
 
@@ -193,12 +227,4 @@ internal fun notifyTitle(meal: Meal): Int = when (meal) {
     Meal.LUNCH -> R.string.reminders_notify_lunch
     Meal.DINNER -> R.string.reminders_notify_dinner
     Meal.SNACKS, Meal.DRINKS -> R.string.reminders_notify_snacks
-}
-
-@StringRes
-private fun mealName(meal: Meal): Int = when (meal) {
-    Meal.BREAKFAST -> R.string.reminders_meal_breakfast
-    Meal.LUNCH -> R.string.reminders_meal_lunch
-    Meal.DINNER -> R.string.reminders_meal_dinner
-    Meal.SNACKS, Meal.DRINKS -> R.string.reminders_meal_snacks
 }

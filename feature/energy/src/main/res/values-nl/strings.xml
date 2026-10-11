@@ -24,8 +24,9 @@
     <string name="energy_weeks_title">Weken waarvan geleerd is</string>
     <string name="energy_weeks_body">Een dag telt mee als minstens %1$d%% van je doel is ingevuld. Een weging wordt gebruikt als minstens de helft van de dagen ervoor meetelt.</string>
     <string name="energy_week_used">Weging %1$s: gebruikt</string>
-    <string name="energy_week_skipped">Weging %1$s: overgeslagen</string>
+    <string name="energy_week_skipped">Weging %1$s: niet gebruikt</string>
     <string name="energy_week_days">%1$d van %2$d dagen volledig</string>
+    <string name="energy_week_days_skipped">%1$d van %2$d dagen volledig. Te weinig dagen ingevuld die week, dus die telt niet mee. Dat is prima.</string>
     <string name="energy_line_total_title">Dagdoel</string>
     <string name="energy_line_minimum">Op %1$s kcal gehouden, een verstandig minimum.</string>
     <string name="energy_weight_from_weigh_in">Gebruikt gewicht: %1$s kg, van je weging op %2$s.</string>
