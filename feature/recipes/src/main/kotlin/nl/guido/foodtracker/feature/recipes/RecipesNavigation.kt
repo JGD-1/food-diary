@@ -5,11 +5,13 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import nl.guido.foodtracker.core.ui.Routes
 import nl.guido.foodtracker.feature.recipes.ui.BatchPortionScreen
 import nl.guido.foodtracker.feature.recipes.ui.LogRecipeScreen
 import nl.guido.foodtracker.feature.recipes.ui.NewBatchScreen
 import nl.guido.foodtracker.feature.recipes.ui.RecipeEditScreen
 import nl.guido.foodtracker.feature.recipes.ui.RecipesScreen
+import java.time.LocalDate
 
 /** Screens owned by this module. The app calls this once when it builds the navigation. */
 fun NavGraphBuilder.recipesScreens(navController: NavController) {
@@ -57,17 +59,21 @@ fun NavGraphBuilder.recipesScreens(navController: NavController) {
             navController = navController,
             savedState = entry.savedStateHandle,
             onEdit = { navController.navigate(RecipesRoutes.edit(it)) },
-            onCookBatch = { navController.navigate(RecipesRoutes.newBatch(it)) },
+            onCookBatch = { recipeId, date ->
+                navController.navigate(RecipesRoutes.newBatch(recipeId, date.takeIf { it != LocalDate.now() }))
+            },
             onDone = { navController.popBackStack() },
         )
     }
-    composable(RecipesRoutes.NEW_BATCH, arguments = optionalRecipeId) { entry ->
+    composable(RecipesRoutes.NEW_BATCH, arguments = optionalRecipeId + optionalDate) { entry ->
         NewBatchScreen(
             navController = navController,
             savedState = entry.savedStateHandle,
-            onSaved = { batchId ->
+            onSaved = { batchId, cookedOn ->
                 // Step 3 replaces the cooking screen, so Back from it doesn't reopen a saved batch.
-                navController.navigate(RecipesRoutes.batchPortion(batchId)) {
+                // The first portion lands on the cook day.
+                val date = cookedOn.takeIf { it != LocalDate.now() }
+                navController.navigate(Routes.batchPortion(batchId, date = date)) {
                     popUpTo(RecipesRoutes.NEW_BATCH) { inclusive = true }
                 }
             },

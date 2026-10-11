@@ -21,12 +21,16 @@ internal object RecipesRoutes {
     const val LIST = Routes.RECIPES
     const val EDIT = "recipes/edit?$ARG_RECIPE_ID={$ARG_RECIPE_ID}"
     const val LOG = "${Routes.RECIPE_LOG}?$ARG_MEAL={$ARG_MEAL}&$ARG_DATE={$ARG_DATE}"
-    const val NEW_BATCH = "recipes/batch?$ARG_RECIPE_ID={$ARG_RECIPE_ID}"
+    const val NEW_BATCH = "recipes/batch?$ARG_RECIPE_ID={$ARG_RECIPE_ID}&$ARG_DATE={$ARG_DATE}"
     const val BATCH_PORTION = "${Routes.BATCH_PORTION}?$ARG_MEAL={$ARG_MEAL}&$ARG_DATE={$ARG_DATE}"
 
     fun edit(recipeId: Id? = null) = if (recipeId == null) "recipes/edit" else "recipes/edit?$ARG_RECIPE_ID=$recipeId"
     fun log(recipeId: Id) = Routes.recipeLog(recipeId)
-    fun newBatch(recipeId: Id? = null) = if (recipeId == null) "recipes/batch" else "recipes/batch?$ARG_RECIPE_ID=$recipeId"
+    /** Cook a batch, from a recipe or not; [date] is the day being viewed (the cook date to start with). */
+    fun newBatch(recipeId: Id? = null, date: LocalDate? = null): String {
+        val args = listOfNotNull(recipeId?.let { "$ARG_RECIPE_ID=$it" }, date?.let { "$ARG_DATE=$it" })
+        return if (args.isEmpty()) "recipes/batch" else "recipes/batch?" + args.joinToString("&")
+    }
     fun batchPortion(batchId: Id) = Routes.batchPortion(batchId)
 
     /** The meal passed by the opener, or null when none (or an unknown one) was given. */

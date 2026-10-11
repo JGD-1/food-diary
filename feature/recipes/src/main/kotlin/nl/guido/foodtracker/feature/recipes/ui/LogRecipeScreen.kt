@@ -39,6 +39,7 @@ import nl.guido.foodtracker.feature.recipes.LogRecipeViewModel
 import nl.guido.foodtracker.feature.recipes.LogRecipeViewModel.Weighing
 import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.logic.formatGrams
+import java.time.LocalDate
 
 /**
  * Log a recipe in two taps (open, Log it), or adjust it first: a saved variant, extras just for
@@ -49,7 +50,7 @@ internal fun LogRecipeScreen(
     navController: NavController,
     savedState: SavedStateHandle,
     onEdit: (String) -> Unit,
-    onCookBatch: (String) -> Unit,
+    onCookBatch: (String, LocalDate) -> Unit,
     onDone: () -> Unit,
     vm: LogRecipeViewModel = hiltViewModel(),
 ) {
@@ -150,7 +151,7 @@ internal fun LogRecipeScreen(
                 }
                 TextButton(onClick = { onEdit(recipe.id) }) { Text(stringResource(R.string.recipes_edit_recipe)) }
             }
-            TextButton(onClick = { onCookBatch(recipe.id) }) { Text(stringResource(R.string.recipes_cook_batch_of_this)) }
+            TextButton(onClick = { onCookBatch(recipe.id, state.date) }) { Text(stringResource(R.string.recipes_cook_batch_of_this)) }
         }
     }
 

@@ -90,4 +90,11 @@
     <string name="recipes_log_my_portion">Log my portion</string>
     <string name="recipes_batch_left">About %1$s g left in the pot</string>
     <string name="recipes_batch_last_portion">That was the last of it: take it off the list</string>
+    <string name="recipes_batch_cooked_on">Cooked on</string>
+    <string name="recipes_today">Today</string>
+    <string name="recipes_yesterday">Yesterday</string>
+    <string name="recipes_other_day">Other day…</string>
+    <string name="recipes_ok">OK</string>
+    <string name="recipes_batch_scale">× %1$s</string>
+    <string name="recipes_batch_save_to_recipe">Save these amounts to the recipe</string>
 </resources>

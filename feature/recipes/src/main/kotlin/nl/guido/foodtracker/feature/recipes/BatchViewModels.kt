@@ -18,16 +18,20 @@ import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.gramsLeft
 import nl.guido.foodtracker.core.model.newId
 import nl.guido.foodtracker.core.model.sum
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
+import nl.guido.foodtracker.feature.recipes.logic.amountsChanged
+import nl.guido.foodtracker.feature.recipes.logic.cookDateAllowed
 import nl.guido.foodtracker.feature.recipes.logic.filledIn
 import nl.guido.foodtracker.feature.recipes.logic.formatGrams
 import nl.guido.foodtracker.feature.recipes.logic.logEntry
 import nl.guido.foodtracker.feature.recipes.logic.mealAt
 import nl.guido.foodtracker.feature.recipes.logic.parseGrams
 import nl.guido.foodtracker.feature.recipes.logic.portionFor
+import nl.guido.foodtracker.feature.recipes.logic.rescaled
 import nl.guido.foodtracker.feature.recipes.logic.toIngredients
 import java.time.Instant
 import java.time.LocalDate
@@ -53,14 +57,25 @@ internal class NewBatchViewModel @Inject constructor(
 
     data class State(
         val loading: Boolean = true,
-        val recipeId: Id? = null,
+        /** The recipe this batch starts from, if any. */
+        val recipe: Recipe? = null,
         val name: String = "",
         val lines: List<EditableIngredient> = emptyList(),
         val cookedText: String = "",
+        /** The day it was cooked: the day being viewed, unless picked otherwise. */
+        val cookedOn: LocalDate = LocalDate.now(),
+        /** × ½, × 1 or × 2 of the recipe. */
+        val scale: Double = 1.0,
+        /** Tick to save the amounts that actually went in to the recipe too. */
+        val saveToRecipe: Boolean = false,
         val weighing: Weighing? = null,
         /** Set once saved: the screen moves on to weighing my portion. */
         val savedBatchId: Id? = null,
     ) {
+        val recipeId: Id? get() = recipe?.id
+        /** Offer "Save these amounts to the recipe" only when they differ from it. */
+        val canSaveToRecipe: Boolean
+            get() = recipe != null && lines.toIngredients()?.let { amountsChanged(recipe.ingredients, it) } == true
         val rawTotal: Nutrients get() = lines.filledIn().map { it.nutrients }.sum()
         val cookedGrams: Double? get() = parseGrams(cookedText)
         val canSave: Boolean
@@ -72,11 +87,13 @@ internal class NewBatchViewModel @Inject constructor(
 
     init {
         val recipeId = savedState.get<String>(RecipesRoutes.ARG_RECIPE_ID)?.takeIf { it.isNotEmpty() }
+        val viewedDay = RecipesRoutes.dateArg(savedState[RecipesRoutes.ARG_DATE], LocalDate.now())
         viewModelScope.launch {
             val recipe = recipeId?.let { recipes.get(it) }
             _state.value = State(
                 loading = false,
-                recipeId = recipe?.id,
+                recipe = recipe,
+                cookedOn = viewedDay,
                 name = recipe?.name.orEmpty(),
                 lines = recipe?.ingredients.orEmpty().map { EditableIngredient.of(it) },
             )
@@ -90,6 +107,13 @@ internal class NewBatchViewModel @Inject constructor(
     }
     fun remove(key: String) = _state.update { s -> s.copy(lines = s.lines.filterNot { it.key == key }) }
     fun setCooked(text: String) = _state.update { it.copy(cookedText = text) }
+    fun setCookedOn(date: LocalDate) {
+        if (cookDateAllowed(date, LocalDate.now())) _state.update { it.copy(cookedOn = date) }
+    }
+    fun setScale(scale: Double) = _state.update { s ->
+        s.copy(scale = scale, lines = s.lines.rescaled(s.scale, scale))
+    }
+    fun setSaveToRecipe(on: Boolean) = _state.update { it.copy(saveToRecipe = on) }
 
     fun startWeighing(target: Weighing) = _state.update { it.copy(weighing = target) }
     fun onWeighed(grams: Double) {
@@ -113,10 +137,11 @@ internal class NewBatchViewModel @Inject constructor(
             name = s.name.trim(),
             ingredients = ingredients,
             cookedWeightG = cooked,
-            cookedOn = LocalDate.now(),
+            cookedOn = s.cookedOn,
         )
         viewModelScope.launch {
             recipes.saveBatch(batch)
+            if (s.saveToRecipe && s.canSaveToRecipe) s.recipe?.let { recipes.save(it.copy(ingredients = ingredients)) }
             _state.update { it.copy(savedBatchId = batch.id) }
         }
     }

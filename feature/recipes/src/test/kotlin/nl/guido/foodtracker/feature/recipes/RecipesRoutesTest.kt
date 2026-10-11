@@ -39,4 +39,13 @@ class RecipesRoutesTest {
         val route = Routes.batchPortion("b1", Meal.LUNCH, LocalDate.of(2026, 10, 8))
         assertEquals("batch-portion/b1?meal=LUNCH&date=2026-10-08", route)
     }
+
+    @Test
+    fun `cook a batch takes an optional recipe and day`() {
+        assertEquals("recipes/batch?recipeId={recipeId}&date={date}", RecipesRoutes.NEW_BATCH)
+        assertEquals("recipes/batch", RecipesRoutes.newBatch())
+        assertEquals("recipes/batch?recipeId=r1", RecipesRoutes.newBatch("r1"))
+        assertEquals("recipes/batch?date=2026-10-08", RecipesRoutes.newBatch(date = LocalDate.of(2026, 10, 8)))
+        assertEquals("recipes/batch?recipeId=r1&date=2026-10-08", RecipesRoutes.newBatch("r1", LocalDate.of(2026, 10, 8)))
+    }
 }
