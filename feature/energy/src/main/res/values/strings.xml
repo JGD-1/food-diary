@@ -69,6 +69,7 @@
     <string name="energy_reminders">Reminders</string>
     <string name="energy_account_sync">Account and sync</string>
     <string name="energy_data_sources">Data sources</string>
+    <string name="energy_plain_names_note">The plain lines under NEVO names, such as “with skin, average”, are this app\'s own addition, not NEVO data.</string>
 
     <!-- Weekly weigh-in -->
     <string name="energy_weigh_in_title">Weekly weigh-in</string>

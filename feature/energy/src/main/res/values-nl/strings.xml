@@ -69,6 +69,7 @@
     <string name="energy_reminders">Herinneringen</string>
     <string name="energy_account_sync">Account en back-up</string>
     <string name="energy_data_sources">Gegevensbronnen</string>
+    <string name="energy_plain_names_note">De gewone regels onder NEVO-namen, zoals “met schil, gemiddeld”, zijn een toevoeging van deze app en geen NEVO-gegevens.</string>
 
     <!-- Wekelijkse weging -->
     <string name="energy_weigh_in_title">Wekelijkse weging</string>
