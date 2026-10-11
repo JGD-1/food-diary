@@ -107,6 +107,7 @@ internal fun NewBatchScreen(
                     onGrams = { vm.setGrams(line.key, it) },
                     onRemove = { vm.remove(line.key) },
                     onWeigh = cameraWeigh(navController) { vm.startWeighing(Weighing.Line(line.key)) },
+                    onChoice = { vm.chooseAmount(line.key, it) },
                 )
             }
             OutlinedButton(onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) {

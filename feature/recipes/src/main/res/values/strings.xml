@@ -97,4 +97,19 @@
     <string name="recipes_ok">OK</string>
     <string name="recipes_batch_scale">× %1$s</string>
     <string name="recipes_batch_save_to_recipe">Save these amounts to the recipe</string>
+    <string name="recipes_amount_serving">1 serving</string>
+    <string name="recipes_amount_pack">Whole pack</string>
+    <string name="recipes_ml_unit">ml</string>
+    <string name="recipes_amount_ml">Millilitres</string>
+    <string name="recipes_half_piece">½ piece</string>
+    <plurals name="recipes_pieces">
+        <item quantity="one">%1$d piece</item>
+        <item quantity="other">%1$d pieces</item>
+    </plurals>
+    <string name="recipes_after_cooking">After cooking or baking</string>
+    <string name="recipes_after_cooking_hint">Cooking changes the weight. Weigh the whole dish when it\'s done, without the pan, and portions count as grams of the finished dish.</string>
+    <string name="recipes_cooked_weight_optional">Weight of the finished dish (optional)</string>
+    <string name="recipes_cooked_weight_none_hint">Without it, portions count as grams of the raw ingredients. For a pot you share out over days, use Cook a batch.</string>
+    <string name="recipes_makes_pieces">Makes … pieces (optional)</string>
+    <string name="recipes_makes_pieces_hint">For example 12 muffins. You can then log ½, 1 or 2 pieces.</string>
 </resources>

@@ -12,7 +12,8 @@ val BATCH_SCALES: List<Double> = listOf(0.5, 1.0, 2.0)
  */
 fun List<EditableIngredient>.rescaled(from: Double, to: Double): List<EditableIngredient> {
     if (from <= 0.0 || to <= 0.0 || from == to) return this
-    return map { line -> line.grams?.let { line.copy(gramsText = formatGrams(it * to / from)) } ?: line }
+    // "2 eggs" no longer fits once doubled, so the label goes and the grams stay.
+    return map { line -> line.grams?.let { line.copy(gramsText = formatGrams(it * to / from), amountLabel = null) } ?: line }
 }
 
 /** True when the batch's ingredients differ from the recipe's (a food added, removed, or other grams). */

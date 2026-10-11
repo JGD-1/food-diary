@@ -39,6 +39,7 @@ import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.RecipesViewModel
 import nl.guido.foodtracker.feature.recipes.logic.Dish
 import nl.guido.foodtracker.feature.recipes.logic.OpenBatch
+import nl.guido.foodtracker.feature.recipes.logic.dishGrams
 import nl.guido.foodtracker.feature.recipes.logic.formatGrams
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
@@ -132,7 +133,7 @@ internal fun RecipesScreen(
 
 @Composable
 private fun recipeDetail(recipe: Recipe): String =
-    stringResource(R.string.recipes_recipe_detail, recipe.total.kcal.roundToInt(), formatGrams(recipe.totalGrams))
+    stringResource(R.string.recipes_recipe_detail, recipe.total.kcal.roundToInt(), formatGrams(recipe.dishGrams))
 
 @Composable
 private fun RecipeCard(name: String, detail: String, onOpen: () -> Unit, onEdit: () -> Unit) {

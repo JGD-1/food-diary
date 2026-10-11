@@ -18,6 +18,7 @@ import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.gramsLeft
 import nl.guido.foodtracker.core.model.newId
@@ -48,6 +49,7 @@ internal class NewBatchViewModel @Inject constructor(
     savedState: SavedStateHandle,
     private val session: SessionRepository,
     private val recipes: RecipeRepository,
+    private val ingredientFoods: IngredientFoods,
 ) : ViewModel() {
     /** Where a scale reading should go: an ingredient line, or the cooked pot. */
     sealed interface Weighing {
@@ -95,15 +97,23 @@ internal class NewBatchViewModel @Inject constructor(
                 recipe = recipe,
                 cookedOn = viewedDay,
                 name = recipe?.name.orEmpty(),
-                lines = recipe?.ingredients.orEmpty().map { EditableIngredient.of(it) },
+                lines = ingredientFoods.enrich(recipe?.ingredients.orEmpty().map { EditableIngredient.of(it) }),
             )
         }
     }
 
     fun setName(name: String) = _state.update { it.copy(name = name) }
-    fun add(food: Food) = _state.update { it.copy(lines = it.lines + EditableIngredient.of(food)) }
+    fun add(food: Food) {
+        viewModelScope.launch {
+            val line = ingredientFoods.line(food)
+            _state.update { it.copy(lines = it.lines + line) }
+        }
+    }
     fun setGrams(key: String, text: String) = _state.update { s ->
-        s.copy(lines = s.lines.map { if (it.key == key) it.copy(gramsText = text) else it })
+        s.copy(lines = s.lines.map { if (it.key == key) it.withGramsText(text) else it })
+    }
+    fun chooseAmount(key: String, choice: Portion) = _state.update { s ->
+        s.copy(lines = s.lines.map { if (it.key == key) it.withChoice(choice) else it })
     }
     fun remove(key: String) = _state.update { s -> s.copy(lines = s.lines.filterNot { it.key == key }) }
     fun setCooked(text: String) = _state.update { it.copy(cookedText = text) }

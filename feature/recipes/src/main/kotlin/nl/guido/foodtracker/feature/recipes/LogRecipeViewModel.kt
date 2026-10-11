@@ -16,6 +16,7 @@ import nl.guido.foodtracker.core.data.repo.SessionRepository
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.RecipeVariant
 import nl.guido.foodtracker.feature.recipes.logic.Dish
@@ -41,6 +42,7 @@ internal class LogRecipeViewModel @Inject constructor(
     private val recipes: RecipeRepository,
     private val diary: DiaryRepository,
     private val favourites: Favourites,
+    private val ingredientFoods: IngredientFoods,
 ) : ViewModel() {
     /** Where a scale reading should go. */
     sealed interface Weighing {
@@ -55,6 +57,8 @@ internal class LogRecipeViewModel @Inject constructor(
         val variant: RecipeVariant? = null,
         val extras: List<EditableIngredient> = emptyList(),
         val gramsText: String = "",
+        /** "2 pieces" when chosen with a pieces chip (S11); null when grams were typed or weighed. */
+        val portionLabel: String? = null,
         val meal: Meal = Meal.DINNER,
         /** The day this lands on: the day being viewed on Today, else today. */
         val date: LocalDate = LocalDate.now(),
@@ -102,15 +106,30 @@ internal class LogRecipeViewModel @Inject constructor(
     /** Switching variant keeps the same share of the dish, so the suggested amount follows along. */
     fun chooseVariant(variant: RecipeVariant?) = changeDish { it.copy(variant = variant) }
 
-    fun addExtra(food: Food) = _state.update { it.copy(extras = it.extras + EditableIngredient.of(food)) }
+    fun addExtra(food: Food) {
+        viewModelScope.launch {
+            val line = ingredientFoods.line(food)
+            _state.update { it.copy(extras = it.extras + line) }
+        }
+    }
 
     fun setExtraGrams(key: String, text: String) = changeDish { s ->
-        s.copy(extras = s.extras.map { if (it.key == key) it.copy(gramsText = text) else it })
+        s.copy(extras = s.extras.map { if (it.key == key) it.withGramsText(text) else it })
+    }
+
+    fun chooseExtraAmount(key: String, choice: Portion) = changeDish { s ->
+        s.copy(extras = s.extras.map { if (it.key == key) it.withChoice(choice) else it })
     }
 
     fun removeExtra(key: String) = changeDish { s -> s.copy(extras = s.extras.filterNot { it.key == key }) }
 
-    fun setGrams(text: String) = _state.update { it.copy(gramsText = text) }
+    fun setGrams(text: String) = _state.update { if (it.gramsText == text) it else it.copy(gramsText = text, portionLabel = null) }
+
+    /** A pieces chip (S11): [count] pieces of the dish, remembered on the diary line as [label]. */
+    fun setPieces(count: Double, label: String) = _state.update { s ->
+        val grams = s.dish?.piecesGrams(count) ?: return@update s
+        s.copy(gramsText = formatGrams(grams), portionLabel = label)
+    }
     fun setMeal(meal: Meal) = _state.update { it.copy(meal = meal) }
     fun setRememberPortion(on: Boolean) = _state.update { it.copy(rememberPortion = on) }
 
@@ -158,7 +177,7 @@ internal class LogRecipeViewModel @Inject constructor(
         if (!s.canLog) return
         val user = session.currentUser.value
         viewModelScope.launch {
-            diary.save(dish.logEntry(user.userId, s.date, s.meal, grams, Instant.now()))
+            diary.save(dish.logEntry(user.userId, s.date, s.meal, grams, Instant.now(), s.portionLabel))
             if (s.pinned != null && s.rememberPortion) {
                 favourites.pin(user.userId, dish.recipe.id, dish.toUsualPortion(grams))
             }

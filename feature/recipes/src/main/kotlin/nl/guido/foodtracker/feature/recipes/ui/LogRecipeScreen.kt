@@ -102,6 +102,7 @@ internal fun LogRecipeScreen(
                     onGrams = { vm.setExtraGrams(line.key, it) },
                     onRemove = { vm.removeExtra(line.key) },
                     onWeigh = cameraWeigh(navController) { vm.startWeighing(Weighing.Extra(line.key)) },
+                    onChoice = { vm.chooseExtraAmount(line.key, it) },
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -112,6 +113,7 @@ internal fun LogRecipeScreen(
             }
 
             SectionTitle(stringResource(R.string.recipes_how_much))
+            if (dish.piecesGrams(1.0) != null) PieceChips(state.portionLabel, vm::setPieces)
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AssistChip(
                     onClick = { vm.setGrams(formatGrams(dish.totalGrams)) },
