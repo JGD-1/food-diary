@@ -39,6 +39,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
@@ -62,10 +64,9 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
@@ -204,7 +205,7 @@ private fun TodayContent(
                         contentPadding = PaddingValues(horizontal = 4.dp),
                         modifier = Modifier.heightIn(min = 48.dp),
                     ) {
-                        Text(stringResource(R.string.today_yesterday_empty), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.today_yesterday_empty), style = MaterialTheme.typography.titleSmall)
                     }
                 }
                 RingSection(summary, ui.proteinGoalG, onTarget, onMacros = { showMacros = true })
@@ -292,7 +293,7 @@ private fun Header(ui: TodayUiState, onDay: (LocalDate) -> Unit, onProfile: () -
                 ) { onDay(date.minusDays(1)) }
                 Text(
                     small,
-                    fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false),
@@ -306,13 +307,12 @@ private fun Header(ui: TodayUiState, onDay: (LocalDate) -> Unit, onProfile: () -
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 title,
-                fontSize = if (ui.isToday) 32.sp else 26.sp, fontWeight = FontWeight.ExtraBold,
-                lineHeight = if (ui.isToday) 34.sp else 30.sp,
+                style = if (ui.isToday) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.weight(1f, fill = false).semantics { heading() },
             )
             if (!ui.isToday) {
                 TextButton(onClick = { onDay(ui.today) }, modifier = Modifier.heightIn(min = 48.dp)) {
-                    Text(stringResource(R.string.today_back_to_today), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.today_back_to_today))
                 }
             }
         }
@@ -335,13 +335,13 @@ private fun SettingsButton(displayName: String, onClick: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Icon(TodayIcons.Settings, contentDescription = null, modifier = Modifier.size(20.dp))
-            Text(stringResource(R.string.today_settings), fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            Text(stringResource(R.string.today_settings), style = MaterialTheme.typography.labelLarge, maxLines = 1)
             Box(
                 Modifier.size(36.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    displayName.take(1).uppercase(), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp,
+                    displayName.take(1).uppercase(), style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
@@ -376,7 +376,7 @@ private fun DrinkButton(icon: ImageVector, @StringRes text: Int, @StringRes spok
     ) {
         Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(4.dp))
-        Text(stringResource(text), fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        Text(stringResource(text), style = MaterialTheme.typography.labelLarge, maxLines = 1)
     }
 }
 
@@ -397,7 +397,7 @@ private fun RingSection(summary: TodaySummary, proteinGoalG: Int?, onTarget: () 
             contentPadding = PaddingValues(horizontal = 12.dp),
             modifier = Modifier.heightIn(min = 36.dp).semantics { contentDescription = "$sumText. $openLabel" },
         ) {
-            Text(sumText, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(sumText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         val eaten = summary.eaten
         val macrosText = if (proteinGoalG != null) {
@@ -409,7 +409,7 @@ private fun RingSection(summary: TodaySummary, proteinGoalG: Int?, onTarget: () 
             stringResource(R.string.today_macros, formatKcal(eaten.protein), formatKcal(eaten.carbs), formatKcal(eaten.fat))
         }
         TextButton(onClick = onMacros, contentPadding = PaddingValues(horizontal = 12.dp), modifier = Modifier.heightIn(min = 32.dp)) {
-            Text(macrosText, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(macrosText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -444,18 +444,38 @@ private fun KcalRing(summary: TodaySummary) {
             }
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(140.dp)) {
+            FitText(formatKcal(number), MaterialTheme.typography.displayLarge)
             Text(
-                formatKcal(number), fontSize = 44.sp, fontWeight = FontWeight.ExtraBold,
-                lineHeight = 46.sp, maxLines = 1, softWrap = false,
-            )
-            Text(
-                stringResource(label), fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                stringResource(label), style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
         }
     }
 }
+
+/**
+ * One line of text in [style] that gets smaller until it fits its width (S20): the ring's number
+ * stays whole with big text settings or a big number. Nothing is drawn until it fits.
+ */
+@Composable
+private fun FitText(text: String, style: TextStyle) {
+    var scale by remember(text, style) { mutableFloatStateOf(1f) }
+    var fits by remember(text, style) { mutableStateOf(false) }
+    Text(
+        text,
+        style = style.copy(fontSize = style.fontSize * scale, lineHeight = style.lineHeight * scale),
+        maxLines = 1,
+        softWrap = false,
+        modifier = Modifier.drawWithContent { if (fits) drawContent() },
+        onTextLayout = { layout ->
+            if (layout.didOverflowWidth && scale > MIN_FIT_SCALE) scale *= 0.9f else fits = true
+        },
+    )
+}
+
+/** FitText never goes below this share of its style's size. */
+private const val MIN_FIT_SCALE = 0.5f
 
 @Composable
 private fun MealCard(
@@ -472,13 +492,13 @@ private fun MealCard(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Column(Modifier.weight(1f)) {
-                Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(
-                    items, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    items, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2, overflow = TextOverflow.Ellipsis,
                 )
             }
-            Text(kcal, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+            Text(kcal, style = MaterialTheme.typography.titleMedium, maxLines = 1, softWrap = false)
             trailing()
         }
     }
@@ -491,7 +511,7 @@ private fun AgainButton(onClick: () -> Unit) {
         contentPadding = PaddingValues(horizontal = 12.dp),
         modifier = Modifier.heightIn(min = 40.dp),
     ) {
-        Text(stringResource(R.string.today_again), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.today_again), style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -527,13 +547,13 @@ private fun AddMealCard(
     ) {
         Column(Modifier.weight(1f)) {
             Text(
-                stringResource(addMeal(meal)), fontSize = 15.sp, fontWeight = FontWeight.Bold,
+                stringResource(addMeal(meal)), style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
             if (lastTime.isNotEmpty()) {
                 Text(
                     stringResource(R.string.today_last_time, entriesText(lastTime)),
-                    fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
@@ -553,7 +573,7 @@ private fun EarlierMeals(meals: List<Meal>, onAddTo: (Meal) -> Unit) {
                 contentPadding = PaddingValues(horizontal = 12.dp),
                 modifier = Modifier.heightIn(min = 48.dp),
             ) {
-                Text(stringResource(addMeal(meal)), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(addMeal(meal)), style = MaterialTheme.typography.titleSmall)
             }
         }
     }
@@ -564,7 +584,7 @@ private fun ReviewCard(review: WeeklyReview, onDismiss: () -> Unit) {
     Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.primaryContainer) {
         Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 14.dp, bottom = 4.dp)) {
             Text(
-                stringResource(R.string.today_review_title), fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                stringResource(R.string.today_review_title), style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.semantics { heading() },
             )
@@ -584,9 +604,9 @@ private fun ReviewCard(review: WeeklyReview, onDismiss: () -> Unit) {
                     },
                 )
             }
-            lines.forEach { Text(it, fontSize = 14.sp) }
+            lines.forEach { Text(it, style = MaterialTheme.typography.bodyMedium) }
             Spacer(Modifier.size(6.dp))
-            Text(stringResource(suggestionText(review.suggestion)), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(suggestionText(review.suggestion)), style = MaterialTheme.typography.titleSmall)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 TextButton(onClick = onDismiss) { Text(stringResource(R.string.today_review_dismiss)) }
             }
@@ -619,7 +639,7 @@ private fun BottomActions(onLogFood: () -> Unit, onScan: () -> Unit, onWeigh: ()
         ) {
             Icon(TodayIcons.Add, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.today_log_food_title), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+            Text(stringResource(R.string.today_log_food_title), style = MaterialTheme.typography.titleMedium)
         }
     }
     val shortcuts = @Composable { modifier: Modifier ->
@@ -672,7 +692,7 @@ private fun Shortcut(
         ) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
             Text(
-                label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 2,
+                label, style = MaterialTheme.typography.labelSmall, maxLines = 2,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
         }

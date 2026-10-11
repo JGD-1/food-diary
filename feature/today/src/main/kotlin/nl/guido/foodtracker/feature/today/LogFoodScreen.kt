@@ -27,7 +27,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -49,16 +48,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
@@ -68,9 +66,15 @@ import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.LogEntry
+import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Recipe
+import nl.guido.foodtracker.core.ui.FoodRow
 import nl.guido.foodtracker.core.ui.Routes
+import nl.guido.foodtracker.core.ui.ScreenHeader
+import nl.guido.foodtracker.core.ui.amountText
+import nl.guido.foodtracker.core.ui.foodDetail
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -126,12 +130,14 @@ internal fun LogFoodRoute(
                 onRecipe = viewModel::openRecipe,
                 onBatch = viewModel::openBatch,
                 onAllRecipes = { open(Routes.RECIPES) },
+                plainName = viewModel::plainName,
             )
             ui.amount?.let { step ->
                 AmountSheet(
                     step = step,
                     meal = mealFor(step.pick.isDrink, ui.meal),
                     pin = ui.amountPin,
+                    plainLine = step.pick.food?.let(viewModel::plainName),
                     onDismiss = viewModel::closeAmount,
                     onWeigh = { open(Routes.CAMERA_SCALE, Routes.CAMERA) },
                     onAdd = viewModel::add,
@@ -161,29 +167,26 @@ private fun LogFoodContent(
     onRecipe: (Recipe) -> Unit,
     onBatch: (Batch) -> Unit,
     onAllRecipes: () -> Unit,
+    plainName: (Food) -> String?,
 ) {
     Column(Modifier.fillMaxSize()) {
-        Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 12.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) {
-                Icon(TodayIcons.Back, contentDescription = stringResource(R.string.today_back))
-            }
-            Column(Modifier.weight(1f)) {
-                Text(
-                    stringResource(R.string.today_log_food_title), fontSize = 24.sp, fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.semantics { heading() },
-                )
-                ui.date?.let { date ->
-                    // Logging for an earlier day: say which, so nothing lands on the wrong day by surprise.
-                    val locale = Locale.forLanguageTag(stringResource(R.string.today_locale))
-                    val pattern = stringResource(R.string.today_date_pattern)
-                    val day = date.format(DateTimeFormatter.ofPattern(pattern, locale)).replaceFirstChar { it.titlecase(locale) }
-                    Text(
-                        stringResource(R.string.today_log_for_day, day), fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
-            TextButton(onClick = onBack) { Text(stringResource(R.string.today_done), fontWeight = FontWeight.Bold) }
+        ScreenHeader(
+            title = stringResource(R.string.today_log_food_title),
+            onBack = onBack,
+            modifier = Modifier.padding(top = 8.dp),
+        ) {
+            TextButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.today_done)) }
+        }
+        ui.date?.let { date ->
+            // Logging for an earlier day: say which, so nothing lands on the wrong day by surprise.
+            val locale = Locale.forLanguageTag(stringResource(R.string.today_locale))
+            val pattern = stringResource(R.string.today_date_pattern)
+            val day = date.format(DateTimeFormatter.ofPattern(pattern, locale)).replaceFirstChar { it.titlecase(locale) }
+            Text(
+                stringResource(R.string.today_log_for_day, day), style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 4.dp),
+            )
         }
         Row(
             Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 20.dp),
@@ -220,7 +223,7 @@ private fun LogFoodContent(
             ) {
                 Icon(TodayIcons.Scan, contentDescription = null, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.today_scan), fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.today_scan))
             }
         }
         LazyColumn(
@@ -231,8 +234,9 @@ private fun LogFoodContent(
             val searching = ui.query.isNotBlank()
             if (!searching) {
                 item(key = "recipes") {
-                    ItemRow(
+                    FoodRow(
                         title = stringResource(R.string.today_all_recipes),
+                        plainLine = null,
                         detail = stringResource(R.string.today_all_recipes_detail),
                         onClick = onAllRecipes,
                     )
@@ -241,41 +245,40 @@ private fun LogFoodContent(
             if (ui.pinned.isNotEmpty() || ui.pinnedFoods.isNotEmpty()) {
                 section(R.string.today_section_favourites)
                 items(ui.pinned, key = { "pin-" + it.id }) { recipe ->
-                    ItemRow(
+                    FoodRow(
                         title = recipe.name,
-                        detail = recipe.usualPortion?.let { it.label ?: stringResource(R.string.today_amount_grams, formatAmount(it.grams)) },
+                        plainLine = null,
+                        detail = recipe.usualPortion?.let { amountText(it.label, it.grams) },
                         onClick = { onRecipe(recipe) },
                     )
                 }
                 items(ui.pinnedFoods, key = { "pin-food-" + it.favourite.id }) { pin ->
-                    val unit = if (pin.food.isDrink) R.string.today_amount_ml else R.string.today_amount_grams
-                    ItemRow(
+                    FoodRow(
                         title = pin.food.name,
-                        detail = pin.usualGrams?.let { stringResource(unit, formatAmount(it)) },
+                        plainLine = plainName(pin.food),
+                        detail = pin.usualGrams?.let { amountText(pin.favourite.usualPortion?.label, it, pin.food.isDrink) },
                         onClick = { onChoosePin(pin) },
                     )
                 }
             }
             if (ui.batches.isNotEmpty()) {
                 section(R.string.today_section_pot)
-                items(ui.batches, key = { "batch-" + it.batch.id }) { item ->
-                    val locale = Locale.forLanguageTag(stringResource(R.string.today_locale))
-                    val day = item.batch.cookedOn.format(DateTimeFormatter.ofPattern("EEEE", locale))
-                    ItemRow(
-                        title = item.batch.name,
-                        detail = stringResource(R.string.today_pot_left, day, formatAmount(item.gramsLeft)),
-                        onClick = { onBatch(item.batch) },
-                    )
-                }
+                items(ui.batches, key = { "batch-" + it.batch.id }) { item -> PotRow(item, onBatch) }
+            }
+            if (ui.frozen.isNotEmpty()) {
+                section(R.string.today_section_freezer)
+                items(ui.frozen, key = { "frozen-" + it.batch.id }) { item -> PotRow(item, onBatch) }
             }
             if (ui.recent.isNotEmpty()) {
                 section(R.string.today_section_recent)
                 items(ui.recent, key = { "recent-" + it.id }) { entry ->
                     val name = entry.displayName
                     val quickLabel = stringResource(R.string.today_quick_add_description, name)
-                    ItemRow(
+                    val foodId = (entry.what as? Logged.FoodRef)?.foodId
+                    FoodRow(
                         title = name,
-                        detail = (if (entry.isEstimate) "" else amountText(entry) + " · ") +
+                        plainLine = foodId?.let { ui.recentPlain[it] },
+                        detail = (if (entry.isEstimate) "" else entryAmountText(entry) + " · ") +
                             stringResource(R.string.today_kcal_unit, kcalText(entry.nutrients.kcal.roundToInt(), entry.isEstimate)),
                         onClick = { onChooseEntry(entry) },
                     ) {
@@ -286,7 +289,7 @@ private fun LogFoodContent(
                         ) {
                             Icon(TodayIcons.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text(stringResource(R.string.today_quick_add), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.today_quick_add), style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }
@@ -294,13 +297,14 @@ private fun LogFoodContent(
             if (searching) {
                 if (ui.found.isNotEmpty()) {
                     section(R.string.today_section_foods)
-                    items(ui.found, key = { "found-" + it.id }) { food -> FoodRow(food) { onChooseFood(food) } }
+                    items(ui.found, key = { "found-" + it.id }) { food -> FoodItem(food, plainName(food)) { onChooseFood(food) } }
                 }
-                onlineSection(ui, onSearchOnline, onChooseFood)
+                onlineSection(ui, onSearchOnline) { food -> FoodItem(food, plainName(food)) { onChooseFood(food) } }
                 // Not in any list (a market stall, a friend's dish): log it with your own kcal in Eat out.
                 item(key = "type-kcal") {
-                    ItemRow(
+                    FoodRow(
                         title = stringResource(R.string.today_type_kcal),
+                        plainLine = null,
                         detail = stringResource(R.string.today_type_kcal_detail, ui.query.trim()),
                         onClick = onTypeKcal,
                     )
@@ -309,15 +313,15 @@ private fun LogFoodContent(
                 if (shown.any { it.source == FoodOrigin.NEVO }) {
                     item(key = "nevo") {
                         Text(
-                            stringResource(nl.guido.foodtracker.core.ui.R.string.nevo_attribution), fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp),
+                            stringResource(nl.guido.foodtracker.core.ui.R.string.nevo_attribution),
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp),
                         )
                     }
                 }
             } else if (ui.recent.isEmpty()) {
                 item(key = "hint") {
                     Text(
-                        stringResource(R.string.today_empty_hint), fontSize = 15.sp,
+                        stringResource(R.string.today_empty_hint), style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 16.dp),
                     )
                 }
@@ -329,14 +333,14 @@ private fun LogFoodContent(
 private fun LazyListScope.section(title: Int) {
     item(key = "section-$title") {
         Text(
-            stringResource(title), fontSize = 14.sp, fontWeight = FontWeight.Bold,
+            stringResource(title), style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 8.dp).semantics { heading() },
         )
     }
 }
 
-private fun LazyListScope.onlineSection(ui: LogFoodUiState, onSearchOnline: () -> Unit, onChooseFood: (Food) -> Unit) {
+private fun LazyListScope.onlineSection(ui: LogFoodUiState, onSearchOnline: () -> Unit, foodItem: @Composable (Food) -> Unit) {
     when (val online = ui.online) {
         OnlineSearch.Idle -> item(key = "online-button") {
             OutlinedButton(onClick = onSearchOnline, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
@@ -352,7 +356,7 @@ private fun LazyListScope.onlineSection(ui: LogFoodUiState, onSearchOnline: () -
         }
         is OnlineSearch.Found -> {
             section(R.string.today_section_online)
-            items(online.foods, key = { "online-" + it.id }) { food -> FoodRow(food) { onChooseFood(food) } }
+            items(online.foods, key = { "online-" + it.id }) { food -> foodItem(food) }
         }
         OnlineSearch.NothingFound -> item(key = "online-none") { Note(R.string.today_online_nothing) }
         OnlineSearch.NotReachable -> item(key = "online-off") { Note(R.string.today_online_unreachable) }
@@ -364,42 +368,35 @@ private fun Note(text: Int) {
     Text(stringResource(text), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
 }
 
+/** A food in a list: its name, the app's plain line (S1), and "NEVO · 52 kcal per 100 g". */
 @Composable
-private fun FoodRow(food: Food, onClick: () -> Unit) {
-    val source = when (food.source) {
-        FoodOrigin.NEVO -> stringResource(R.string.today_source_nevo)
-        FoodOrigin.OFF -> food.brand ?: stringResource(R.string.today_source_off)
-        FoodOrigin.LABEL, FoodOrigin.MANUAL -> stringResource(R.string.today_source_own)
-    }
-    val per100 = stringResource(
-        if (food.isDrink) R.string.today_per_100ml else R.string.today_per_100g, formatKcal(food.per100g.kcal),
-    )
-    ItemRow(title = food.name, detail = "$source · $per100", onClick = onClick)
+private fun FoodItem(food: Food, plainLine: String?, onClick: () -> Unit) {
+    FoodRow(title = food.name, plainLine = plainLine, detail = foodDetail(food), onClick = onClick)
 }
 
+/**
+ * A batch in "From the pot" or "From the freezer": when it was cooked (the weekday, or the date once
+ * it is older than a week, S15) and what is left, in pieces when it was made in pieces (S11).
+ */
 @Composable
-private fun ItemRow(
-    title: String,
-    detail: String?,
-    onClick: () -> Unit,
-    trailing: (@Composable () -> Unit)? = null,
-) {
-    Surface(onClick = onClick, shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface) {
-        Row(
-            Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                if (!detail.isNullOrBlank()) {
-                    Text(detail, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
-                }
-            }
-            trailing?.invoke()
-        }
-    }
+private fun PotRow(item: PotItem, onBatch: (Batch) -> Unit) {
+    val locale = Locale.forLanguageTag(stringResource(R.string.today_locale))
+    val cookedOn = item.batch.cookedOn
+    val pattern = if (showCookDate(cookedOn, LocalDate.now())) stringResource(R.string.today_pot_date_pattern) else "EEEE"
+    val day = cookedOn.format(DateTimeFormatter.ofPattern(pattern, locale))
+    val pieces = item.piecesLeft?.let { piecesText(it) }
+    FoodRow(
+        title = item.batch.name,
+        plainLine = null,
+        detail = stringResource(R.string.today_pot_left, day, amountText(pieces, item.gramsLeft)),
+        onClick = { onBatch(item.batch) },
+    )
 }
+
+/** "1 piece", "2½ pieces". */
+@Composable
+private fun piecesText(pieces: Double): String =
+    LocalContext.current.resources.getQuantityString(R.plurals.today_pieces, if (pieces == 1.0) 1 else 2, formatPieces(pieces))
 
 /** How much? Type it, tap a usual amount, or read the scale. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -408,9 +405,10 @@ private fun AmountSheet(
     step: AmountStep,
     meal: Meal,
     pin: PinnedFood?,
+    plainLine: String?,
     onDismiss: () -> Unit,
     onWeigh: () -> Unit,
-    onAdd: (Double) -> Unit,
+    onAdd: (grams: Double, label: String?) -> Unit,
     onPin: (Double) -> Unit,
     onUnpin: () -> Unit,
     onEditFood: (String) -> Unit,
@@ -418,13 +416,20 @@ private fun AmountSheet(
     val pick = step.pick
     var text by remember(step) { mutableStateOf(formatAmount(step.grams)) }
     val grams = parseGrams(text)
+    /** The chip tapped last ("1 apple" and its grams); its label is kept while the amount stays the same. */
+    var chosen by remember(step) { mutableStateOf<Pair<String, Double>?>(null) }
+    val label = chosen?.takeIf { it.second == grams }?.first
+    val add = { g: Double -> onAdd(g, label) }
     val unit = stringResource(if (pick.isDrink) R.string.today_unit_ml else R.string.today_unit_g)
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(pick.name, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+            Column {
+                Text(pick.name, style = MaterialTheme.typography.titleLarge)
+                if (plainLine != null) Text(plainLine, style = MaterialTheme.typography.bodyMedium)
+            }
             Text(
                 stringResource(if (pick.isDrink) R.string.today_per_100ml else R.string.today_per_100g, formatKcal(pick.per100g.kcal)),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -436,7 +441,7 @@ private fun AmountSheet(
                 suffix = { Text(unit) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { grams?.let(onAdd) }),
+                keyboardActions = KeyboardActions(onDone = { grams?.let(add) }),
                 modifier = Modifier.fillMaxWidth(),
             )
             Row(
@@ -444,16 +449,21 @@ private fun AmountSheet(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 pick.chips.forEach { chip ->
-                    val amount = "${formatAmount(chip.grams)} $unit"
-                    val label = when (chip.kind) {
-                        AmountChip.Kind.SERVING -> stringResource(R.string.today_chip_serving, amount)
-                        AmountChip.Kind.PACK -> stringResource(R.string.today_chip_pack, amount)
-                        AmountChip.Kind.PIECE -> stringResource(R.string.today_chip_piece, chip.label.orEmpty(), amount)
+                    val name = when (chip.kind) {
+                        AmountChip.Kind.SERVING -> stringResource(R.string.today_chip_serving)
+                        AmountChip.Kind.PACK -> stringResource(R.string.today_chip_pack)
+                        AmountChip.Kind.PIECE -> chip.label.orEmpty()
                     }
-                    SuggestionChip(onClick = { text = formatAmount(chip.grams) }, label = { Text(label) })
+                    SuggestionChip(
+                        onClick = {
+                            text = formatAmount(chip.grams)
+                            chosen = parseGrams(text)?.let { name to it }
+                        },
+                        label = { Text(amountText(name, chip.grams, pick.isDrink)) },
+                    )
                 }
                 quickAmounts(pick.isDrink).forEach { amount ->
-                    SuggestionChip(onClick = { text = formatAmount(amount) }, label = { Text("${formatAmount(amount)} $unit") })
+                    SuggestionChip(onClick = { text = formatAmount(amount) }, label = { Text(amountText(null, amount, pick.isDrink)) })
                 }
             }
             OutlinedButton(onClick = onWeigh, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
@@ -479,16 +489,16 @@ private fun AmountSheet(
             if (grams != null) {
                 Text(
                     stringResource(R.string.today_amount_total, formatKcal(pick.per100g.forGrams(grams).kcal)),
-                    fontSize = 18.sp, fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium,
                 )
             }
             Button(
-                onClick = { grams?.let(onAdd) },
+                onClick = { grams?.let(add) },
                 enabled = grams != null,
                 shape = RoundedCornerShape(50),
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             ) {
-                Text(stringResource(addToMeal(meal)), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+                Text(stringResource(addToMeal(meal)), style = MaterialTheme.typography.titleMedium)
             }
         }
     }

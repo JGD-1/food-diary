@@ -52,7 +52,6 @@
     <string name="today_drink_add">Toevoegen</string>
     <string name="today_drinks_none">Nog niets</string>
     <string name="today_amount_grams">%1$s g</string>
-    <string name="today_amount_ml">%1$s ml</string>
     <string name="today_restaurant_item_single">%1$s · restaurant, ongeveer %2$s</string>
     <string name="today_restaurant_item">%1$s · restaurant, %2$s–%3$s</string>
     <string name="today_kcal_value">%1$s</string>
@@ -116,7 +115,6 @@
     <string name="today_review_dismiss">Begrepen</string>
 
     <!-- Eten toevoegen -->
-    <string name="today_back">Terug</string>
     <string name="today_done">Klaar</string>
     <string name="today_log_for_day">Voor %1$s</string>
     <string name="today_search_hint">Zoek eten en drinken</string>
@@ -136,20 +134,21 @@
     <string name="today_quick_add_description">%1$s nog eens toevoegen</string>
     <string name="today_per_100g">%1$s kcal per 100 g</string>
     <string name="today_per_100ml">%1$s kcal per 100 ml</string>
-    <string name="today_source_nevo">NEVO</string>
-    <string name="today_source_off">Open Food Facts</string>
-    <string name="today_source_own">Mijn product</string>
     <string name="today_weigh_on_scale">Op de weegschaal wegen</string>
     <string name="today_unit_g">g</string>
     <string name="today_unit_ml">ml</string>
     <string name="today_amount_total">= %1$s kcal</string>
-    <string name="today_chip_serving">1 portie · %1$s</string>
-    <string name="today_chip_pack">Hele verpakking · %1$s</string>
-    <string name="today_chip_piece">%1$s · %2$s</string>
+    <string name="today_chip_serving">1 portie</string>
+    <string name="today_chip_pack">Hele verpakking</string>
     <string name="today_pin">Aan favorieten toevoegen</string>
     <string name="today_unpin">Uit favorieten halen</string>
     <string name="today_edit_food">Product wijzigen</string>
     <string name="today_type_kcal">Zelf kcal intypen ›</string>
     <string name="today_type_kcal_detail">“%1$s” toevoegen met je eigen kcal</string>
-    <string name="today_pot_left">gekookt %1$s · nog %2$s g over</string>
+    <string name="today_pot_left">gekookt %1$s · nog %2$s over</string>
+    <string name="today_section_freezer">Uit de vriezer</string>
+    <plurals name="today_pieces">
+        <item quantity="one">%1$s stuk</item>
+        <item quantity="other">%1$s stuks</item>
+    </plurals>
 </resources>

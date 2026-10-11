@@ -35,11 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
@@ -65,12 +63,12 @@ internal fun MealSheet(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(mealName(meal)), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+            Text(stringResource(mealName(meal)), style = MaterialTheme.typography.titleLarge)
             if (entries.isNotEmpty()) {
                 // Carbs per meal: handy for anyone who matches insulin or energy to meals.
                 Text(
                     stringResource(R.string.today_meal_carbs, formatKcal(mealCarbs(entries))),
-                    fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             if (entries.isEmpty()) {
@@ -85,7 +83,7 @@ internal fun MealSheet(
                 shape = RoundedCornerShape(50),
                 modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
             ) {
-                Text(stringResource(addToMeal(meal)), fontWeight = FontWeight.Bold)
+                Text(stringResource(addToMeal(meal)))
             }
             if (entries.isNotEmpty()) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -127,17 +125,17 @@ private fun EntryRow(entry: LogEntry, onChangeAmount: (LogEntry, Double) -> Unit
     var text by rememberSaveable(entry.id, entry.portion.grams) { mutableStateOf(formatAmount(entry.portion.grams)) }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(entry.displayName, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Text(entry.displayName, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             Text(
                 stringResource(R.string.today_kcal_unit, kcalText(entry.nutrients.kcal.roundToInt(), entry.isEstimate)),
-                fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium,
             )
         }
         val what = entry.what
         if (what is Logged.Restaurant) {
             Text(
                 stringResource(R.string.today_estimate_range, formatKcal(what.estimate.low), formatKcal(what.estimate.high)),
-                fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -162,7 +160,7 @@ private fun EntryRow(entry: LogEntry, onChangeAmount: (LogEntry, Double) -> Unit
                 )
                 TextButton(onClick = save, enabled = grams != null) { Text(stringResource(R.string.today_save)) }
             } else {
-                val amount = amountText(entry)
+                val amount = entryAmountText(entry)
                 if (canChangeAmount(entry)) {
                     val description = stringResource(R.string.today_change_amount, entry.displayName)
                     TextButton(
@@ -188,7 +186,7 @@ internal fun MacroSheet(eaten: Nutrients, proteinGoalG: Int?, onDismiss: () -> U
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.today_macros_title), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+            Text(stringResource(R.string.today_macros_title), style = MaterialTheme.typography.titleLarge)
             val protein = if (proteinGoalG != null) {
                 stringResource(R.string.today_amount_of_goal, formatKcal(eaten.protein), formatKcal(proteinGoalG))
             } else {
@@ -210,12 +208,12 @@ internal fun MacroSheet(eaten: Nutrients, proteinGoalG: Int?, onDismiss: () -> U
                 }
                 Text(
                     stringResource(R.string.today_extras_note),
-                    fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Text(
                 stringResource(R.string.today_macros_note),
-                fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -224,12 +222,12 @@ internal fun MacroSheet(eaten: Nutrients, proteinGoalG: Int?, onDismiss: () -> U
 @Composable
 private fun MacroRow(name: String, amount: String, share: Int?) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(name, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-        Text(amount, fontSize = 16.sp)
+        Text(name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+        Text(amount, style = MaterialTheme.typography.bodyLarge)
         if (share != null) {
             Text(
                 stringResource(R.string.today_macro_share, share.toString()),
-                fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 12.dp).width(96.dp),
             )
         }
