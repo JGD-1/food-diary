@@ -225,4 +225,16 @@ class TodayLogicTest {
         val five = two + line("Banana", 90.0) + line("Honey", 40.0) + line("Coffee", 5.0)
         assertEquals(listOf("Yoghurt", "Muesli", "Banana") to 2, againNames(five))
     }
+
+    @Test
+    fun `the readable name leads and the NEVO name sits under it`() {
+        val nevo = "Apple w skin av"
+        assertEquals(ShownName("Apple, with skin, average", nevo), shownName(nevo, "Apple, with skin, average"))
+        assertEquals(ShownName(nevo, null), shownName(nevo, null))
+        assertEquals(ShownName(nevo, null), shownName(nevo, " "))
+        assertEquals(ShownName(nevo, null), shownName(nevo, nevo))
+        val entry = line(nevo, 52.0, foodId = "apple")
+        assertEquals("Apple, with skin, average", entry.shown(mapOf("apple" to "Apple, with skin, average")).title)
+        assertEquals(nevo, entry.shown(emptyMap()).title)
+    }
 }

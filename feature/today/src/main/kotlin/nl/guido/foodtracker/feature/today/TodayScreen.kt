@@ -214,7 +214,7 @@ private fun TodayContent(
                     summary.filledMeals.forEach { meal ->
                         MealCard(
                             title = stringResource(mealName(meal.meal)),
-                            items = entriesText(meal.entries),
+                            items = entriesText(meal.entries, ui.readable),
                             kcal = kcalText(meal.kcal, meal.hasEstimate),
                             onClick = { openMeal = meal.meal },
                         ) {
@@ -224,7 +224,7 @@ private fun TodayContent(
                     MealCard(
                         title = stringResource(R.string.today_meal_drinks),
                         items = if (summary.drinks.entries.isEmpty()) stringResource(R.string.today_drinks_none)
-                        else entriesText(summary.drinks.entries),
+                        else entriesText(summary.drinks.entries, ui.readable),
                         kcal = kcalText(summary.drinks.kcal, summary.drinks.hasEstimate),
                         onClick = { if (summary.drinks.entries.isEmpty()) onAddTo(Meal.DRINKS) else openMeal = Meal.DRINKS },
                     ) {
@@ -234,6 +234,7 @@ private fun TodayContent(
                     summary.nextEmptyMeal?.let { meal ->
                         AddMealCard(
                             meal = meal,
+                            readable = ui.readable,
                             lastTime = summary.lastTime[meal].orEmpty(),
                             onAdd = { onAddTo(meal) },
                             onAgain = { onAgain(meal) },
@@ -251,6 +252,7 @@ private fun TodayContent(
         MealSheet(
             meal = meal,
             entries = mealEntries(summary, meal),
+            readable = ui.readable,
             onDismiss = { openMeal = null },
             onChangeAmount = onChangeAmount,
             onRemove = onRemove,
@@ -519,6 +521,7 @@ private fun AgainButton(onClick: () -> Unit) {
 @Composable
 private fun AddMealCard(
     meal: Meal,
+    readable: Map<String, String>,
     lastTime: List<LogEntry>,
     onAdd: () -> Unit,
     onAgain: () -> Unit,
@@ -552,7 +555,7 @@ private fun AddMealCard(
             )
             if (lastTime.isNotEmpty()) {
                 Text(
-                    stringResource(R.string.today_last_time, entriesText(lastTime)),
+                    stringResource(R.string.today_last_time, entriesText(lastTime, readable)),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )

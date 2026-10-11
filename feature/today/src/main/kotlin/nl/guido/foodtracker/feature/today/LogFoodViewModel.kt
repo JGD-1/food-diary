@@ -70,8 +70,8 @@ internal data class LogFoodUiState(
     val found: List<Food>,
     val online: OnlineSearch,
     val amount: AmountStep?,
-    /** The app's own plain line (S1) for foods in [recent], by food id. */
-    val recentPlain: Map<Id, String> = emptyMap(),
+    /** The app's readable names (S1) for foods in [recent], by food id. */
+    val recentReadable: Map<Id, String> = emptyMap(),
 ) {
     /** My pin for the food in the amount sheet, if I pinned it. */
     val amountPin: PinnedFood? get() = amount?.pick?.foodId?.let { id -> pinnedFoods.firstOrNull { it.food.id == id } }
@@ -93,7 +93,7 @@ internal class LogFoodViewModel @Inject constructor(
     private val recipes: RecipeRepository,
     /** "1 apple ≈ 150 g" pieces, bound by feature/food; empty until it is. */
     private val commonPortions: Optional<CommonPortions>,
-    /** The app's plain line under NEVO names (S1), bound by feature/food. */
+    /** The app's readable names for NEVO foods (S1), bound by feature/food. */
     private val foodNames: Optional<FoodNames>,
 ) : ViewModel() {
 
@@ -121,16 +121,16 @@ internal class LogFoodViewModel @Inject constructor(
         .flatMapLatest { diary.recent(it.userId, RECENT_LINES) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    /** Plain lines for the foods in recent lines, which carry only the food's id and name. */
-    private val recentPlain: Flow<Map<Id, String>> = recentAll.mapLatest { lines ->
+    /** Readable names for the foods in recent lines, which carry only the food's id and name. */
+    private val recentReadable: Flow<Map<Id, String>> = recentAll.mapLatest { lines ->
         if (!foodNames.isPresent) return@mapLatest emptyMap()
-        lines.mapNotNull { (it.what as? Logged.FoodRef)?.foodId }.distinct().take(RECENT_PLAIN_FOODS)
-            .mapNotNull { id -> foods.get(id)?.let(::plainName)?.let { id to it } }
+        lines.mapNotNull { (it.what as? Logged.FoodRef)?.foodId }.distinct().take(RECENT_READABLE_FOODS)
+            .mapNotNull { id -> foods.get(id)?.let(::readableName)?.let { id to it } }
             .toMap()
     }
 
-    /** The app's own plain line under a food's name (S1), or null when there is nothing to add. */
-    fun plainName(food: Food): String? = try {
+    /** The app's readable full name for a food (S1), or null when it has none. */
+    fun readableName(food: Food): String? = try {
         foodNames.getOrNull()?.plain(food)?.takeIf { it.isNotBlank() }
     } catch (e: Exception) {
         null
@@ -161,13 +161,16 @@ internal class LogFoodViewModel @Inject constructor(
         }
     }
 
-    private val recentLists = combine(recentAll, recentPlain) { r, plain -> r to plain }
+    private val recentLists = combine(recentAll, recentReadable) { r, plain -> r to plain }
     private val lists = combine(recentLists, pinned, myPinnedFoods, batches, found) { r, p, pf, b, f ->
         Lists(r.first, r.second, p, pf, b, f)
     }
 
     val state: StateFlow<LogFoodUiState?> = combine(meal, query, lists, online, amount) { meal, query, lists, online, amount ->
-        val recent = recentItems(lists.recent, meal).filter { query.isBlank() || it.displayName.contains(query.trim(), true) }
+        val recent = recentItems(lists.recent, meal).filter { entry ->
+            query.isBlank() || entry.displayName.contains(query.trim(), true) ||
+                entry.foodId?.let { lists.recentReadable[it] }?.contains(query.trim(), true) == true
+        }
         val recentFoodIds = recent.mapNotNull { (it.what as? Logged.FoodRef)?.foodId }.toSet()
         LogFoodUiState(
             date = date,
@@ -182,7 +185,7 @@ internal class LogFoodViewModel @Inject constructor(
             found = lists.found.filterNot { it.id in recentFoodIds },
             online = online,
             amount = amount,
-            recentPlain = lists.recentPlain,
+            recentReadable = lists.recentReadable,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -358,7 +361,7 @@ internal class LogFoodViewModel @Inject constructor(
 
     private data class Lists(
         val recent: List<LogEntry>,
-        val recentPlain: Map<Id, String>,
+        val recentReadable: Map<Id, String>,
         val pinned: List<Recipe>,
         val pinnedFoods: List<PinnedFood>,
         val batches: List<PotItem>,
@@ -368,6 +371,6 @@ internal class LogFoodViewModel @Inject constructor(
     private companion object {
         const val RECENT_LINES = 200
         const val SEARCH_DELAY_MS = 200L
-        const val RECENT_PLAIN_FOODS = 60
+        const val RECENT_READABLE_FOODS = 60
     }
 }

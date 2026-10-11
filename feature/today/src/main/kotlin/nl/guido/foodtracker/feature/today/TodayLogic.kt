@@ -139,6 +139,24 @@ internal fun withGrams(entry: LogEntry, grams: Double): LogEntry {
 internal fun dayTotals(entries: List<LogEntry>): List<DayTotal> =
     entries.groupBy { it.date }.map { (date, list) -> DayTotal(date, list.sumOf { it.nutrients.kcal }) }.sortedBy { it.date }
 
+/**
+ * A food name as shown (S1): the app's readable full name ("Apple, with skin, average") as the main
+ * name, and the original NEVO name, unchanged, as the small line under it. Without a readable name
+ * (or when it is the same), the original is the main name and there is no second line.
+ */
+internal data class ShownName(val title: String, val original: String?)
+
+internal fun shownName(original: String, readable: String?): ShownName {
+    val name = readable?.trim()
+    return if (name.isNullOrEmpty() || name == original) ShownName(original, null) else ShownName(name, original)
+}
+
+/** The food id behind a diary line, or null for recipes, batches and restaurant lines. */
+internal val LogEntry.foodId: Id? get() = (what as? Logged.FoodRef)?.foodId
+
+/** The name shown for a diary line: the readable name from [readable] (by food id) when there is one. */
+internal fun LogEntry.shown(readable: Map<Id, String>): ShownName = shownName(displayName, foodId?.let { readable[it] })
+
 /** The name shown for a diary line. */
 internal val LogEntry.displayName: String
     get() = when (val w = what) {
