@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="camera_camera_title">Scan</string>
-    <string name="camera_back">Back</string>
 
     <!-- Camera permission -->
     <string name="camera_permission_body">To scan barcodes, labels and your scale, the app needs to use the camera. Pictures stay on your phone.</string>
@@ -66,11 +65,8 @@
     <string name="camera_amount_total">That\'s %1$d kcal</string>
     <string name="camera_amount_read_scale">Read the scale</string>
     <string name="camera_amount_done">Done</string>
-    <string name="camera_chip_grams">%1$s g</string>
-    <string name="camera_chip_ml">%1$s ml</string>
-    <string name="camera_chip_serving">1 serving · %1$s</string>
-    <string name="camera_chip_pack">Whole pack · %1$s</string>
-    <string name="camera_chip_piece">%1$s ≈ %2$s</string>
+    <string name="camera_chip_serving">1 serving</string>
+    <string name="camera_chip_pack">Whole pack</string>
 
     <!-- Edit food -->
     <string name="camera_edit_title">Edit food</string>

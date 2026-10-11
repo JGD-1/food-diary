@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="camera_camera_title">Scannen</string>
-    <string name="camera_back">Terug</string>
 
     <!-- Toestemming voor de camera -->
     <string name="camera_permission_body">Om barcodes, etiketten en je weegschaal te scannen, heeft de app de camera nodig. Foto\'s blijven op je telefoon.</string>
@@ -66,11 +65,8 @@
     <string name="camera_amount_total">Dat is %1$d kcal</string>
     <string name="camera_amount_read_scale">Weegschaal aflezen</string>
     <string name="camera_amount_done">Klaar</string>
-    <string name="camera_chip_grams">%1$s g</string>
-    <string name="camera_chip_ml">%1$s ml</string>
-    <string name="camera_chip_serving">1 portie · %1$s</string>
-    <string name="camera_chip_pack">Hele verpakking · %1$s</string>
-    <string name="camera_chip_piece">%1$s ≈ %2$s</string>
+    <string name="camera_chip_serving">1 portie</string>
+    <string name="camera_chip_pack">Hele verpakking</string>
 
     <!-- Product wijzigen -->
     <string name="camera_edit_title">Product wijzigen</string>

@@ -13,13 +13,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
@@ -35,6 +33,7 @@ import kotlinx.coroutines.launch
 import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.ui.Routes
+import nl.guido.foodtracker.core.ui.ScreenHeader
 import javax.inject.Inject
 
 /** "Edit food": loading, the form, a food that can't be changed (NEVO, or gone), or saved. */
@@ -79,32 +78,32 @@ internal fun FoodEditScreen(onDone: () -> Unit, vm: FoodEditViewModel = hiltView
     val state by vm.state.collectAsStateWithLifecycle()
     LaunchedEffect(state) { if (state == FoodEditState.Saved) onDone() }
     BackHandler(onBack = onDone)
-    Column(
-        Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState()).padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        TextButton(onClick = onDone) { Text(stringResource(R.string.camera_back)) }
-        Text(stringResource(R.string.camera_edit_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        when (val s = state) {
-            FoodEditState.Loading, FoodEditState.Saved -> Unit
-            FoodEditState.CannotEdit -> Text(
-                stringResource(R.string.camera_edit_cannot),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            is FoodEditState.Editing -> {
-                Text(
-                    stringResource(R.string.camera_edit_body),
+    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        ScreenHeader(stringResource(R.string.camera_edit_title), onBack = onDone)
+        Column(
+            Modifier.verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            when (val s = state) {
+                FoodEditState.Loading, FoodEditState.Saved -> Unit
+                FoodEditState.CannotEdit -> Text(
+                    stringResource(R.string.camera_edit_cannot),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                FoodFields(s.draft, vm::onDraftChange)
-                Button(
-                    onClick = vm::save,
-                    enabled = s.draft.canSave,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                ) { Text(stringResource(R.string.camera_edit_save)) }
+                is FoodEditState.Editing -> {
+                    Text(
+                        stringResource(R.string.camera_edit_body),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    FoodFields(s.draft, vm::onDraftChange)
+                    Button(
+                        onClick = vm::save,
+                        enabled = s.draft.canSave,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    ) { Text(stringResource(R.string.camera_edit_save)) }
+                }
             }
         }
     }

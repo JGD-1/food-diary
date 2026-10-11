@@ -53,7 +53,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -61,6 +60,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
+import nl.guido.foodtracker.core.ui.ScreenHeader
 import nl.guido.foodtracker.feature.camera.vision.BarcodeReader
 import nl.guido.foodtracker.feature.camera.vision.LabelReader
 import nl.guido.foodtracker.feature.camera.vision.ScaleReader
@@ -155,17 +155,10 @@ internal fun CameraScreen(
     }
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        ScreenHeader(
+            title = stringResource(R.string.camera_camera_title),
+            onBack = { if (!vm.back()) onLeave() },
         ) {
-            TextButton(onClick = { if (!vm.back()) onLeave() }) { Text(stringResource(R.string.camera_back)) }
-            Text(
-                stringResource(R.string.camera_camera_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f),
-            )
             if (use != null) {
                 TextButton(onClick = { lightOn = !lightOn }) {
                     Text(stringResource(if (lightOn) R.string.camera_light_off else R.string.camera_light_on))
@@ -224,7 +217,7 @@ internal fun CameraScreen(
 
 @Composable
 private fun Title(text: String) =
-    Text(text, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+    Text(text, style = MaterialTheme.typography.titleLarge)
 
 @Composable
 private fun Body(text: String) =
@@ -324,13 +317,15 @@ private fun HowMuchPanel(s: CameraStep.HowMuch, vm: CameraViewModel) {
         ),
     )
     val chips = amountChips(food, s.pieces)
+    val servingWord = stringResource(R.string.camera_chip_serving)
+    val packWord = stringResource(R.string.camera_chip_pack)
     if (chips.isNotEmpty()) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             chips.forEach { chip ->
                 FilterChip(
                     selected = parseAmount(s.grams) == chip.grams,
                     onClick = { vm.onGramsChange(formatGrams(chip.grams)) },
-                    label = { Text(chipText(chip, food.isDrink)) },
+                    label = { Text(chipText(chip, servingWord, packWord, food.isDrink)) },
                 )
             }
         }
@@ -344,17 +339,6 @@ private fun HowMuchPanel(s: CameraStep.HowMuch, vm: CameraViewModel) {
     }
     MainButton(stringResource(R.string.camera_amount_done), enabled = (parseAmount(s.grams) ?: 0.0) > 0, onClick = vm::finishWithFood)
     OtherButton(stringResource(R.string.camera_amount_read_scale)) { vm.readScaleFor(food) }
-}
-
-/** "1 serving · 45 g", "Whole pack · 750 g", "1 apple ≈ 150 g". */
-@Composable
-private fun chipText(chip: AmountChip, drink: Boolean): String {
-    val amount = stringResource(if (drink) R.string.camera_chip_ml else R.string.camera_chip_grams, formatGrams(chip.grams))
-    return when (chip.kind) {
-        AmountChip.Kind.SERVING -> stringResource(R.string.camera_chip_serving, amount)
-        AmountChip.Kind.PACK -> stringResource(R.string.camera_chip_pack, amount)
-        AmountChip.Kind.PIECE -> stringResource(R.string.camera_chip_piece, chip.label.orEmpty(), amount)
-    }
 }
 
 @Composable
@@ -376,7 +360,6 @@ private fun ScalePanel(s: CameraStep.ReadScale, scale: ScaleView, vm: CameraView
             Text(
                 stringResource(R.string.camera_scale_reading, formatGrams(grams)),
                 style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
             MainButton(stringResource(R.string.camera_scale_use, formatGrams(grams))) { vm.useGrams(grams) }
