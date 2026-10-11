@@ -28,12 +28,13 @@ interface CommonPortions {
 }
 
 /**
- * The app's own plain-language line under a food name (S1), e.g. "with skin, average" under a NEVO name.
- * NEVO names themselves are never changed (licence); this line is the app's addition.
+ * The app's own readable name for a food (S1), e.g. "Apple, with skin, average" for a NEVO name with
+ * short forms. Screens show it as the main name and the unchanged NEVO name ([Food.name]) as the small
+ * line under it; NEVO names themselves are never changed (licence), the readable name is the app's addition.
  * Bound by feature/food; optional, so callers inject Optional<FoodNames>.
  */
 interface FoodNames {
-    /** Null when there is nothing to add. */
+    /** Null when the name needs no rewording; then show [Food.name] alone. */
     fun plain(food: Food): String?
 }
 
