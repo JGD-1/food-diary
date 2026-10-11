@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -24,6 +25,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
@@ -83,6 +85,7 @@ internal fun RecipeEditScreen(
                     onGrams = { vm.setGrams(line.key, it) },
                     onRemove = { vm.remove(line.key) },
                     onWeigh = cameraWeigh(navController) { vm.startWeighing(line.key) },
+                    onChoice = { vm.chooseAmount(line.key, it) },
                 )
             }
             OutlinedButton(onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) {
@@ -98,6 +101,26 @@ internal fun RecipeEditScreen(
                     ),
                 )
             }
+
+            SectionTitle(stringResource(R.string.recipes_after_cooking))
+            Hint(stringResource(R.string.recipes_after_cooking_hint))
+            GramsField(
+                value = state.cookedText,
+                onValueChange = vm::setCooked,
+                label = stringResource(R.string.recipes_cooked_weight_optional),
+                onWeigh = cameraWeigh(navController) { vm.startWeighing(RecipeEditViewModel.WEIGH_COOKED) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (state.cookedText.isBlank()) Hint(stringResource(R.string.recipes_cooked_weight_none_hint))
+            OutlinedTextField(
+                value = state.piecesText,
+                onValueChange = vm::setPieces,
+                label = { Text(stringResource(R.string.recipes_makes_pieces)) },
+                supportingText = { Text(stringResource(R.string.recipes_makes_pieces_hint)) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+            )
             Button(onClick = vm::save, enabled = state.canSave, modifier = Modifier.fillMaxWidth().height(56.dp)) {
                 Text(stringResource(R.string.recipes_save))
             }

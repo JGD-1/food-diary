@@ -38,6 +38,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -50,10 +51,13 @@ import androidx.navigation.NavController
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.core.model.Portion
+import nl.guido.foodtracker.core.ui.amountText
 import nl.guido.foodtracker.feature.recipes.FoodSearchViewModel
 import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.RecipesRoutes
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
+import nl.guido.foodtracker.feature.recipes.logic.PIECE_CHOICES
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -151,13 +155,15 @@ internal fun GramsField(
     label: String,
     onWeigh: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    /** Liquids are measured in ml. */
+    inMl: Boolean = false,
 ) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             label = { Text(label) },
-            suffix = { Text(stringResource(R.string.recipes_grams_unit)) },
+            suffix = { Text(stringResource(if (inMl) R.string.recipes_ml_unit else R.string.recipes_grams_unit)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.weight(1f),
@@ -168,24 +174,66 @@ internal fun GramsField(
     }
 }
 
-/** One ingredient: its name, grams to type or weigh, and a Remove button. */
+/**
+ * One ingredient: its name, ready-made amounts like Log food ("1 egg", "1 serving", S13),
+ * grams (or ml) to type or weigh, and a Remove button. A chosen amount stays on the line ("1 egg ≈ 50 g").
+ */
 @Composable
 internal fun IngredientLine(
     line: EditableIngredient,
     onGrams: (String) -> Unit,
     onRemove: () -> Unit,
     onWeigh: (() -> Unit)?,
+    onChoice: (Portion) -> Unit,
 ) {
     Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(line.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+            Column(Modifier.weight(1f)) {
+                Text(line.name, style = MaterialTheme.typography.bodyLarge)
+                val grams = line.grams
+                if (line.amountLabel != null && grams != null) Hint(amountText(line.amountLabel, grams, line.isDrink))
+            }
             line.toIngredient()?.let {
                 Hint(stringResource(R.string.recipes_kcal, it.nutrients.kcal.roundToInt()))
             }
             TextButton(onClick = onRemove) { Text(stringResource(R.string.recipes_remove)) }
         }
-        GramsField(line.gramsText, onGrams, stringResource(R.string.recipes_grams), onWeigh)
+        if (line.choices.isNotEmpty()) {
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                line.choices.forEach { choice ->
+                    FilterChip(
+                        selected = line.amountLabel != null && line.amountLabel == choice.label && line.grams == choice.grams,
+                        onClick = { onChoice(choice) },
+                        label = { Text(amountText(choice.label, choice.grams, line.isDrink)) },
+                    )
+                }
+            }
+        }
+        GramsField(
+            line.gramsText, onGrams,
+            stringResource(if (line.isDrink) R.string.recipes_amount_ml else R.string.recipes_grams),
+            onWeigh, inMl = line.isDrink,
+        )
     }
+}
+
+/** "½", "1", "2" pieces chips (S11); [label] gives the words for the diary line, e.g. "2 pieces". */
+@Composable
+internal fun PieceChips(selectedLabel: String?, onPieces: (count: Double, label: String) -> Unit) {
+    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        PIECE_CHOICES.forEach { count ->
+            val label = piecesLabel(count)
+            FilterChip(selected = selectedLabel == label, onClick = { onPieces(count, label) }, label = { Text(label) })
+        }
+    }
+}
+
+/** "½ piece", "1 piece", "2 pieces". */
+@Composable
+internal fun piecesLabel(count: Double): String = when (count) {
+    0.5 -> stringResource(R.string.recipes_half_piece)
+    1.0 -> pluralStringResource(R.plurals.recipes_pieces, 1, 1)
+    else -> pluralStringResource(R.plurals.recipes_pieces, count.roundToInt(), count.roundToInt())
 }
 
 /**

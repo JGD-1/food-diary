@@ -97,4 +97,19 @@
     <string name="recipes_ok">OK</string>
     <string name="recipes_batch_scale">× %1$s</string>
     <string name="recipes_batch_save_to_recipe">Deze hoeveelheden ook in het recept opslaan</string>
+    <string name="recipes_amount_serving">1 portie</string>
+    <string name="recipes_amount_pack">Hele verpakking</string>
+    <string name="recipes_ml_unit">ml</string>
+    <string name="recipes_amount_ml">Milliliter</string>
+    <string name="recipes_half_piece">½ stuk</string>
+    <plurals name="recipes_pieces">
+        <item quantity="one">%1$d stuk</item>
+        <item quantity="other">%1$d stuks</item>
+    </plurals>
+    <string name="recipes_after_cooking">Na koken of bakken</string>
+    <string name="recipes_after_cooking_hint">Koken verandert het gewicht. Weeg het hele gerecht als het klaar is, zonder de pan. Porties tellen dan in grammen van het klaargemaakte gerecht.</string>
+    <string name="recipes_cooked_weight_optional">Gewicht van het klare gerecht (niet verplicht)</string>
+    <string name="recipes_cooked_weight_none_hint">Zonder dit gewicht tellen porties in grammen van de rauwe ingrediënten. Voor een pan die je over dagen verdeelt: gebruik Grote pan koken.</string>
+    <string name="recipes_makes_pieces">Levert … stuks op (niet verplicht)</string>
+    <string name="recipes_makes_pieces_hint">Bijvoorbeeld 12 muffins. Je kunt dan ½, 1 of 2 stuks invoeren.</string>
 </resources>
