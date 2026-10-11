@@ -3,6 +3,7 @@ package nl.guido.foodtracker.feature.food
 import kotlinx.coroutines.test.runTest
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.feature.food.net.WebResponse
+import nl.guido.foodtracker.feature.food.nevo.NevoInfo
 import nl.guido.foodtracker.feature.food.off.OpenFoodFacts
 import nl.guido.foodtracker.feature.food.search.rankFoods
 import org.junit.Assert.assertEquals
@@ -67,7 +68,10 @@ class FoodSourceTest {
         val bread = food("Bread wholemeal")
         val cheese = food("Cheese Gouda 48+")
         val formula = food("Infant formula")
-        val dutch = mapOf(bread.id to "Brood volkoren", cheese.id to "Kaas Goudse 48+")
+        val dutch = mapOf(
+            bread.id to NevoInfo("Bread wholemeal", "Brood volkoren", "Bread"),
+            cheese.id to NevoInfo("Cheese Gouda 48+", "Kaas Goudse 48+", "Cheese"),
+        )
         val source = RealFoodSource(FakeFoods(bread, cheese, formula), OpenFoodFacts(FakeWeb()), {}, { dutch })
         assertEquals(listOf("Bread wholemeal"), source.search("volkoren brood").map { it.name })
         assertEquals(listOf("Cheese Gouda 48+"), source.search("kaas").map { it.name })
@@ -95,7 +99,7 @@ class FoodSourceTest {
             ),
         )
         assertEquals(
-            listOf("Apple" to FoodOrigin.LABEL, "Apple" to FoodOrigin.NEVO, "Apple juice" to FoodOrigin.OFF, "Apple raw" to FoodOrigin.NEVO, "Pie apple" to FoodOrigin.NEVO),
+            listOf("Apple" to FoodOrigin.LABEL, "Apple" to FoodOrigin.NEVO, "Apple raw" to FoodOrigin.NEVO, "Pie apple" to FoodOrigin.NEVO, "Apple juice" to FoodOrigin.OFF),
             ranked.map { it.name to it.source },
         )
     }

@@ -2,6 +2,7 @@ package nl.guido.foodtracker.feature.food
 
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.feature.food.nevo.NEVO_ASSET
+import nl.guido.foodtracker.feature.food.nevo.NevoInfo
 import nl.guido.foodtracker.feature.food.nevo.NevoParser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -42,7 +43,16 @@ class NevoTest {
         val text = "1|Potatoes and tubers|Aardappelen rauw|Potatoes raw|per 100g|88|2|19|0\n" +
             "9|Foods for special nutritional use|Zuigelingenvoeding|Infant formula|per 100ml|67|1,3|7|3,5\n"
         assertEquals(listOf("Potatoes raw"), NevoParser.parse(text.reader()).map { it.name })
-        assertEquals(mapOf(nevoId("1") to "Aardappelen rauw"), NevoParser.dutchNames(text.reader()))
+        assertEquals(
+            mapOf(nevoId("1") to NevoInfo("Potatoes raw", "Aardappelen rauw", "Potatoes and tubers")),
+            NevoParser.info(text.reader()),
+        )
+    }
+
+    @Test fun dutchPhonesGetDutchNames() {
+        val text = "875|Fruits|Appel m schil gem|Apple w skin av|per 100g|54|0,3|12|0\n"
+        assertEquals("Appel m schil gem", NevoParser.parse(text.reader(), dutch = true).single().name)
+        assertEquals("Apple w skin av", NevoParser.parse(text.reader()).single().name)
     }
 
     @Test fun fibreSugarAndSaltFromTheBundledFile() {
