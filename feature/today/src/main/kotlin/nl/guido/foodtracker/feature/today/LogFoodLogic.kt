@@ -16,6 +16,7 @@ import nl.guido.foodtracker.core.model.gramsLeft
 import nl.guido.foodtracker.core.model.newId
 import java.time.Instant
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 internal const val DEFAULT_FOOD_GRAMS = 100.0
 internal const val DEFAULT_DRINK_ML = 250.0
@@ -102,6 +103,7 @@ internal fun pickFromEntry(entry: LogEntry): Pick? {
     )
 }
 
+/** [label] is how the amount was chosen ("1 apple", "1 serving"), kept so the line reads "1 apple ≈ 150 g". */
 internal fun entryFromPick(
     pick: Pick,
     grams: Double,
@@ -110,13 +112,14 @@ internal fun entryFromPick(
     meal: Meal,
     now: Instant,
     id: Id = newId(),
+    label: String? = null,
 ): LogEntry = LogEntry(
     id = id,
     userId = userId,
     date = date,
     meal = meal,
     what = pick.what,
-    portion = Portion(grams),
+    portion = Portion(grams, label?.takeIf { it.isNotBlank() }),
     nutrients = pick.per100g.forGrams(grams),
     isEstimate = pick.what is Logged.Restaurant,
     createdAt = now,
@@ -152,7 +155,34 @@ internal fun foodFavourite(userId: Id, foodId: Id, grams: Double, id: Id = newId
     Favourite(id = id, userId = userId, foodId = foodId, usualPortion = Portion(grams))
 
 /** A batch still in the pot (nobody tapped "Finished"), with what is left across the household. */
-internal data class PotItem(val batch: Batch, val gramsLeft: Double)
+internal data class PotItem(val batch: Batch, val gramsLeft: Double) {
+    /** Pieces left for a batch made in pieces (S11), to the nearest half; null otherwise. */
+    val piecesLeft: Double? get() = piecesLeft(batch, gramsLeft)
+}
+
+/** [gramsLeft] as pieces of [batch] (cooked weight ÷ pieces each), to the nearest half; null without pieces. */
+internal fun piecesLeft(batch: Batch, gramsLeft: Double): Double? {
+    val pieces = batch.pieces?.takeIf { it > 0 } ?: return null
+    if (batch.cookedWeightG <= 0.0) return null
+    return (gramsLeft / (batch.cookedWeightG / pieces) * 2).roundToInt() / 2.0
+}
+
+/** "3", "2½", "½": pieces to the nearest half, as people say them. */
+internal fun formatPieces(pieces: Double): String {
+    val halves = (pieces * 2).roundToInt()
+    val whole = halves / 2
+    return when {
+        halves % 2 == 0 -> whole.toString()
+        whole == 0 -> "½"
+        else -> "$whole½"
+    }
+}
+
+/** A pot older than this many days shows its cook date ("2 October") instead of the weekday (S15). */
+internal const val POT_WEEKDAY_DAYS = 6L
+
+/** True when the pot is old enough that a weekday would be unclear, so the date is shown. */
+internal fun showCookDate(cookedOn: LocalDate, today: LocalDate): Boolean = cookedOn < today.minusDays(POT_WEEKDAY_DAYS)
 
 /** "From the pot": unfinished batches, newest first, with grams left after everyone's portions. */
 internal fun potItems(batches: List<Batch>, portions: List<BatchPortion>): List<PotItem> {

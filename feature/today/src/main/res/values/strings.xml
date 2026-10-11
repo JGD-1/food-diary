@@ -53,7 +53,6 @@
     <string name="today_drink_add">Add</string>
     <string name="today_drinks_none">None yet</string>
     <string name="today_amount_grams">%1$s g</string>
-    <string name="today_amount_ml">%1$s ml</string>
     <string name="today_restaurant_item_single">%1$s · restaurant, about %2$s</string>
     <string name="today_restaurant_item">%1$s · restaurant, %2$s–%3$s</string>
     <string name="today_kcal_value">%1$s</string>
@@ -117,7 +116,6 @@
     <string name="today_review_dismiss">Got it</string>
 
     <!-- Log food -->
-    <string name="today_back">Back</string>
     <string name="today_done">Done</string>
     <string name="today_log_for_day">For %1$s</string>
     <string name="today_search_hint">Search foods and drinks</string>
@@ -137,20 +135,23 @@
     <string name="today_quick_add_description">Add %1$s again</string>
     <string name="today_per_100g">%1$s kcal per 100 g</string>
     <string name="today_per_100ml">%1$s kcal per 100 ml</string>
-    <string name="today_source_nevo">NEVO</string>
-    <string name="today_source_off">Open Food Facts</string>
-    <string name="today_source_own">My food</string>
     <string name="today_weigh_on_scale">Weigh on scale</string>
     <string name="today_unit_g">g</string>
     <string name="today_unit_ml">ml</string>
     <string name="today_amount_total">= %1$s kcal</string>
-    <string name="today_chip_serving">1 serving · %1$s</string>
-    <string name="today_chip_pack">Whole pack · %1$s</string>
-    <string name="today_chip_piece">%1$s · %2$s</string>
+    <string name="today_chip_serving">1 serving</string>
+    <string name="today_chip_pack">Whole pack</string>
     <string name="today_pin">Pin to favourites</string>
     <string name="today_unpin">Unpin from favourites</string>
     <string name="today_edit_food">Edit food</string>
     <string name="today_type_kcal">Type kcal yourself ›</string>
     <string name="today_type_kcal_detail">Log “%1$s” with your own kcal</string>
-    <string name="today_pot_left">cooked %1$s · %2$s g left</string>
+    <string name="today_pot_left">cooked %1$s · %2$s left</string>
+    <!-- A pot older than a week shows its date, e.g. "2 October" -->
+    <string name="today_pot_date_pattern" translatable="false">d MMMM</string>
+    <string name="today_section_freezer">From the freezer</string>
+    <plurals name="today_pieces">
+        <item quantity="one">%1$s piece</item>
+        <item quantity="other">%1$s pieces</item>
+    </plurals>
 </resources>

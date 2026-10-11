@@ -166,4 +166,45 @@ class LogFoodLogicTest {
         assertEquals(listOf("Chili"), pot.map { it.batch.name })
         assertEquals(1250.0, pot[0].gramsLeft, 0.0)
     }
+
+    @Test
+    fun `a batch made in pieces shows pieces left, to the nearest half`() {
+        val muffins = Batch("b1", "home", null, "Muffins", emptyList(), 1200.0, TODAY, pieces = 12)
+        assertEquals(12.0, piecesLeft(muffins, 1200.0)!!, 0.0)
+        assertEquals(2.5, piecesLeft(muffins, 260.0)!!, 0.0)
+        assertEquals(0.0, piecesLeft(muffins, 0.0)!!, 0.0)
+        assertNull(piecesLeft(muffins.copy(pieces = null), 600.0))
+        assertNull(piecesLeft(muffins.copy(pieces = 0), 600.0))
+        assertEquals(3.0, PotItem(muffins, 300.0).piecesLeft!!, 0.0)
+    }
+
+    @Test
+    fun `pieces read as people say them`() {
+        assertEquals("3", formatPieces(3.0))
+        assertEquals("2½", formatPieces(2.5))
+        assertEquals("½", formatPieces(0.5))
+        assertEquals("0", formatPieces(0.0))
+    }
+
+    @Test
+    fun `a pot older than six days shows its date`() {
+        assertFalse(showCookDate(TODAY, TODAY))
+        assertFalse(showCookDate(TODAY.minusDays(6), TODAY))
+        assertTrue(showCookDate(TODAY.minusDays(7), TODAY))
+    }
+
+    @Test
+    fun `a line logged with a chip keeps the chip's label`() {
+        val pick = pickFromFood(apple(), emptyList())
+        val line = entryFromPick(pick, 150.0, "me", TODAY, Meal.SNACKS, Instant.EPOCH, id = "l1", label = "1 apple")
+        assertEquals(Portion(150.0, "1 apple"), line.portion)
+        assertEquals("1 apple ≈ 150 g", entryAmountText(line))
+        val typed = entryFromPick(pick, 120.0, "me", TODAY, Meal.SNACKS, Instant.EPOCH, id = "l2")
+        assertEquals("120 g", entryAmountText(typed))
+    }
+
+    private fun apple() = Food(
+        id = "apple", name = "Apple", brand = null, barcode = null,
+        per100g = Nutrients(52.0, 0.3, 14.0, 0.2), source = FoodOrigin.NEVO, isDrink = false,
+    )
 }

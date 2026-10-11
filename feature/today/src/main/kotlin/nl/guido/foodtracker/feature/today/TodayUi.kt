@@ -18,6 +18,7 @@ import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.ui.CameraResult
+import nl.guido.foodtracker.core.ui.amountText
 import java.text.NumberFormat
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -116,15 +117,12 @@ internal fun entryText(entry: LogEntry): String {
         return if (e.low == e.high) stringResource(R.string.today_restaurant_item_single, what.dish, formatKcal(e.typical))
         else stringResource(R.string.today_restaurant_item, what.dish, formatKcal(e.low), formatKcal(e.high))
     }
-    return "${entry.displayName} ${amountText(entry)}"
+    return "${entry.displayName} ${entryAmountText(entry)}"
 }
 
-@Composable
-internal fun amountText(entry: LogEntry): String = entry.portion.label
-    ?: stringResource(
-        if (entry.meal == Meal.DRINKS) R.string.today_amount_ml else R.string.today_amount_grams,
-        formatAmount(entry.portion.grams),
-    )
+/** The one amount format (S27): "1 apple ≈ 150 g", or "150 g" / "250 ml" without a label. */
+internal fun entryAmountText(entry: LogEntry): String =
+    amountText(entry.portion.label, entry.portion.grams, isDrink = entry.meal == Meal.DRINKS)
 
 @Composable
 internal fun entriesText(entries: List<LogEntry>): String = entries.map { entryText(it) }.joinToString(", ")
