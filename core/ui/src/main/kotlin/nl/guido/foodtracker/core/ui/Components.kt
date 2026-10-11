@@ -63,8 +63,9 @@ fun ScreenHeader(
 }
 
 /**
- * One food in a list, as on Log food (S21): name, the app's own plain line under it when there is one
- * (S1, from FoodNames; never a change to the NEVO name), then a detail line such as [foodDetail].
+ * One food in a list, as on Log food (S21): [title], then [plainLine], then a detail line such as [foodDetail].
+ * For S1 pass title = FoodNames.plain(food) ?: food.name and, when the readable name is used,
+ * plainLine = food.name (the unchanged NEVO name).
  */
 @Composable
 fun FoodRow(
