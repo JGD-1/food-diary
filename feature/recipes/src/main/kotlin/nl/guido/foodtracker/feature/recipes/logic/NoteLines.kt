@@ -17,36 +17,48 @@ data class NoteLine(
     val unit: NoteUnit? = null,
     /** The unit as written, e.g. "el" or "blikje", for the amount label. */
     val unitWord: String? = null,
+    /** The number was written with a decimal comma or point ("1,5", "0.5"). */
+    val decimal: Boolean = false,
 ) {
     /**
-     * Grams for this line. Pieces use [pieceGrams] (e.g. one egg), else [servingG]; tins and
-     * packs use [packageG]. Null when the line has no amount or the size of one isn't known.
+     * Grams for this line and the words to show with them ("2 eieren", "2 el", "1 blik"; null when
+     * the grams say it all). Tins and packs use [packageG]. A number without a unit is read the way
+     * people write notes (Guido, 12 Oct): hundreds and thousands are grams ("500 gehakt"), a number
+     * with a comma is kilos ("1,5 aardappelen"), and a small number is pieces when the food comes in
+     * pieces ([pieceGrams], else [servingG]: "2 eieren"), otherwise kilos ("2 gehakt").
+     * Null when the line has no amount, or the size of one piece or pack isn't known.
      */
-    fun grams(pieceGrams: Double? = null, servingG: Double? = null, packageG: Double? = null): Double? {
-        val n = count ?: return null
-        val one = when (unit) {
-            null, NoteUnit.PIECE -> pieceGrams ?: servingG
-            NoteUnit.TIN -> packageG ?: NoteUnit.TIN_GUESS_G
-            NoteUnit.PACK -> packageG
-            else -> unit.grams
-        } ?: return null
-        return (n * one).takeIf { it > 0.0 }
+    fun amount(pieceGrams: Double? = null, servingG: Double? = null, packageG: Double? = null): NoteAmount? {
+        val n = count?.takeIf { it > 0.0 } ?: return null
+        val unitLabel = "${formatCount(n)} ${unitWord ?: unit?.name?.lowercase()}"
+        return when (unit) {
+            null -> {
+                val one = pieceGrams ?: servingG
+                when {
+                    decimal -> NoteAmount(n * KILO, null)
+                    n >= GRAMS_FROM -> NoteAmount(n, null)
+                    one != null -> NoteAmount(n * one, "${formatCount(n)} $food")
+                    else -> NoteAmount(n * KILO, null)
+                }
+            }
+            NoteUnit.PIECE -> (pieceGrams ?: servingG)?.let { NoteAmount(n * it, "${formatCount(n)} $food") }
+            NoteUnit.TIN -> NoteAmount(n * (packageG ?: NoteUnit.TIN_GUESS_G), unitLabel)
+            NoteUnit.PACK -> packageG?.let { NoteAmount(n * it, unitLabel) }
+            NoteUnit.GRAM, NoteUnit.KILO, NoteUnit.ML, NoteUnit.CL, NoteUnit.DL, NoteUnit.LITRE ->
+                NoteAmount(n * unit.grams!!, null)
+            else -> NoteAmount(n * unit.grams!!, unitLabel)
+        }
     }
 
-    /**
-     * The amount as words for the ingredient line ("2 eieren", "2 el", "1 blik"), or null when the
-     * line was in grams or ml already (the grams say it all).
-     */
-    val amountLabel: String?
-        get() {
-            val n = count ?: return null
-            return when (unit) {
-                null, NoteUnit.PIECE -> "${formatCount(n)} $food"
-                NoteUnit.GRAM, NoteUnit.KILO, NoteUnit.ML, NoteUnit.CL, NoteUnit.DL, NoteUnit.LITRE -> null
-                else -> "${formatCount(n)} ${unitWord ?: unit.name.lowercase()}"
-            }
-        }
+    private companion object {
+        const val KILO = 1000.0
+        /** A bare number from here up is grams. */
+        const val GRAMS_FROM = 10.0
+    }
 }
+
+/** What a note line comes to: grams, and the amount in words when it wasn't grams already. */
+data class NoteAmount(val grams: Double, val label: String?)
 
 /** Units found on notes, with grams for one (liquids: 1 ml = 1 g, as everywhere in the app). */
 enum class NoteUnit(val grams: Double?) {
@@ -131,11 +143,12 @@ fun parseNoteLine(text: String): NoteLine? {
         count = a?.count,
         unit = a?.unit,
         unitWord = a?.unitWord,
+        decimal = a?.decimal == true,
     )
 }
 
 /** An amount found at the start or end of a line, and how many tokens it took. */
-private data class Amount(val count: Double, val unit: NoteUnit?, val unitWord: String?, val used: Int)
+private data class Amount(val count: Double, val unit: NoteUnit?, val unitWord: String?, val used: Int, val decimal: Boolean = false)
 
 /** Splits "300g" into "300" "g" and "2x" into "2" "x", so numbers and units stand apart. */
 private fun splitTokens(line: String): List<String> = line.split(' ').filter { it.isNotEmpty() }.flatMap { raw ->
@@ -209,7 +222,8 @@ private fun leadingAmount(tokens: List<String>): Amount? {
     if (unit == null && i >= tokens.size) return null
     // "1 l" at the end of a line with no food is not an amount for anything.
     if (unit != null && i + 1 >= tokens.size) return null
-    return if (unit != null) Amount(count, unit, tokens[i].trimEnd('.'), i + 1) else Amount(count, null, null, i)
+    val decimal = isDecimal(tokens[0])
+    return if (unit != null) Amount(count, unit, tokens[i].trimEnd('.'), i + 1, decimal) else Amount(count, null, null, i, decimal)
 }
 
 private fun trailingAmount(tokens: List<String>): Amount? {
@@ -219,12 +233,15 @@ private fun trailingAmount(tokens: List<String>): Amount? {
     return if (unit != null) {
         if (tokens.size < 3) return null
         val n = numberOf(tokens[tokens.size - 2]) ?: return null
-        Amount(n, unit, last.trimEnd('.'), 2)
+        Amount(n, unit, last.trimEnd('.'), 2, isDecimal(tokens[tokens.size - 2]))
     } else {
         val n = numberOf(last) ?: return null
-        Amount(n, null, null, 1)
+        Amount(n, null, null, 1, isDecimal(last))
     }
 }
+
+/** "1,5" or "0.5": a number written with a decimal comma or point. */
+private fun isDecimal(token: String): Boolean = Regex("^\\d*[.,]\\d+$").matches(token)
 
 /** "2", "1.5", "½" for labels. */
 internal fun formatCount(n: Double): String = when {

@@ -171,4 +171,8 @@
         <item quantity="other">Add %d ingredients</item>
     </plurals>
     <string name="recipes_note_scan_more">Back to the camera</string>
+    <!-- Round 4, Guido 12 Oct: share of the pot, a batch of your own -->
+    <string name="recipes_batch_share">That\'s %1$d%% of the pot (%2$s g): %3$d kcal</string>
+    <string name="recipes_batch_name">Name of the meal</string>
+    <string name="recipes_cook_batch_hint">Name it yourself and add any ingredients. No recipe needed.</string>
 </resources>

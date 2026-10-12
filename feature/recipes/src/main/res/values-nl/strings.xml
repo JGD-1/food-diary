@@ -171,4 +171,8 @@
         <item quantity="other">%d ingrediënten toevoegen</item>
     </plurals>
     <string name="recipes_note_scan_more">Terug naar de camera</string>
+    <!-- Ronde 4, Guido 12 okt: deel van de pan, een eigen pan -->
+    <string name="recipes_batch_share">Dat is %1$d%% van de pan (%2$s g): %3$d kcal</string>
+    <string name="recipes_batch_name">Naam van het gerecht</string>
+    <string name="recipes_cook_batch_hint">Geef het zelf een naam en voeg alle ingrediënten toe. Geen recept nodig.</string>
 </resources>

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -81,12 +82,14 @@ internal fun RecipesScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { onEdit(null) }, modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.recipes_new_recipe))
-                    }
-                    OutlinedButton(onClick = onNewBatch, modifier = Modifier.weight(1f)) {
+                // A batch of your own: name it, add any ingredients, weigh the pot; no recipe needed.
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Button(onClick = onNewBatch, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                         Text(stringResource(R.string.recipes_cook_batch))
+                    }
+                    Hint(stringResource(R.string.recipes_cook_batch_hint))
+                    OutlinedButton(onClick = { onEdit(null) }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.recipes_new_recipe))
                     }
                 }
             }

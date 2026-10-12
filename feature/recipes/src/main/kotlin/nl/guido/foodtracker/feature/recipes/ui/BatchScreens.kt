@@ -53,6 +53,7 @@ import nl.guido.foodtracker.feature.recipes.RecipesRoutes
 import nl.guido.foodtracker.feature.recipes.logic.BATCH_SCALES
 import nl.guido.foodtracker.feature.recipes.logic.formatGrams
 import nl.guido.foodtracker.feature.recipes.logic.potReadingNow
+import nl.guido.foodtracker.feature.recipes.logic.shareOfPot
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -113,7 +114,7 @@ internal fun NewBatchScreen(
             OutlinedTextField(
                 value = state.name,
                 onValueChange = vm::setName,
-                label = { Text(stringResource(R.string.recipes_name)) },
+                label = { Text(stringResource(R.string.recipes_batch_name)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -373,7 +374,14 @@ internal fun BatchPortionScreen(
                 onWeigh = cameraWeigh(navController) { vm.startWeighing() },
                 modifier = Modifier.fillMaxWidth(),
             )
-            state.nutrients?.let { NutrientsSummary(it) }
+            state.nutrients?.let { share ->
+                val grams = state.grams
+                val percent = grams?.let { shareOfPot(it, batch.cookedWeightG) }
+                if (percent != null) {
+                    Hint(stringResource(R.string.recipes_batch_share, percent, formatGrams(batch.cookedWeightG), share.kcal.roundToInt()))
+                }
+                NutrientsSummary(share)
+            }
             ForDay(state.date)
             MealChips(state.meal, vm::setMeal)
             Row(
