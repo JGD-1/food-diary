@@ -48,3 +48,12 @@ fun Batch.piecesLeft(gramsLeft: Double): Double? {
 data class BatchLists(val inPot: List<OpenBatch>, val frozen: List<OpenBatch>)
 
 fun List<OpenBatch>.byFreezer(): BatchLists = BatchLists(filterNot { it.batch.frozen }, filter { it.batch.frozen })
+
+/**
+ * My portion as a share of the whole cooked batch, in whole percent ("23% of the pot"); never
+ * shown as 0% for a small spoonful. Null when the batch has no cooked weight.
+ */
+fun shareOfPot(portionGrams: Double, cookedWeightG: Double): Int? {
+    if (cookedWeightG <= 0.0 || portionGrams <= 0.0) return null
+    return maxOf(1, (portionGrams / cookedWeightG * 100).roundToInt())
+}

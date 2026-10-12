@@ -72,4 +72,13 @@ class BatchDraftTest {
         )
         assertEquals(1270.0, potReadingNow(850.0, lines), 0.001)
     }
+
+    @Test
+    fun `my portion as a share of the pot`() {
+        assertEquals(25, shareOfPot(500.0, 2000.0))
+        assertEquals(1, shareOfPot(5.0, 2000.0))
+        assertEquals(100, shareOfPot(2000.0, 2000.0))
+        assertNull(shareOfPot(500.0, 0.0))
+        assertNull(shareOfPot(0.0, 2000.0))
+    }
 }

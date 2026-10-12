@@ -169,7 +169,7 @@ internal class NoteScanViewModel @Inject constructor(
     }
 
     private suspend fun itemFor(parsed: NoteLine, food: Food): Item {
-        val grams = parsed.grams(
+        val amount = parsed.amount(
             pieceGrams = if (parsed.count != null) ingredientFoods.pieceGrams(food) else null,
             servingG = food.servingG,
             packageG = food.packageG,
@@ -179,8 +179,8 @@ internal class NoteScanViewModel @Inject constructor(
             read = parsed.read,
             food = food,
             title = titleOf(food),
-            grams = grams,
-            label = parsed.amountLabel,
+            grams = amount?.grams,
+            label = amount?.label,
             selected = true,
         )
     }
