@@ -15,6 +15,7 @@ import nl.guido.foodtracker.core.data.repo.SessionRepository
 import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Recipe
+import nl.guido.foodtracker.feature.recipes.logic.BatchDraft
 import nl.guido.foodtracker.feature.recipes.logic.OpenBatch
 import nl.guido.foodtracker.feature.recipes.logic.byFreezer
 import nl.guido.foodtracker.feature.recipes.logic.openBatches
@@ -27,6 +28,7 @@ internal class RecipesViewModel @Inject constructor(
     session: SessionRepository,
     private val recipes: RecipeRepository,
     favourites: Favourites,
+    private val drafts: BatchDraftStore,
 ) : ViewModel() {
     data class Pinned(val recipe: Recipe, val usual: PinnedRecipe)
     data class State(
@@ -58,6 +60,22 @@ internal class RecipesViewModel @Inject constructor(
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), State())
+
+    /** The batch being cooked on this phone (B1), shown as "Still cooking" until it is saved. */
+    val draft: StateFlow<BatchDraft?> = drafts.draft
+
+    init {
+        viewModelScope.launch { drafts.load() }
+    }
+
+    /** "Throw away" the batch being cooked; [restore] puts it back (Undo). */
+    fun throwAwayDraft() {
+        viewModelScope.launch { drafts.clear() }
+    }
+
+    fun restore(draft: BatchDraft) {
+        viewModelScope.launch { drafts.save(draft) }
+    }
 
     /** "Finished": the batch leaves the list for everyone in the household. */
     fun finish(batchId: Id) {
