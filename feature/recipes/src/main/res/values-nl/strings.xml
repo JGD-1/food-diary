@@ -144,4 +144,31 @@
     <string name="recipes_carry_on">Verder koken</string>
     <string name="recipes_throw_away">Weggooien</string>
     <string name="recipes_draft_thrown_away">Weggegooid</string>
+    <!-- Ronde 4: "Briefje scannen", handgeschreven ingrediënten lezen met de camera (H) -->
+    <string name="recipes_note_scan">Briefje scannen</string>
+    <string name="recipes_note_title">Briefje scannen</string>
+    <string name="recipes_note_hold_still">Houd de telefoon stil boven je handgeschreven lijstje. De regels verschijnen hier zodra ze gelezen zijn.</string>
+    <string name="recipes_note_keep_holding">Hoe langer je stilhoudt, hoe beter het leest. Tik op Controleren als alle regels er staan.</string>
+    <plurals name="recipes_note_check">
+        <item quantity="one">%d regel controleren</item>
+        <item quantity="other">%d regels controleren</item>
+    </plurals>
+    <string name="recipes_note_start_again">Opnieuw beginnen</string>
+    <string name="recipes_note_light_on">Lamp aan</string>
+    <string name="recipes_note_light_off">Lamp uit</string>
+    <string name="recipes_note_permission">Om je briefje te lezen heeft de app de camera nodig. Het beeld blijft op je telefoon.</string>
+    <string name="recipes_note_allow_camera">Camera toestaan</string>
+    <string name="recipes_note_matching">Eten zoeken…</string>
+    <string name="recipes_note_check_title">Controleer de regels</string>
+    <string name="recipes_note_check_hint">Vink uit wat je niet wilt, en verander het eten als het niet klopt. Er wordt niets toegevoegd tot je op Toevoegen tikt.</string>
+    <string name="recipes_note_read">Gelezen: “%1$s”</string>
+    <string name="recipes_note_no_food">Geen eten gevonden</string>
+    <string name="recipes_note_amount_later">Hoeveelheid: weeg of typ die na het toevoegen</string>
+    <string name="recipes_note_change_food">Veranderen</string>
+    <string name="recipes_note_choose_food">Eten kiezen</string>
+    <plurals name="recipes_note_add">
+        <item quantity="one">%d ingrediënt toevoegen</item>
+        <item quantity="other">%d ingrediënten toevoegen</item>
+    </plurals>
+    <string name="recipes_note_scan_more">Terug naar de camera</string>
 </resources>

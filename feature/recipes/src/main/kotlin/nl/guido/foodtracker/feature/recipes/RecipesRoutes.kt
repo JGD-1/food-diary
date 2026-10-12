@@ -3,6 +3,7 @@ package nl.guido.foodtracker.feature.recipes
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.ui.CameraResult
+import nl.guido.foodtracker.core.ui.FoodPickPurpose
 import nl.guido.foodtracker.core.ui.Routes
 import java.time.LocalDate
 
@@ -44,6 +45,13 @@ internal object RecipesRoutes {
     const val BATCH_CHANGED = "recipes_batch_changed"
     const val BATCH_EDIT = Routes.BATCH_EDIT
     fun batchEdit(batchId: Id) = Routes.batchEdit(batchId)
+
+    /** "Scan a note" (round 4, H): [ARG_PURPOSE] says what the shared picker is opened for when a line's food is changed. */
+    const val ARG_PURPOSE = "purpose"
+    const val NOTE_SCAN = "recipes/note-scan?$ARG_PURPOSE={$ARG_PURPOSE}"
+    fun noteScan(purpose: FoodPickPurpose) = "recipes/note-scan?$ARG_PURPOSE=${purpose.name}"
+    /** The checked lines, handed back to the screen that opened "Scan a note" (encodeNoteIngredients). */
+    const val NOTE_RESULT = "recipes_note_result"
 
     /** The camera's scale reader (stream 2). It hands back grams under [CAMERA_GRAMS] before closing. */
     const val CAMERA_SCALE = Routes.CAMERA_SCALE
