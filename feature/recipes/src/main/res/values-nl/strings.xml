@@ -160,7 +160,7 @@
     <string name="recipes_note_allow_camera">Camera toestaan</string>
     <string name="recipes_note_matching">Eten zoeken…</string>
     <string name="recipes_note_check_title">Controleer de regels</string>
-    <string name="recipes_note_check_hint">Vink uit wat je niet wilt, en verander het eten als het niet klopt. Er wordt niets toegevoegd tot je op Toevoegen tikt.</string>
+    <string name="recipes_note_check_hint">Vink uit wat je niet wilt, en verander het eten als het niet klopt. Er wordt niets toegevoegd tot je op Toevoegen tikt. De app onthoudt welk eten je bij een woord kiest, zodat je afkortingen de volgende keer goed gelezen worden.</string>
     <string name="recipes_note_read">Gelezen: “%1$s”</string>
     <string name="recipes_note_no_food">Geen eten gevonden</string>
     <string name="recipes_note_amount_later">Hoeveelheid: weeg of typ die na het toevoegen</string>

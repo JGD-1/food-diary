@@ -160,7 +160,7 @@
     <string name="recipes_note_allow_camera">Allow the camera</string>
     <string name="recipes_note_matching">Finding the foods…</string>
     <string name="recipes_note_check_title">Check the lines</string>
-    <string name="recipes_note_check_hint">Untick what you don\'t want, and change a food if it\'s not right. Nothing is added until you tap Add.</string>
+    <string name="recipes_note_check_hint">Untick what you don\'t want, and change a food if it\'s not right. Nothing is added until you tap Add. The app remembers the food you pick for a word, so your shorthand is read right next time.</string>
     <string name="recipes_note_read">Read: “%1$s”</string>
     <string name="recipes_note_no_food">No food found</string>
     <string name="recipes_note_amount_later">Amount: weigh or type it after adding</string>

@@ -22,13 +22,16 @@ import nl.guido.foodtracker.feature.recipes.IngredientFoods
 import nl.guido.foodtracker.feature.recipes.logic.NoteIngredient
 import nl.guido.foodtracker.feature.recipes.logic.NoteLine
 import nl.guido.foodtracker.feature.recipes.logic.NoteReading
+import nl.guido.foodtracker.feature.recipes.logic.NoteWords
 import nl.guido.foodtracker.feature.recipes.logic.ReadLine
 import nl.guido.foodtracker.feature.recipes.logic.SeenLine
 import nl.guido.foodtracker.feature.recipes.logic.closestName
 import nl.guido.foodtracker.feature.recipes.logic.encodeNoteIngredients
+import nl.guido.foodtracker.feature.recipes.logic.fitsShorthand
 import nl.guido.foodtracker.feature.recipes.logic.parseNoteLine
 import nl.guido.foodtracker.feature.recipes.logic.pickFood
 import nl.guido.foodtracker.feature.recipes.logic.searchTries
+import nl.guido.foodtracker.feature.recipes.logic.shorthandTries
 import java.util.Optional
 import javax.inject.Inject
 
@@ -45,6 +48,7 @@ internal class NoteScanViewModel @Inject constructor(
     private val foods: FoodRepository,
     private val ingredientFoods: IngredientFoods,
     private val names: Optional<FoodNames>,
+    private val learned: NoteWordsStore,
 ) : ViewModel() {
     enum class Phase { SCANNING, MATCHING, CHECKING }
 
@@ -53,6 +57,8 @@ internal class NoteScanViewModel @Inject constructor(
         val key: String,
         /** The line as read from the note. */
         val read: String,
+        /** The words naming the food on the note, remembered with the food that was kept. */
+        val words: String? = null,
         val food: Food? = null,
         /** The food's readable name, else its own name. */
         val title: String? = null,
@@ -126,20 +132,22 @@ internal class NoteScanViewModel @Inject constructor(
         }
     }
 
-    /** The ticked lines, for the screen that opened the scanner. */
-    fun result(): String = encodeNoteIngredients(
-        _state.value.chosen.map { NoteIngredient(it.food!!.id, it.grams, it.label) },
-    )
+    /** The ticked lines, for the screen that opened the scanner. Their words are remembered for next time. */
+    fun result(): String {
+        val chosen = _state.value.chosen
+        learned.learn(chosen.mapNotNull { item -> item.words?.let { it to item.food!!.id } })
+        return encodeNoteIngredients(chosen.map { NoteIngredient(it.food!!.id, it.grams, it.label) })
+    }
 
     /** Ingredients used before in this household's recipes and batches: by id, and by name for misread words. */
-    private data class Known(val ids: Set<Id>, val byName: Map<String, Id>)
+    private data class Known(val ids: Set<Id>, val byName: Map<String, Id>, val learned: NoteWords)
 
     private suspend fun knownIngredients(): Known {
         val household = session.currentUser.value.householdId
         val used = runCatching {
             recipes.recipes(household).first().flatMap { it.ingredients } + recipes.batches(household).first().flatMap { it.ingredients }
         }.getOrDefault(emptyList())
-        return Known(used.mapTo(HashSet()) { it.foodId }, used.associate { it.name to it.foodId })
+        return Known(used.mapTo(HashSet()) { it.foodId }, used.associate { it.name to it.foodId }, learned.get())
     }
 
     /**
@@ -155,17 +163,27 @@ internal class NoteScanViewModel @Inject constructor(
             return itemFor(parsed, food)
         }
         val parsed = firstParsed ?: return null
-        return Item(key = newId(), read = parsed.read)
+        return Item(key = newId(), read = parsed.read, words = parsed.food)
     }
 
     private suspend fun findFood(words: String, known: Known): Food? {
+        // A word picked for a note line before ("kbonen" → kidney beans).
+        known.learned.lookup(words)?.let { id -> runCatching { foods.get(id) }.getOrNull()?.let { return it } }
         for (text in searchTries(words)) {
             val found = runCatching { foodSource.search(text) }.getOrDefault(emptyList())
             pickFood(found, known.ids)?.let { return it }
         }
-        // A word read badly: the closest ingredient used before ("gehakl" → "gehakt").
-        val name = closestName(words, known.byName.keys) ?: return null
-        return runCatching { foods.get(known.byName.getValue(name)) }.getOrNull()
+        // Shorthand: "Kbonen" is a food with "bonen" and a word starting with k.
+        for ((letters, rest) in shorthandTries(words)) {
+            val found = runCatching { foodSource.search(rest) }.getOrDefault(emptyList())
+                .filter { food -> fitsShorthand(letters, rest, food.name) || fitsShorthand(letters, rest, titleOf(food)) }
+            pickFood(found, known.ids, look = found.size)?.let { return it }
+        }
+        // A word read badly: the closest word learned or ingredient used before ("gehakl" → "gehakt").
+        val id = known.learned.closest(words)
+            ?: closestName(words, known.byName.keys)?.let { known.byName.getValue(it) }
+            ?: return null
+        return runCatching { foods.get(id) }.getOrNull()
     }
 
     private suspend fun itemFor(parsed: NoteLine, food: Food): Item {
@@ -177,6 +195,7 @@ internal class NoteScanViewModel @Inject constructor(
         return Item(
             key = newId(),
             read = parsed.read,
+            words = parsed.food,
             food = food,
             title = titleOf(food),
             grams = amount?.grams,
