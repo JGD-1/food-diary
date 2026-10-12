@@ -124,4 +124,24 @@
     <string name="recipes_freezer_section">In the freezer</string>
     <string name="recipes_freezer_take_out">Take out</string>
     <string name="recipes_freezer_put_in">Freeze</string>
+    <!-- Round 4: a batch kept while cooking (B1), the pot staying on the scale (B2) -->
+    <string name="recipes_batch_resumed">Carrying on with the batch you started earlier.</string>
+    <string name="recipes_batch_start_over">Start over</string>
+    <string name="recipes_batch_step_in_pot_hint">Weigh the whole pot after each ingredient. The app works out how much went in.</string>
+    <string name="recipes_batch_pot_on_scale">The pot stays on the scale</string>
+    <string name="recipes_batch_empty_pot">Empty pot</string>
+    <string name="recipes_batch_empty_pot_hint">Leave this empty if you set the scale to zero with the empty pot on it.</string>
+    <string name="recipes_batch_pot_now">The scale should now show about %1$s g.</string>
+    <string name="recipes_batch_pot_too_low">That reading isn\'t more than what\'s already in the pot, so nothing was filled in. Type the grams instead.</string>
+    <string name="recipes_batch_step_cooked_pot_hint">Put the pot with the food on the scale. The empty pot (%1$s g) comes off.</string>
+    <string name="recipes_batch_minus_pot">Minus the empty pot (%1$s g): %2$s g of food</string>
+    <string name="recipes_still_cooking">Still cooking: %1$s</string>
+    <string name="recipes_still_cooking_unnamed">a batch</string>
+    <plurals name="recipes_still_cooking_lines">
+        <item quantity="one">%d ingredient so far</item>
+        <item quantity="other">%d ingredients so far</item>
+    </plurals>
+    <string name="recipes_carry_on">Carry on</string>
+    <string name="recipes_throw_away">Throw away</string>
+    <string name="recipes_draft_thrown_away">Thrown away</string>
 </resources>

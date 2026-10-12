@@ -4,7 +4,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -25,7 +31,10 @@ import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.gramsLeft
 import nl.guido.foodtracker.core.model.newId
 import nl.guido.foodtracker.core.model.sum
+import nl.guido.foodtracker.feature.recipes.logic.BatchDraft
+import nl.guido.foodtracker.feature.recipes.logic.DraftLine
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
+import nl.guido.foodtracker.feature.recipes.logic.ingredientFromPot
 import nl.guido.foodtracker.feature.recipes.logic.amountsChanged
 import nl.guido.foodtracker.feature.recipes.logic.cookDateAllowed
 import nl.guido.foodtracker.feature.recipes.logic.cookedFromReading
@@ -53,17 +62,22 @@ import javax.inject.Inject
  *
  * With a batch id (Routes.batchEdit) the same form changes a saved batch (S10): portions
  * logged after the change use the new numbers. Delete is offered only while nothing is logged from it.
+ *
+ * A new batch is kept on the phone as it is typed (B1, [BatchDraftStore]), so leaving the screen
+ * or the app closing loses nothing; opening Cook a batch again carries on with it.
  */
 @HiltViewModel
 internal class NewBatchViewModel @Inject constructor(
-    savedState: SavedStateHandle,
+    private val savedState: SavedStateHandle,
     private val session: SessionRepository,
     private val recipes: RecipeRepository,
     private val ingredientFoods: IngredientFoods,
+    private val drafts: BatchDraftStore,
 ) : ViewModel() {
-    /** Where a scale reading should go: an ingredient line, or the cooked pot. */
+    /** Where a scale reading should go: an ingredient line, the empty pot (B2), or the cooked pot. */
     sealed interface Weighing {
         data class Line(val key: String) : Weighing
+        data object EmptyPot : Weighing
         data object Cooked : Weighing
     }
 
@@ -91,6 +105,14 @@ internal class NewBatchViewModel @Inject constructor(
         val scale: Double = 1.0,
         /** Tick to save the amounts that actually went in to the recipe too. */
         val saveToRecipe: Boolean = false,
+        /** "The pot stays on the scale" (B2): each reading is the whole pot, the new ingredient is the difference. */
+        val potOnScale: Boolean = false,
+        /** The empty pot's weight; empty or 0 when the scale was set to zero with the pot on it. */
+        val emptyPotText: String = "",
+        /** The last pot reading wasn't more than what was already in the pot, so nothing was filled in. */
+        val potReadingTooLow: Boolean = false,
+        /** True when this screen carries on with a batch kept from before (B1). */
+        val resumed: Boolean = false,
         val weighing: Weighing? = null,
         /** Set once a new batch is saved: the screen moves on to weighing my portion. */
         val savedBatchId: Id? = null,
@@ -104,7 +126,14 @@ internal class NewBatchViewModel @Inject constructor(
         /** What went in, at the recipe's own size (× 1), for "Save these amounts to the recipe". */
         val recipeAmounts: List<Ingredient>? get() = lines.rescaled(scale, 1.0).toIngredients()
         val rawTotal: Nutrients get() = lines.filledIn().map { it.nutrients }.sum()
-        val cookedGrams: Double? get() = cookedFromReading(parseGrams(cookedText), pan)
+        val emptyPotGrams: Double get() = if (potOnScale) parseGrams(emptyPotText) ?: 0.0 else 0.0
+        /** The cooked food: the reading minus the picked pan, or minus the empty pot when it stayed on the scale. */
+        val cookedGrams: Double?
+            get() = if (pan == null && emptyPotGrams > 0.0) {
+                cookedFromReading(parseGrams(cookedText)?.minus(emptyPotGrams), null)
+            } else {
+                cookedFromReading(parseGrams(cookedText), pan)
+            }
         val pieces: Int? get() = parsePieces(piecesText)
         val canSave: Boolean
             get() = name.isNotBlank() && lines.isNotEmpty() && lines.toIngredients() != null && cookedGrams != null &&
@@ -115,25 +144,99 @@ internal class NewBatchViewModel @Inject constructor(
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state.asStateFlow()
 
+    /** What the screen started with (a recipe's lines, or the kept batch): no need to keep that again. */
+    private var loadedDraft: BatchDraft? = null
+    /** Set when Save is tapped, so a change still waiting to be kept can't bring the batch back as a draft. */
+    @Volatile private var finished = false
+
     init {
         val batchId = savedState.get<String>(RecipesRoutes.ARG_BATCH_ID)?.takeIf { it.isNotEmpty() }
-        if (batchId != null) loadForEdit(batchId) else loadNew(savedState)
+        if (batchId != null) {
+            loadForEdit(batchId)
+        } else {
+            viewModelScope.launch {
+                val draft = drafts.load()
+                if (draft != null && draft.hasContent) resume(draft) else loadNew()
+                keepDraft()
+            }
+        }
     }
 
-    private fun loadNew(savedState: SavedStateHandle) {
+    /** Saves a new batch to the phone as it is typed, a moment after each change. */
+    @OptIn(FlowPreview::class)
+    private fun keepDraft() {
+        viewModelScope.launch {
+            _state.filter { !it.loading }
+                .map { it.toDraft() }
+                .distinctUntilChanged()
+                .filter { it != loadedDraft }
+                .debounce(DRAFT_DELAY_MS)
+                .collect { draft ->
+                    if (finished) return@collect
+                    if (draft.hasContent) drafts.save(draft) else drafts.clear()
+                }
+        }
+    }
+
+    private fun State.toDraft() = BatchDraft(
+        recipeId = recipeId,
+        name = name,
+        lines = lines.map { DraftLine.of(it) },
+        cookedText = cookedText,
+        panId = pan?.id,
+        piecesText = piecesText,
+        cookedOn = cookedOn.toString(),
+        scale = scale,
+        saveToRecipe = saveToRecipe,
+        potOnScale = potOnScale,
+        emptyPotText = emptyPotText,
+    )
+
+    private suspend fun resume(draft: BatchDraft) {
+        val recipe = draft.recipeId?.let { recipes.get(it) }
+        val pan = draft.panId?.let { id ->
+            runCatching { recipes.pans(session.currentUser.value.householdId).first() }.getOrDefault(emptyList()).firstOrNull { it.id == id }
+        }
+        val today = LocalDate.now()
+        _state.value = State(
+            loading = false,
+            recipe = recipe,
+            name = draft.name,
+            lines = ingredientFoods.enrich(draft.lines.map { it.toEditable() }),
+            cookedText = draft.cookedText,
+            pan = pan,
+            piecesText = draft.piecesText,
+            cookedOn = RecipesRoutes.dateArg(draft.cookedOn, today).takeIf { cookDateAllowed(it, today) } ?: today,
+            scale = draft.scale,
+            saveToRecipe = draft.saveToRecipe,
+            potOnScale = draft.potOnScale,
+            emptyPotText = draft.emptyPotText,
+            resumed = true,
+        )
+        loadedDraft = _state.value.toDraft()
+    }
+
+    /** "Start over": the kept batch is thrown away and the screen starts as it was opened. */
+    fun startOver() {
+        viewModelScope.launch {
+            drafts.clear()
+            loadNew()
+        }
+    }
+
+    private suspend fun loadNew() {
         val recipeId = savedState.get<String>(RecipesRoutes.ARG_RECIPE_ID)?.takeIf { it.isNotEmpty() }
         val viewedDay = RecipesRoutes.dateArg(savedState[RecipesRoutes.ARG_DATE], LocalDate.now())
-        viewModelScope.launch {
-            val recipe = recipeId?.let { recipes.get(it) }
-            _state.value = State(
-                loading = false,
-                recipe = recipe,
-                cookedOn = viewedDay,
-                name = recipe?.name.orEmpty(),
-                lines = ingredientFoods.enrich(recipe?.ingredients.orEmpty().map { EditableIngredient.of(it) }),
-                piecesText = recipe?.pieces?.toString().orEmpty(),
-            )
-        }
+        val recipe = recipeId?.let { recipes.get(it) }
+        _state.value = State(
+            loading = false,
+            recipe = recipe,
+            cookedOn = viewedDay,
+            name = recipe?.name.orEmpty(),
+            lines = ingredientFoods.enrich(recipe?.ingredients.orEmpty().map { EditableIngredient.of(it) }),
+            piecesText = recipe?.pieces?.toString().orEmpty(),
+        )
+        loadedDraft = _state.value.toDraft()
     }
 
     private fun loadForEdit(batchId: Id) {
@@ -191,11 +294,22 @@ internal class NewBatchViewModel @Inject constructor(
     fun setPieces(text: String) = _state.update { it.copy(piecesText = text) }
     fun setFrozen(on: Boolean) = _state.update { it.copy(frozen = on) }
     fun setSaveToRecipe(on: Boolean) = _state.update { it.copy(saveToRecipe = on) }
+    fun setPotOnScale(on: Boolean) = _state.update { it.copy(potOnScale = on, potReadingTooLow = false) }
+    fun setEmptyPot(text: String) = _state.update { it.copy(emptyPotText = text) }
 
     fun startWeighing(target: Weighing) = _state.update { it.copy(weighing = target) }
     fun onWeighed(grams: Double) {
-        when (val target = _state.value.weighing) {
-            is Weighing.Line -> setGrams(target.key, formatGrams(grams))
+        val s = _state.value
+        when (val target = s.weighing) {
+            is Weighing.Line -> if (s.potOnScale) {
+                val alreadyIn = s.lines.filter { it.key != target.key }.mapNotNull { it.grams }.sum()
+                val added = ingredientFromPot(grams, s.emptyPotGrams, alreadyIn)
+                if (added != null) setGrams(target.key, formatGrams(added))
+                _state.update { it.copy(potReadingTooLow = added == null) }
+            } else {
+                setGrams(target.key, formatGrams(grams))
+            }
+            Weighing.EmptyPot -> setEmptyPot(formatGrams(grams))
             Weighing.Cooked -> setCooked(formatGrams(grams))
             null -> return
         }
@@ -222,6 +336,7 @@ internal class NewBatchViewModel @Inject constructor(
             }
             return
         }
+        finished = true
         val batch = Batch(
             id = newId(),
             householdId = session.currentUser.value.householdId,
@@ -234,10 +349,15 @@ internal class NewBatchViewModel @Inject constructor(
         )
         viewModelScope.launch {
             recipes.saveBatch(batch)
+            drafts.clear()
             val amounts = s.recipeAmounts
             if (s.saveToRecipe && s.canSaveToRecipe && amounts != null) s.recipe?.let { recipes.save(it.copy(ingredients = amounts)) }
             _state.update { it.copy(savedBatchId = batch.id) }
         }
+    }
+
+    private companion object {
+        const val DRAFT_DELAY_MS = 500L
     }
 
     /** Only while nothing is logged from it (S10); the batch leaves the list for everyone. */

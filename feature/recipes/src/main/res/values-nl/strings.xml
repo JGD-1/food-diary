@@ -124,4 +124,24 @@
     <string name="recipes_freezer_section">In de vriezer</string>
     <string name="recipes_freezer_take_out">Eruit halen</string>
     <string name="recipes_freezer_put_in">Invriezen</string>
+    <!-- Ronde 4: een pan die je nog aan het koken bent (B1), de kookpan blijft op de weegschaal (B2) -->
+    <string name="recipes_batch_resumed">Je gaat verder met de pan die je eerder begon.</string>
+    <string name="recipes_batch_start_over">Opnieuw beginnen</string>
+    <string name="recipes_batch_step_in_pot_hint">Weeg na elk ingrediënt de hele kookpan. De app rekent uit hoeveel erbij kwam.</string>
+    <string name="recipes_batch_pot_on_scale">De kookpan blijft op de weegschaal</string>
+    <string name="recipes_batch_empty_pot">Lege kookpan</string>
+    <string name="recipes_batch_empty_pot_hint">Laat dit leeg als je de weegschaal op nul hebt gezet met de lege kookpan erop.</string>
+    <string name="recipes_batch_pot_now">De weegschaal geeft nu ongeveer %1$s g aan.</string>
+    <string name="recipes_batch_pot_too_low">Die meting is niet meer dan wat er al in de kookpan zat, dus er is niets ingevuld. Typ de grammen in.</string>
+    <string name="recipes_batch_step_cooked_pot_hint">Zet de kookpan met het eten op de weegschaal. De lege kookpan (%1$s g) gaat eraf.</string>
+    <string name="recipes_batch_minus_pot">Min de lege kookpan (%1$s g): %2$s g eten</string>
+    <string name="recipes_still_cooking">Nog aan het koken: %1$s</string>
+    <string name="recipes_still_cooking_unnamed">een pan</string>
+    <plurals name="recipes_still_cooking_lines">
+        <item quantity="one">%d ingrediënt tot nu toe</item>
+        <item quantity="other">%d ingrediënten tot nu toe</item>
+    </plurals>
+    <string name="recipes_carry_on">Verder koken</string>
+    <string name="recipes_throw_away">Weggooien</string>
+    <string name="recipes_draft_thrown_away">Weggegooid</string>
 </resources>

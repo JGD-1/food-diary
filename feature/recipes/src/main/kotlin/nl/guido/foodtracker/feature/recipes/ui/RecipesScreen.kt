@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,6 +38,7 @@ import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.RecipesViewModel
+import nl.guido.foodtracker.feature.recipes.logic.BatchDraft
 import nl.guido.foodtracker.feature.recipes.logic.Dish
 import nl.guido.foodtracker.feature.recipes.logic.OpenBatch
 import nl.guido.foodtracker.feature.recipes.logic.dishGrams
@@ -58,10 +60,12 @@ internal fun RecipesScreen(
     vm: RecipesViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val draft by vm.draft.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val finishedText = stringResource(R.string.recipes_batch_finished_done)
     val undoText = stringResource(R.string.recipes_undo)
+    val thrownAwayText = stringResource(R.string.recipes_draft_thrown_away)
     Scaffold(
         topBar = { RecipesTopBar(stringResource(R.string.recipes_recipes_title), onBack) },
         snackbarHost = { SnackbarHost(snackbar) },
@@ -84,6 +88,21 @@ internal fun RecipesScreen(
                     OutlinedButton(onClick = onNewBatch, modifier = Modifier.weight(1f)) {
                         Text(stringResource(R.string.recipes_cook_batch))
                     }
+                }
+            }
+            draft?.takeIf { it.hasContent }?.let { cooking ->
+                item(key = "draft") {
+                    DraftCard(
+                        cooking,
+                        onCarryOn = onNewBatch,
+                        onThrowAway = {
+                            vm.throwAwayDraft()
+                            scope.launch {
+                                val result = snackbar.showSnackbar(thrownAwayText, undoText, duration = SnackbarDuration.Short)
+                                if (result == SnackbarResult.ActionPerformed) vm.restore(cooking)
+                            }
+                        },
+                    )
                 }
             }
             if (state.batches.isNotEmpty()) {
@@ -135,6 +154,24 @@ internal fun RecipesScreen(
             }
             items(state.others, key = { "recipe-" + it.id }) { recipe ->
                 RecipeCard(recipe.name, recipeDetail(recipe), onOpen = { onLog(recipe.id) }, onEdit = { onEdit(recipe.id) })
+            }
+        }
+    }
+}
+
+/** The batch being cooked on this phone (B1): carry on with it, or throw it away. */
+@Composable
+private fun DraftCard(draft: BatchDraft, onCarryOn: () -> Unit, onThrowAway: () -> Unit) {
+    Card(Modifier.fillMaxWidth().clickable(onClick = onCarryOn)) {
+        Column(Modifier.padding(start = 16.dp, top = 12.dp, end = 4.dp, bottom = 4.dp)) {
+            Text(
+                stringResource(R.string.recipes_still_cooking, draft.name.trim().ifEmpty { stringResource(R.string.recipes_still_cooking_unnamed) }),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Hint(pluralStringResource(R.plurals.recipes_still_cooking_lines, draft.lines.size, draft.lines.size))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = onCarryOn) { Text(stringResource(R.string.recipes_carry_on)) }
+                TextButton(onClick = onThrowAway) { Text(stringResource(R.string.recipes_throw_away)) }
             }
         }
     }

@@ -52,6 +52,7 @@ import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.RecipesRoutes
 import nl.guido.foodtracker.feature.recipes.logic.BATCH_SCALES
 import nl.guido.foodtracker.feature.recipes.logic.formatGrams
+import nl.guido.foodtracker.feature.recipes.logic.potReadingNow
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -102,6 +103,12 @@ internal fun NewBatchScreen(
             Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            if (state.resumed) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Hint(stringResource(R.string.recipes_batch_resumed), Modifier.weight(1f))
+                    TextButton(onClick = vm::startOver) { Text(stringResource(R.string.recipes_batch_start_over)) }
+                }
+            }
             OutlinedTextField(
                 value = state.name,
                 onValueChange = vm::setName,
@@ -112,7 +119,8 @@ internal fun NewBatchScreen(
             CookDateChips(state.cookedOn, vm::setCookedOn)
 
             SectionTitle(stringResource(R.string.recipes_batch_step_in))
-            Hint(stringResource(R.string.recipes_batch_step_in_hint))
+            Hint(stringResource(if (state.potOnScale) R.string.recipes_batch_step_in_pot_hint else R.string.recipes_batch_step_in_hint))
+            PotOnScale(state, vm, navController)
             if (state.recipe != null) {
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     BATCH_SCALES.forEach { scale ->
@@ -141,12 +149,21 @@ internal fun NewBatchScreen(
             }
 
             SectionTitle(stringResource(R.string.recipes_batch_step_cooked))
-            Hint(stringResource(if (state.pan == null) R.string.recipes_batch_step_cooked_hint else R.string.recipes_batch_step_cooked_pan_hint))
+            val emptyPot = state.emptyPotGrams.takeIf { it > 0.0 && state.pan == null }
+            Hint(
+                when {
+                    state.pan != null -> stringResource(R.string.recipes_batch_step_cooked_pan_hint)
+                    emptyPot != null -> stringResource(R.string.recipes_batch_step_cooked_pot_hint, formatGrams(emptyPot))
+                    else -> stringResource(R.string.recipes_batch_step_cooked_hint)
+                },
+            )
             PanChips(state.pan, vm::setPan)
             GramsField(
                 value = state.cookedText,
                 onValueChange = vm::setCooked,
-                label = stringResource(if (state.pan == null) R.string.recipes_batch_cooked_weight else R.string.recipes_batch_reading_with_pan),
+                label = stringResource(
+                    if (state.pan == null && emptyPot == null) R.string.recipes_batch_cooked_weight else R.string.recipes_batch_reading_with_pan,
+                ),
                 onWeigh = cameraWeigh(navController) { vm.startWeighing(Weighing.Cooked) },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -154,6 +171,8 @@ internal fun NewBatchScreen(
             val cooked = state.cookedGrams
             if (pan != null && cooked != null) {
                 Hint(stringResource(R.string.recipes_batch_minus_pan, pan.name, formatGrams(pan.grams), formatGrams(cooked)))
+            } else if (emptyPot != null && cooked != null) {
+                Hint(stringResource(R.string.recipes_batch_minus_pot, formatGrams(emptyPot), formatGrams(cooked)))
             }
             OutlinedTextField(
                 value = state.piecesText,
@@ -211,6 +230,34 @@ internal fun NewBatchScreen(
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.recipes_keep)) } },
         )
     }
+}
+
+/**
+ * "The pot stays on the scale" (B2): weigh the empty pot once, then the whole pot after each
+ * ingredient; the app takes the difference, so the scale never needs setting to zero in between.
+ */
+@Composable
+private fun PotOnScale(state: NewBatchViewModel.State, vm: NewBatchViewModel, navController: NavController) {
+    Row(
+        Modifier.fillMaxWidth().toggleable(state.potOnScale, role = Role.Checkbox, onValueChange = vm::setPotOnScale),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(checked = state.potOnScale, onCheckedChange = null)
+        Text(stringResource(R.string.recipes_batch_pot_on_scale), Modifier.padding(start = 8.dp))
+    }
+    if (!state.potOnScale) return
+    GramsField(
+        value = state.emptyPotText,
+        onValueChange = vm::setEmptyPot,
+        label = stringResource(R.string.recipes_batch_empty_pot),
+        onWeigh = cameraWeigh(navController) { vm.startWeighing(NewBatchViewModel.Weighing.EmptyPot) },
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Hint(stringResource(R.string.recipes_batch_empty_pot_hint))
+    if (state.lines.isNotEmpty()) {
+        Hint(stringResource(R.string.recipes_batch_pot_now, formatGrams(potReadingNow(state.emptyPotGrams, state.lines))))
+    }
+    if (state.potReadingTooLow) Hint(stringResource(R.string.recipes_batch_pot_too_low))
 }
 
 /** "½", "1", "2" for the × chips. */
