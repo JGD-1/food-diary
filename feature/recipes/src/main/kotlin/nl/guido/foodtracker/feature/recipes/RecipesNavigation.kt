@@ -5,7 +5,9 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import nl.guido.foodtracker.core.ui.FoodPickPurpose
 import nl.guido.foodtracker.core.ui.Routes
+import nl.guido.foodtracker.feature.recipes.note.NoteScanScreen
 import nl.guido.foodtracker.feature.recipes.ui.BatchPortionScreen
 import nl.guido.foodtracker.feature.recipes.ui.LogRecipeScreen
 import nl.guido.foodtracker.feature.recipes.ui.NewBatchScreen
@@ -86,6 +88,22 @@ fun NavGraphBuilder.recipesScreens(navController: NavController) {
             savedState = entry.savedStateHandle,
             onDone = { navController.popBackStack() },
             onEdit = { navController.navigate(RecipesRoutes.batchEdit(it)) },
+        )
+    }
+    composable(
+        RecipesRoutes.NOTE_SCAN,
+        arguments = listOf(navArgument(RecipesRoutes.ARG_PURPOSE) { type = NavType.StringType; nullable = true; defaultValue = null }),
+    ) { entry ->
+        val purpose = FoodPickPurpose.entries.firstOrNull { it.name == entry.arguments?.getString(RecipesRoutes.ARG_PURPOSE) }
+            ?: FoodPickPurpose.BATCH_INGREDIENT
+        NoteScanScreen(
+            navController = navController,
+            savedState = entry.savedStateHandle,
+            purpose = purpose,
+            onDone = { result ->
+                navController.previousBackStackEntry?.savedStateHandle?.set(RecipesRoutes.NOTE_RESULT, result)
+                navController.popBackStack()
+            },
         )
     }
     composable(RecipesRoutes.BATCH_EDIT, arguments = listOf(navArgument(RecipesRoutes.ARG_BATCH_ID) { type = NavType.StringType })) { entry ->

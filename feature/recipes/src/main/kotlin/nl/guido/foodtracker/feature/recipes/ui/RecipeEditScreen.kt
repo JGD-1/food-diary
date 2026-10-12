@@ -52,6 +52,7 @@ internal fun RecipeEditScreen(
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     CameraGrams(savedState, vm::onWeighed)
     PickedFoods(savedState) { vm.add(it) }
+    NoteIngredients(savedState, vm::addFromNote)
     LaunchedEffect(state.done) { if (state.done) onDone(state.deleted) }
 
     Scaffold(
@@ -91,6 +92,9 @@ internal fun RecipeEditScreen(
             }
             OutlinedButton(onClick = { openFoodPick(navController, FoodPickPurpose.RECIPE_INGREDIENT) }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.recipes_add_ingredient))
+            }
+            OutlinedButton(onClick = { openNoteScan(navController, FoodPickPurpose.RECIPE_INGREDIENT) }, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.recipes_note_scan))
             }
             val filled = state.lines.filledIn()
             if (filled.isNotEmpty()) {

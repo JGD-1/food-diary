@@ -78,6 +78,7 @@ internal fun NewBatchScreen(
     var deleting by rememberSaveable { mutableStateOf(false) }
     CameraGrams(savedState, vm::onWeighed)
     PickedFoods(savedState) { vm.add(it) }
+    NoteIngredients(savedState, vm::addFromNote)
     LaunchedEffect(state.savedBatchId) { state.savedBatchId?.let { onSaved(it, state.cookedOn) } }
     LaunchedEffect(state.closed) { if (state.closed) onClosed(deleting) }
     val editing = state.editing != null
@@ -143,6 +144,9 @@ internal fun NewBatchScreen(
             }
             OutlinedButton(onClick = { openFoodPick(navController, FoodPickPurpose.BATCH_INGREDIENT) }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.recipes_add_ingredient))
+            }
+            OutlinedButton(onClick = { openNoteScan(navController, FoodPickPurpose.BATCH_INGREDIENT) }, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.recipes_note_scan))
             }
             if (state.lines.isNotEmpty()) {
                 Hint(stringResource(R.string.recipes_batch_raw_total, state.rawTotal.kcal.roundToInt()))

@@ -144,4 +144,31 @@
     <string name="recipes_carry_on">Carry on</string>
     <string name="recipes_throw_away">Throw away</string>
     <string name="recipes_draft_thrown_away">Thrown away</string>
+    <!-- Round 4: "Scan a note", handwritten ingredients read with the camera (H) -->
+    <string name="recipes_note_scan">Scan a note</string>
+    <string name="recipes_note_title">Scan a note</string>
+    <string name="recipes_note_hold_still">Hold the phone still above your handwritten list. Lines appear here as they are read.</string>
+    <string name="recipes_note_keep_holding">The longer you hold still, the better it reads. Tap Check when every line is here.</string>
+    <plurals name="recipes_note_check">
+        <item quantity="one">Check %d line</item>
+        <item quantity="other">Check %d lines</item>
+    </plurals>
+    <string name="recipes_note_start_again">Start again</string>
+    <string name="recipes_note_light_on">Light on</string>
+    <string name="recipes_note_light_off">Light off</string>
+    <string name="recipes_note_permission">To read your note, the app needs the camera. The picture stays on your phone.</string>
+    <string name="recipes_note_allow_camera">Allow the camera</string>
+    <string name="recipes_note_matching">Finding the foods…</string>
+    <string name="recipes_note_check_title">Check the lines</string>
+    <string name="recipes_note_check_hint">Untick what you don\'t want, and change a food if it\'s not right. Nothing is added until you tap Add.</string>
+    <string name="recipes_note_read">Read: “%1$s”</string>
+    <string name="recipes_note_no_food">No food found</string>
+    <string name="recipes_note_amount_later">Amount: weigh or type it after adding</string>
+    <string name="recipes_note_change_food">Change</string>
+    <string name="recipes_note_choose_food">Choose food</string>
+    <plurals name="recipes_note_add">
+        <item quantity="one">Add %d ingredient</item>
+        <item quantity="other">Add %d ingredients</item>
+    </plurals>
+    <string name="recipes_note_scan_more">Back to the camera</string>
 </resources>

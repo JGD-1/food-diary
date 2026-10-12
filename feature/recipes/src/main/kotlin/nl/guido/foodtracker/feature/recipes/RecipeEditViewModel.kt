@@ -16,6 +16,7 @@ import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.newId
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
+import nl.guido.foodtracker.feature.recipes.logic.NoteIngredient
 import nl.guido.foodtracker.feature.recipes.logic.formatGrams
 import nl.guido.foodtracker.feature.recipes.logic.parseGrams
 import nl.guido.foodtracker.feature.recipes.logic.parsePieces
@@ -78,6 +79,13 @@ internal class RecipeEditViewModel @Inject constructor(
         viewModelScope.launch {
             val line = ingredientFoods.line(picked) ?: return@launch
             _state.update { it.copy(lines = it.lines + line) }
+        }
+    }
+    /** Lines checked in "Scan a note" (round 4, H), in the order they were on the note. */
+    fun addFromNote(items: List<NoteIngredient>) {
+        viewModelScope.launch {
+            val lines = items.mapNotNull { ingredientFoods.line(it.foodId, it.grams, it.label) }
+            _state.update { it.copy(lines = it.lines + lines) }
         }
     }
     fun setGrams(key: String, text: String) = _state.update { s ->

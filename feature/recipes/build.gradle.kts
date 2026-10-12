@@ -8,3 +8,14 @@ plugins {
 android {
     namespace = "nl.guido.foodtracker.feature.recipes"
 }
+
+dependencies {
+    // "Scan a note" (round 4, H): the live camera and the phone's own text reader (bundled, works
+    // offline, nothing uploaded). The same libraries the Scan screen uses, so the app doesn't grow.
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.mlkit.text.recognition)
+}

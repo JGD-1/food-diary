@@ -5,6 +5,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.model.CommonPortions
 import nl.guido.foodtracker.core.model.Food
+import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.PickedFood
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
@@ -25,6 +26,17 @@ internal class IngredientFoods @Inject constructor(
         servingLabel = context.getString(R.string.recipes_amount_serving),
         packLabel = context.getString(R.string.recipes_amount_pack),
     )
+
+    /** Grams in one piece of [food] ("1 egg ≈ 50 g"), or null when it isn't eaten in pieces. */
+    suspend fun pieceGrams(food: Food): Double? =
+        if (commonPortions.isPresent) runCatching { commonPortions.get().forFood(food) }.getOrNull()?.firstOrNull()?.grams else null
+
+    /** A line for a food read from a note (round 4, H); the grams stay empty when the note had no amount. */
+    suspend fun line(foodId: Id, grams: Double?, label: String?): EditableIngredient? {
+        val food = runCatching { foods.get(foodId) }.getOrNull() ?: return null
+        return EditableIngredient.of(food, choicesFor(food))
+            .copy(gramsText = grams?.let { formatGrams(it) }.orEmpty(), amountLabel = label?.takeIf { grams != null })
+    }
 
     /** A new line for a food picked in the shared picker (S21), with its amount and label ("2 eggs"). Null if the food is gone. */
     suspend fun line(picked: PickedFood): EditableIngredient? {

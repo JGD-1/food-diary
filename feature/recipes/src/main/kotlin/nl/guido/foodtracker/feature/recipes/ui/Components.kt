@@ -54,6 +54,8 @@ import nl.guido.foodtracker.feature.recipes.PansViewModel
 import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.RecipesRoutes
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
+import nl.guido.foodtracker.feature.recipes.logic.NoteIngredient
+import nl.guido.foodtracker.feature.recipes.logic.decodeNoteIngredients
 import nl.guido.foodtracker.feature.recipes.logic.PIECE_CHOICES
 import nl.guido.foodtracker.feature.recipes.logic.formatGrams
 import nl.guido.foodtracker.feature.recipes.logic.parseGrams
@@ -273,6 +275,23 @@ internal fun PickedFoods(savedState: SavedStateHandle, onPicked: (PickedFood) ->
         text?.let {
             savedState.remove<String>(FoodPickResult.KEY)
             FoodPickResult.decode(it)?.let(onPicked)
+        }
+    }
+}
+
+/** Opens "Scan a note" (round 4, H); the checked lines come back through [NoteIngredients]. */
+internal fun openNoteScan(navController: NavController, purpose: FoodPickPurpose) {
+    navController.navigate(RecipesRoutes.noteScan(purpose))
+}
+
+/** Hands the lines checked in "Scan a note" to [onLines] once, when coming back to this screen. */
+@Composable
+internal fun NoteIngredients(savedState: SavedStateHandle, onLines: (List<NoteIngredient>) -> Unit) {
+    val text by savedState.getStateFlow<String?>(RecipesRoutes.NOTE_RESULT, null).collectAsState()
+    LaunchedEffect(text) {
+        text?.let {
+            savedState.remove<String>(RecipesRoutes.NOTE_RESULT)
+            decodeNoteIngredients(it).takeIf { lines -> lines.isNotEmpty() }?.let(onLines)
         }
     }
 }
