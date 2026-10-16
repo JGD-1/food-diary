@@ -20,6 +20,7 @@ import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.FoodSource
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.feature.camera.read.PackWords
 import nl.guido.foodtracker.feature.camera.read.ScaleParse
 import nl.guido.foodtracker.feature.camera.read.TextLine
 import org.junit.After
@@ -47,12 +48,23 @@ class CameraViewModelTest {
         override suspend fun saveAll(foods: List<Food>) = foods.forEach { saved[it.id] = it }
     }
 
-    private class FakeSource(val food: Food?, val fail: Boolean = false) : FoodSource {
+    private class FakeSource(
+        val food: Food?,
+        val fail: Boolean = false,
+        val found: Map<String, List<Food>> = emptyMap(),
+    ) : FoodSource {
+        val searched = mutableListOf<String>()
         override suspend fun byBarcode(code: String): Food? {
             if (fail) throw IOException("no internet")
             return food?.takeIf { it.barcode == code }
         }
-        override suspend fun search(text: String) = emptyList<Food>()
+        override suspend fun search(text: String): List<Food> { searched += text; return found[text].orEmpty() }
+    }
+
+    private class FakeMemory : PackMemory {
+        var words = PackWords()
+        override suspend fun get() = words
+        override fun learn(words: Set<String>, foodId: Id) { this.words = this.words.learn(words, foodId) }
     }
 
     private object Session : SessionRepository {
@@ -62,9 +74,11 @@ class CameraViewModelTest {
     private val foods = FakeFoods()
     private var pieces: Optional<CommonPortions> = Optional.empty()
     private val readings = CameraScaleReadings()
+    private val memory = FakeMemory()
 
     private fun vm(source: FoodSource = FakeSource(cola), args: Map<String, Any?> = emptyMap()) =
-        CameraViewModel(SavedStateHandle(args), foods, source, Session, setOf(CameraScaleWeightSource(readings)), readings, pieces)
+        CameraViewModel(SavedStateHandle(args), foods, source, Session, setOf(CameraScaleWeightSource(readings)), readings, pieces,
+            memory, Optional.empty())
 
     @Before fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
     @After fun tearDown() = Dispatchers.resetMain()
@@ -182,5 +196,68 @@ class CameraViewModelTest {
         vm.readScaleFor(cola)
         assertTrue(vm.back())
         assertEquals(CameraStep.HowMuch(cola), vm.step.value)
+    }
+    // ---- What is on the scale ----
+
+    private val beans = Food(
+        "nevo-beans", "Beans kidney tinned", per100g = Nutrients(110.0, 7.0, 15.0, 0.5), source = FoodOrigin.NEVO,
+    )
+
+    private fun line(text: String, height: Float = 60f) = TextLine(text, 0f, 0f, 400f, height)
+
+    private fun weighing(source: FoodSource): CameraViewModel =
+        vm(source, args = mapOf(CameraViewModel.ARG_MODE to "scale")).apply { allowNaming(true) }
+
+    @Test fun `the name on the pack is suggested, and the pick is logged with the weight and learned`() {
+        val source = FakeSource(null, found = mapOf("rode kidneybonen" to listOf(beans)))
+        val vm = weighing(source)
+        val frame = listOf(line("AH Rode Kidneybonen", 80f), line("Energie 450 kJ", 20f))
+        vm.onPackFrame(null, frame)
+        assertTrue(vm.naming.value.guesses.isEmpty()) // one frame is not enough
+        vm.onPackFrame(null, frame)
+        assertEquals(listOf(beans), vm.naming.value.guesses)
+
+        vm.choose(beans)
+        assertEquals(false, vm.wantsGuess()) // picked: stop looking
+        repeat(3) { vm.onScaleFrame(ScaleParse.Grams(400.0)) }
+        vm.useGrams(400.0)
+        assertEquals(CameraOutcome("nevo-beans", 400.0), vm.outcome.value)
+        assertEquals(listOf("nevo-beans"), memory.words.lookup(setOf("rode", "kidneybonen")))
+    }
+
+    @Test fun `a learned pack is the first guess next time`() {
+        memory.learn(setOf("rode", "kidneybonen"), "nevo-beans")
+        foods.saved["nevo-beans"] = beans
+        val vm = weighing(FakeSource(null))
+        repeat(2) { vm.onPackFrame(null, listOf(line("Rode kidneybonen"))) }
+        assertEquals(listOf(beans), vm.naming.value.guesses)
+    }
+
+    @Test fun `a barcode in view while weighing is the first guess`() {
+        val vm = weighing(FakeSource(cola, found = mapOf("cola" to listOf(beans))))
+        repeat(2) { vm.onPackFrame("5449000000996", listOf(line("Cola"))) }
+        assertEquals(cola, vm.naming.value.guesses.first())
+        assertEquals(cola, foods.saved["off-cola"])
+    }
+
+    @Test fun `weighing for a recipe ingredient does not guess`() {
+        val source = FakeSource(null, found = mapOf("rode kidneybonen" to listOf(beans)))
+        val vm = vm(source, args = mapOf(CameraViewModel.ARG_MODE to "scale"))
+        repeat(2) { vm.onPackFrame(null, listOf(line("Rode kidneybonen"))) }
+        assertTrue(vm.naming.value.guesses.isEmpty())
+        assertTrue(source.searched.isEmpty())
+    }
+
+    @Test fun `naming it by hand keeps the reading and returns to the scale`() {
+        val vm = weighing(FakeSource(null, found = mapOf("bonen" to listOf(beans))))
+        repeat(3) { vm.onScaleFrame(ScaleParse.Grams(250.0)) }
+        vm.nameItMyself()
+        assertEquals("", (vm.step.value as CameraStep.ReadScale).search)
+        vm.choose(beans)
+        val step = vm.step.value as CameraStep.ReadScale
+        assertNull(step.search)
+        assertEquals(beans, vm.naming.value.chosen)
+        assertEquals(250.0, vm.scale.value.grams)
+        assertTrue(vm.back().not()) // back now leaves the screen
     }
 }

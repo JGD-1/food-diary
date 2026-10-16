@@ -60,10 +60,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
+import nl.guido.foodtracker.core.ui.FoodRow
 import nl.guido.foodtracker.core.ui.ScreenHeader
+import nl.guido.foodtracker.core.ui.foodDetail
 import nl.guido.foodtracker.feature.camera.vision.BarcodeReader
 import nl.guido.foodtracker.feature.camera.vision.LabelReader
-import nl.guido.foodtracker.feature.camera.vision.ScaleReader
+import nl.guido.foodtracker.feature.camera.vision.WeighReader
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
 
@@ -73,7 +75,7 @@ private val CameraStep.cameraUse: CameraUse?
     get() = when (this) {
         CameraStep.ScanBarcode -> CameraUse.BARCODE
         is CameraStep.PhotoLabel, is CameraStep.ReadingLabel -> CameraUse.LABEL
-        is CameraStep.ReadScale -> if (typing) null else CameraUse.SCALE
+        is CameraStep.ReadScale -> if (typing || search != null) null else CameraUse.SCALE
         else -> null
     }
 
@@ -83,11 +85,15 @@ internal fun CameraScreen(
     onFinished: (CameraOutcome) -> Unit,
     onLeave: () -> Unit,
     onSearchByName: () -> Unit,
+    /** Whether the opener logs a food itself (Today, Log food), so "What is it?" is offered when weighing. */
+    canName: Boolean = false,
     vm: CameraViewModel = hiltViewModel(),
 ) {
+    LaunchedEffect(canName) { vm.allowNaming(canName) }
     val step by vm.step.collectAsStateWithLifecycle()
     val scale by vm.scale.collectAsStateWithLifecycle()
     val outcome by vm.outcome.collectAsStateWithLifecycle()
+    val naming by vm.naming.collectAsStateWithLifecycle()
     LaunchedEffect(outcome) { outcome?.let(onFinished) }
     BackHandler { if (!vm.back()) onLeave() }
 
@@ -111,12 +117,13 @@ internal fun CameraScreen(
     }
     val analysisThread = remember { Executors.newSingleThreadExecutor() }
     val barcodeReader = remember { BarcodeReader(vm::onBarcodeSeen) }
-    val scaleReader = remember { ScaleReader(vm::onScaleFrame) }
+    val scaleReader = remember { WeighReader(vm::onScaleFrame, vm::onPackFrame, vm::wantsGuess) }
     val labelReader = remember { LabelReader() }
     DisposableEffect(Unit) {
         onDispose {
             controller.unbind()
             barcodeReader.close()
+            scaleReader.close()
             labelReader.close()
             analysisThread.shutdown()
         }
@@ -208,7 +215,7 @@ internal fun CameraScreen(
                     is CameraStep.ReadingLabel -> Body(stringResource(R.string.camera_label_reading))
                     is CameraStep.EditFood -> EditFoodPanel(s, vm)
                     is CameraStep.HowMuch -> HowMuchPanel(s, vm)
-                    is CameraStep.ReadScale -> ScalePanel(s, scale, vm)
+                    is CameraStep.ReadScale -> ScalePanel(s, scale, naming.takeIf { canName && s.food == null }, vm)
                 }
             }
         }
@@ -342,7 +349,8 @@ private fun HowMuchPanel(s: CameraStep.HowMuch, vm: CameraViewModel) {
 }
 
 @Composable
-private fun ScalePanel(s: CameraStep.ReadScale, scale: ScaleView, vm: CameraViewModel) {
+private fun ScalePanel(s: CameraStep.ReadScale, scale: ScaleView, naming: Naming?, vm: CameraViewModel) {
+    if (s.search != null) return NameItPanel(s, vm)
     if (s.typing) {
         Title(stringResource(R.string.camera_alt_type_grams))
         NumberField(s.typed, vm::onTypedGrams, stringResource(R.string.camera_scale_type_field))
@@ -362,10 +370,65 @@ private fun ScalePanel(s: CameraStep.ReadScale, scale: ScaleView, vm: CameraView
                 style = MaterialTheme.typography.displayMedium,
                 color = MaterialTheme.colorScheme.primary,
             )
-            MainButton(stringResource(R.string.camera_scale_use, formatGrams(grams))) { vm.useGrams(grams) }
+            val chosen = naming?.chosen
+            MainButton(
+                if (chosen == null) stringResource(R.string.camera_scale_use, formatGrams(grams))
+                else stringResource(R.string.camera_name_log, formatGrams(grams), vm.title(chosen)),
+            ) { vm.useGrams(grams) }
         }
     }
+    if (naming != null) WhatIsItSection(naming, vm)
     OtherButton(stringResource(R.string.camera_alt_type_grams), vm::typeGrams)
+}
+
+/** "What is it?": the picked food, or guesses from the pack, or naming it by hand. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun WhatIsItSection(naming: Naming, vm: CameraViewModel) {
+    Text(stringResource(R.string.camera_name_title), style = MaterialTheme.typography.titleMedium)
+    val chosen = naming.chosen
+    if (chosen != null) {
+        FoodRow(
+            title = vm.title(chosen),
+            plainLine = chosen.name.takeIf { it != vm.title(chosen) },
+            detail = foodDetail(chosen),
+            onClick = vm::clearChoice,
+            trailing = { TextButton(onClick = vm::clearChoice) { Text(stringResource(R.string.camera_name_change)) } },
+        )
+        return
+    }
+    if (naming.guesses.isEmpty()) {
+        Body(stringResource(R.string.camera_name_hint))
+    } else {
+        Body(stringResource(R.string.camera_name_looks_like))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            naming.guesses.forEach { food ->
+                FilterChip(selected = false, onClick = { vm.choose(food) }, label = { Text(vm.title(food)) })
+            }
+        }
+    }
+    OtherButton(stringResource(R.string.camera_name_myself), vm::nameItMyself)
+}
+
+/** Naming the food on the scale by hand; the pick is remembered for this pack. */
+@Composable
+private fun NameItPanel(s: CameraStep.ReadScale, vm: CameraViewModel) {
+    Title(stringResource(R.string.camera_name_title))
+    OutlinedTextField(
+        s.search.orEmpty(), vm::onNameSearch,
+        label = { Text(stringResource(R.string.camera_name_field)) },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    s.found.forEach { food ->
+        FoodRow(
+            title = vm.title(food),
+            plainLine = food.name.takeIf { it != vm.title(food) },
+            detail = foodDetail(food),
+            onClick = { vm.choose(food) },
+        )
+    }
+    if (!s.search.isNullOrBlank() && s.found.isEmpty()) Body(stringResource(R.string.camera_name_nothing))
 }
 
 @Composable

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,12 +17,15 @@ import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
 import nl.guido.foodtracker.core.model.CommonPortions
 import nl.guido.foodtracker.core.model.Food
+import nl.guido.foodtracker.core.model.FoodNames
 import nl.guido.foodtracker.core.model.FoodSource
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.WeightSource
 import nl.guido.foodtracker.core.model.newId
 import nl.guido.foodtracker.feature.camera.read.Barcodes
 import nl.guido.foodtracker.feature.camera.read.NutritionLabelParser
+import nl.guido.foodtracker.feature.camera.read.PackTextVotes
+import nl.guido.foodtracker.feature.camera.read.packWords
 import nl.guido.foodtracker.feature.camera.read.ScaleParse
 import nl.guido.foodtracker.feature.camera.read.Stabilizer
 import nl.guido.foodtracker.feature.camera.read.TextLine
@@ -42,12 +46,27 @@ internal sealed interface CameraStep {
     data class EditFood(val draft: FoodDraft, val readCount: Int?) : CameraStep
     /** [pieces]: common pieces for this food ("1 apple ≈ 150 g"), shown as chips next to serving and pack. */
     data class HowMuch(val food: Food, val grams: String = "", val pieces: List<Portion> = emptyList()) : CameraStep
-    /** [food] is null when the screen was opened only to weigh something. */
-    data class ReadScale(val food: Food?, val typing: Boolean = false, val typed: String = "") : CameraStep
+    /**
+     * [food] is null when the screen was opened only to weigh something. [search] is not null
+     * while naming the food on the scale by hand ([found] are the matches); the reading is kept.
+     */
+    data class ReadScale(
+        val food: Food?,
+        val typing: Boolean = false,
+        val typed: String = "",
+        val search: String? = null,
+        val found: List<Food> = emptyList(),
+    ) : CameraStep
 }
 
 /** What the camera currently sees on the scale. */
 internal data class ScaleView(val grams: Double? = null)
+
+/**
+ * What the food on the scale may be, while only weighing: guesses from its barcode or the name
+ * on the pack, and the one picked ([chosen]), which is logged with the weight.
+ */
+internal data class Naming(val guesses: List<Food> = emptyList(), val chosen: Food? = null)
 
 /** Handed back to the screen that opened the camera. */
 internal data class CameraOutcome(val foodId: String?, val grams: Double)
@@ -62,7 +81,12 @@ internal class CameraViewModel @Inject constructor(
     private val cameraReadings: CameraScaleReadings,
     /** Common pieces ("1 apple ≈ 150 g"), bound by feature/food; empty until then. */
     private val commonPortions: Optional<CommonPortions>,
+    /** Packs learned on this phone, so a pack named once is recognised next time. */
+    private val packMemory: PackMemory,
+    /** Readable names ("Onion" for a long NEVO name), bound by feature/food. */
+    private val foodNames: Optional<FoodNames>,
 ) : ViewModel() {
+    private val guesser = FoodGuesser(foods, foodSource, packMemory)
 
     private val mode = when (savedStateHandle.get<String>(ARG_MODE)) {
         "label" -> CameraMode.LABEL
@@ -79,6 +103,20 @@ internal class CameraViewModel @Inject constructor(
 
     private val _outcome = MutableStateFlow<CameraOutcome?>(null)
     val outcome: StateFlow<CameraOutcome?> = _outcome.asStateFlow()
+
+    private val _naming = MutableStateFlow(Naming())
+    val naming: StateFlow<Naming> = _naming.asStateFlow()
+
+    /** Only screens that log the food themselves (Today, Log food) can use a named food. */
+    private var namingAllowed = false
+    private val packText = PackTextVotes()
+    private val packCodes = Stabilizer<String>(needed = 2)
+    private val codesLookedUp = mutableSetOf<String>()
+    private var codeGuess: Food? = null
+    private var textGuesses: List<Food> = emptyList()
+    private var namesSearched: List<String> = emptyList()
+    private var guessJob: Job? = null
+    private var searchJob: Job? = null
 
     private val barcodeSteady = Stabilizer<String>(needed = 2)
     private val scaleSteady = Stabilizer<Double>(needed = 3)
@@ -252,8 +290,13 @@ internal class CameraViewModel @Inject constructor(
     fun useGrams(grams: Double) {
         if (grams <= 0) return
         val s = _step.value as? CameraStep.ReadScale ?: return
-        if (s.food == null) _outcome.value = CameraOutcome(null, grams)
-        else go(CameraStep.HowMuch(s.food, grams = formatGrams(grams)))
+        if (s.food == null) {
+            val chosen = _naming.value.chosen
+            if (chosen != null) rememberPack(chosen)
+            _outcome.value = CameraOutcome(chosen?.id, grams)
+        } else {
+            go(CameraStep.HowMuch(s.food, grams = formatGrams(grams)))
+        }
     }
 
     fun useTypedGrams() {
@@ -261,10 +304,78 @@ internal class CameraViewModel @Inject constructor(
         parseAmount(s.typed)?.let(::useGrams)
     }
 
+    // ---- What is on the scale (only weighing) ----
+
+    fun allowNaming(allowed: Boolean) { namingAllowed = allowed }
+
+    fun title(food: Food): String = foodNames.orElse(null)?.plain(food) ?: food.name
+
+    /** Whether the camera should still look at the pack: only weighing, and nothing picked yet. */
+    fun wantsGuess(): Boolean {
+        val s = _step.value as? CameraStep.ReadScale ?: return false
+        return namingAllowed && s.food == null && _naming.value.chosen == null
+    }
+
+    /** A barcode (or none) and the text lines read on one frame while weighing. */
+    fun onPackFrame(code: String?, lines: List<TextLine>) {
+        if (!wantsGuess()) return
+        val steadyCode = code?.takeIf { Barcodes.isValid(it) }?.let { packCodes.offer(it) }
+        if (steadyCode != null && codesLookedUp.add(steadyCode)) {
+            viewModelScope.launch {
+                guesser.fromBarcode(steadyCode)?.let { food -> codeGuess = food; showGuesses() }
+            }
+        }
+        packText.offer(lines)
+        val names = packText.names()
+        if (names.isEmpty() || names == namesSearched || guessJob?.isActive == true) return
+        namesSearched = names
+        val words = packText.words()
+        guessJob = viewModelScope.launch {
+            textGuesses = guesser.fromText(names, words)
+            showGuesses()
+        }
+    }
+
+    private fun showGuesses() {
+        val all = (listOfNotNull(codeGuess) + textGuesses).distinctBy { it.id }.take(3)
+        _naming.update { it.copy(guesses = all) }
+    }
+
+    fun choose(food: Food) {
+        viewModelScope.launch { if (foods.get(food.id) == null) foods.save(food) }
+        _naming.update { it.copy(chosen = food) }
+        val s = _step.value as? CameraStep.ReadScale ?: return
+        if (s.search != null) go(s.copy(search = null, found = emptyList()))
+    }
+
+    fun clearChoice() = _naming.update { it.copy(chosen = null) }
+
+    fun nameItMyself() {
+        (_step.value as? CameraStep.ReadScale)?.let { go(it.copy(search = "", found = emptyList(), typing = false)) }
+    }
+
+    fun onNameSearch(text: String) {
+        val s = _step.value as? CameraStep.ReadScale ?: return
+        go(s.copy(search = text))
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(SEARCH_PAUSE_MS)
+            val found = guesser.search(text)
+            _step.update { if (it is CameraStep.ReadScale && it.search == text) it.copy(found = found) else it }
+        }
+    }
+
+    /** The pack's name words now point to [food], so it is the first guess next time. */
+    private fun rememberPack(food: Food) {
+        val words = packText.names().flatMapTo(HashSet()) { packWords(it) }
+        if (words.isNotEmpty()) packMemory.learn(words, food.id)
+    }
+
     /** Back button: one step back inside the screen. False means leave the screen. */
     fun back(): Boolean {
         val previous = when (val s = _step.value) {
             is CameraStep.ReadScale -> when {
+                s.search != null -> s.copy(search = null, found = emptyList())
                 s.typing -> s.copy(typing = false)
                 s.food != null -> CameraStep.HowMuch(s.food)
                 else -> null
@@ -280,6 +391,7 @@ internal class CameraViewModel @Inject constructor(
     companion object {
         const val ARG_MODE = "mode"
         const val ARG_DRINK = "drink"
+        private const val SEARCH_PAUSE_MS = 250L
     }
 }
 

@@ -15,6 +15,7 @@ import nl.guido.foodtracker.feature.camera.read.Gray
 import nl.guido.foodtracker.feature.camera.read.SevenSegmentReader
 import nl.guido.foodtracker.feature.camera.read.ScaleParse
 import nl.guido.foodtracker.feature.camera.read.TextLine
+import com.google.android.gms.tasks.Tasks
 import java.io.Closeable
 
 // All reading happens on the phone (Google ML Kit's built-in models, and our own scale reader). Nothing is uploaded.
@@ -39,26 +40,63 @@ internal class BarcodeReader(private val onCode: (String) -> Unit) : ImageAnalys
 }
 
 /**
- * Reads the number on the kitchen scale's display in each camera frame.
+ * Reads the number on the kitchen scale's display in each camera frame, and while weighing a few
+ * times a second also looks for a barcode and the printed name on the pack ([onPack]), to guess
+ * the food. [looking] says whether a guess is still wanted; when not, only the scale is read.
  *
- * Only the middle of the frame is used (where the aiming frame is). The digits are read straight
- * from their lit bars ([SevenSegmentReader]), in any direction the phone is held. Frames that
- * arrive while one is being read are dropped by the camera, so work never piles up.
+ * Only the middle of the frame is used for the scale (where the aiming frame is). The digits are
+ * read straight from their lit bars ([SevenSegmentReader]), in any direction the phone is held.
+ * Frames that arrive while one is being read are dropped by the camera, so work never piles up.
  */
-internal class ScaleReader(private val onFrame: (ScaleParse) -> Unit) : ImageAnalysis.Analyzer {
+internal class WeighReader(
+    private val onScale: (ScaleParse) -> Unit,
+    private val onPack: (code: String?, lines: List<TextLine>) -> Unit,
+    private val looking: () -> Boolean,
+) : ImageAnalysis.Analyzer, Closeable {
+    private val barcodes = BarcodeScanning.getClient(
+        BarcodeScannerOptions.Builder()
+            .setBarcodeFormats(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8, Barcode.FORMAT_UPC_A, Barcode.FORMAT_UPC_E)
+            .build(),
+    )
+    private val text = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    private var lastLook = 0L
+
+    @OptIn(ExperimentalGetImage::class)
     override fun analyze(frame: ImageProxy) {
-        val grams = try {
-            SevenSegmentReader.read(aimedGray(frame, frame.imageInfo.rotationDegrees))
+        val gray = try {
+            aimedGray(frame, frame.imageInfo.rotationDegrees)
         } catch (e: RuntimeException) {
             null
-        } finally {
+        }
+        val now = System.currentTimeMillis()
+        val image = frame.image
+        if (image != null && looking() && now - lastLook >= LOOK_EVERY_MS) {
+            lastLook = now
+            // The frame stays open until both readers are done with it; the camera waits meanwhile.
+            val input = InputImage.fromMediaImage(image, frame.imageInfo.rotationDegrees)
+            val code = barcodes.process(input)
+            val lines = text.process(input)
+            Tasks.whenAllComplete(code, lines).addOnCompleteListener {
+                frame.close()
+                onPack(
+                    if (code.isSuccessful) code.result.firstNotNullOfOrNull { it.rawValue } else null,
+                    if (lines.isSuccessful) lines.result.toLines() else emptyList(),
+                )
+            }
+        } else {
             frame.close()
         }
-        onFrame(if (grams != null && grams <= MAX_GRAMS) ScaleParse.Grams(grams.toDouble()) else ScaleParse.Unreadable)
+        val grams = gray?.let { runCatching { SevenSegmentReader.read(it) }.getOrNull() }
+        onScale(if (grams != null && grams <= MAX_GRAMS) ScaleParse.Grams(grams.toDouble()) else ScaleParse.Unreadable)
+    }
+
+    override fun close() {
+        barcodes.close()
+        text.close()
     }
 
     private companion object {
-        /** More than a kitchen scale can weigh: a misreading. */
+        const val LOOK_EVERY_MS = 700L
         const val MAX_GRAMS = 15_000
     }
 }

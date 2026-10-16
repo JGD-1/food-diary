@@ -83,4 +83,13 @@
     <string name="camera_scale_hint">Can\'t read it yet. Move closer, avoid reflections on the display, or turn on the light.</string>
     <string name="camera_scale_type_field">Grams on the scale</string>
     <string name="camera_scale_type_use">Use these grams</string>
+    <!-- What is on the scale (only weighing) -->
+    <string name="camera_name_title">What is it?</string>
+    <string name="camera_name_hint">Keep the pack\'s name or barcode in view for a suggestion, or name it yourself.</string>
+    <string name="camera_name_looks_like">Looks like:</string>
+    <string name="camera_name_myself">Name it myself</string>
+    <string name="camera_name_change">Change</string>
+    <string name="camera_name_field">Food name</string>
+    <string name="camera_name_nothing">Nothing found. Try another word.</string>
+    <string name="camera_name_log">Log %1$s g %2$s</string>
 </resources>

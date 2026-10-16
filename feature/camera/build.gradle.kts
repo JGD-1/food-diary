@@ -1,6 +1,8 @@
 // Stream 2: camera, label scan, scale reading
 plugins {
     alias(libs.plugins.foodapp.android.feature)
+    // Packs learned while weighing are kept on the phone as a small JSON file.
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
