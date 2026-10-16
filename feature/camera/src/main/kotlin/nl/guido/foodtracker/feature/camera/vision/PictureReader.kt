@@ -31,7 +31,7 @@ internal class PictureReader(context: Context) : Closeable {
     fun read(bitmap: Bitmap, rotationDegrees: Int = 0): Picture {
         val pixels = middleSquare(bitmap, rotationDegrees)
 
-        // The starter model takes plain 0-255 colour values and gives a 0-255 score per kind.
+        // The starter model takes plain 0-255 colour values and gives a score per kind in 256ths.
         val bytes = ByteBuffer.allocateDirect(SIZE * SIZE * 3).order(ByteOrder.nativeOrder())
         pixels.forEach { p -> bytes.put((p shr 16 and 0xFF).toByte()).put((p shr 8 and 0xFF).toByte()).put((p and 0xFF).toByte()) }
         bytes.rewind()
@@ -47,7 +47,7 @@ internal class PictureReader(context: Context) : Closeable {
         val vector = Array(1) { FloatArray(embeddingSize) }
         embedder.run(floats, vector)
 
-        return Picture(FloatArray(classes) { (scores[0][it].toInt() and 0xFF) / 255f }, vector[0])
+        return Picture(FloatArray(classes) { (scores[0][it].toInt() and 0xFF) / 256f }, vector[0])
     }
 
     override fun close() {
