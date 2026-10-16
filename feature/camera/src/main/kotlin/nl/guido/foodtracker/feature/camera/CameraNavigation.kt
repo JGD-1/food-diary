@@ -40,6 +40,7 @@ fun NavGraphBuilder.cameraScreens(navController: NavController) {
                 navController.popBackStack()
             },
             onLeave = { navController.popBackStack() },
+            canName = logsFoodItself(navController.previousBackStackEntry?.destination?.route),
             onSearchByName = {
                 val cameFromLogFood = isLogFoodRoute(navController.previousBackStackEntry?.destination?.route)
                 navController.popBackStack()
@@ -52,3 +53,7 @@ fun NavGraphBuilder.cameraScreens(navController: NavController) {
 /** Log food is registered with optional extras ("log-food?meal={meal}&…"), so match the start. */
 internal fun isLogFoodRoute(route: String?): Boolean =
     route == Routes.LOG_FOOD || route?.startsWith(Routes.LOG_FOOD + "?") == true
+
+/** Today (any day) and Log food log a scanned food themselves; recipes only want the grams. */
+internal fun logsFoodItself(route: String?): Boolean =
+    isLogFoodRoute(route) || route == Routes.TODAY || route == Routes.DAY

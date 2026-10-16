@@ -17,4 +17,13 @@ class CameraNavigationTest {
         assertFalse(isLogFoodRoute("today"))
         assertFalse(isLogFoodRoute("log-food-extra"))
     }
+
+    @Test
+    fun `only Today and Log food are offered a named food when weighing`() {
+        assertTrue(logsFoodItself("today"))
+        assertTrue(logsFoodItself("day/{date}"))
+        assertTrue(logsFoodItself("log-food?meal={meal}&foodId={foodId}&grams={grams}"))
+        assertFalse(logsFoodItself("recipes/batch-cook"))
+        assertFalse(logsFoodItself(null))
+    }
 }

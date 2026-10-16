@@ -83,4 +83,13 @@
     <string name="camera_scale_hint">Nog niet leesbaar. Ga dichterbij, vermijd weerspiegeling op het scherm, of zet de lamp aan.</string>
     <string name="camera_scale_type_field">Gram op de weegschaal</string>
     <string name="camera_scale_type_use">Dit gewicht gebruiken</string>
+    <!-- Wat ligt er op de weegschaal (alleen wegen) -->
+    <string name="camera_name_title">Wat is het?</string>
+    <string name="camera_name_hint">Houd de naam of streepjescode van de verpakking in beeld voor een suggestie, of benoem het zelf.</string>
+    <string name="camera_name_looks_like">Lijkt op:</string>
+    <string name="camera_name_myself">Zelf benoemen</string>
+    <string name="camera_name_change">Wijzigen</string>
+    <string name="camera_name_field">Naam van het eten</string>
+    <string name="camera_name_nothing">Niets gevonden. Probeer een ander woord.</string>
+    <string name="camera_name_log">%1$s g %2$s noteren</string>
 </resources>
