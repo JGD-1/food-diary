@@ -12,6 +12,7 @@ import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import nl.guido.foodtracker.feature.camera.read.Gray
+import nl.guido.foodtracker.feature.camera.read.Picture
 import nl.guido.foodtracker.feature.camera.read.SevenSegmentReader
 import nl.guido.foodtracker.feature.camera.read.ScaleParse
 import nl.guido.foodtracker.feature.camera.read.TextLine
@@ -42,7 +43,8 @@ internal class BarcodeReader(private val onCode: (String) -> Unit) : ImageAnalys
 /**
  * Reads the number on the kitchen scale's display in each camera frame, and while weighing a few
  * times a second also looks for a barcode and the printed name on the pack ([onPack]), to guess
- * the food. [looking] says whether a guess is still wanted; when not, only the scale is read.
+ * the food, and at the food itself through [pictures] (null when its models can't load).
+ * [looking] says whether a guess is still wanted; when not, only the scale is read.
  *
  * Only the middle of the frame is used for the scale (where the aiming frame is). The digits are
  * read straight from their lit bars ([SevenSegmentReader]), in any direction the phone is held.
@@ -50,8 +52,9 @@ internal class BarcodeReader(private val onCode: (String) -> Unit) : ImageAnalys
  */
 internal class WeighReader(
     private val onScale: (ScaleParse) -> Unit,
-    private val onPack: (code: String?, lines: List<TextLine>) -> Unit,
+    private val onPack: (code: String?, lines: List<TextLine>, picture: Picture?) -> Unit,
     private val looking: () -> Boolean,
+    private val pictures: Lazy<PictureReader?>,
 ) : ImageAnalysis.Analyzer, Closeable {
     private val barcodes = BarcodeScanning.getClient(
         BarcodeScannerOptions.Builder()
@@ -72,6 +75,7 @@ internal class WeighReader(
         val image = frame.image
         if (image != null && looking() && now - lastLook >= LOOK_EVERY_MS) {
             lastLook = now
+            val picture = pictures.value?.let { reader -> runCatching { reader.read(frame) }.getOrNull() }
             // The frame stays open until both readers are done with it; the camera waits meanwhile.
             val input = InputImage.fromMediaImage(image, frame.imageInfo.rotationDegrees)
             val code = barcodes.process(input)
@@ -81,6 +85,7 @@ internal class WeighReader(
                 onPack(
                     if (code.isSuccessful) code.result.firstNotNullOfOrNull { it.rawValue } else null,
                     if (lines.isSuccessful) lines.result.toLines() else emptyList(),
+                    picture,
                 )
             }
         } else {
@@ -93,6 +98,7 @@ internal class WeighReader(
     override fun close() {
         barcodes.close()
         text.close()
+        if (pictures.isInitialized()) pictures.value?.close()
     }
 
     private companion object {

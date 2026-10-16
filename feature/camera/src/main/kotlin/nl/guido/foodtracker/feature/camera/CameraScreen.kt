@@ -65,6 +65,7 @@ import nl.guido.foodtracker.core.ui.ScreenHeader
 import nl.guido.foodtracker.core.ui.foodDetail
 import nl.guido.foodtracker.feature.camera.vision.BarcodeReader
 import nl.guido.foodtracker.feature.camera.vision.LabelReader
+import nl.guido.foodtracker.feature.camera.vision.PictureReader
 import nl.guido.foodtracker.feature.camera.vision.WeighReader
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
@@ -117,7 +118,11 @@ internal fun CameraScreen(
     }
     val analysisThread = remember { Executors.newSingleThreadExecutor() }
     val barcodeReader = remember { BarcodeReader(vm::onBarcodeSeen) }
-    val scaleReader = remember { WeighReader(vm::onScaleFrame, vm::onPackFrame, vm::wantsGuess) }
+    val scaleReader = remember {
+        // The picture models load on first use, only when weighing something to name.
+        val pictures = lazy { runCatching { PictureReader(context) }.getOrNull() }
+        WeighReader(vm::onScaleFrame, vm::onPackFrame, vm::wantsGuess, pictures)
+    }
     val labelReader = remember { LabelReader() }
     DisposableEffect(Unit) {
         onDispose {

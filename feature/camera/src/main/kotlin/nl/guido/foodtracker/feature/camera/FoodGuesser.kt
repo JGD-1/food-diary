@@ -19,21 +19,27 @@ import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodSource
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.feature.camera.read.PackWords
+import nl.guido.foodtracker.feature.camera.read.Picture
+import nl.guido.foodtracker.feature.camera.read.PictureMemory
+import nl.guido.foodtracker.feature.camera.read.Produce
 import nl.guido.foodtracker.feature.camera.read.packSearches
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** The packs learned on this phone (their words → the food you picked). */
+/** What this phone learned: pack words → the food you picked, and pictures of foods you named. */
 internal interface PackMemory {
     suspend fun get(): PackWords
     fun learn(words: Set<String>, foodId: Id)
+    suspend fun pictures(): PictureMemory
+    fun learnPicture(foodId: Id, vector: FloatArray)
 }
 
 /**
- * Guesses what is on the scale from what the camera reads on it: the barcode first (exact),
- * then packs learned earlier, then a search for the name printed on the pack.
+ * Guesses what is on the scale from what the camera sees: the barcode first (exact), then what
+ * was learned earlier (pack words, pictures you named), then a search for the name printed on
+ * the pack, then the fruit or vegetable the starter model sees.
  */
 internal class FoodGuesser(
     private val foods: FoodRepository,
@@ -53,13 +59,15 @@ internal class FoodGuesser(
         return food
     }
 
-    /** Up to [limit] guesses from the pack's name lines and words, best first. */
-    suspend fun fromText(names: List<String>, words: Set<String>, limit: Int = 3): List<Food> {
-        val learned = memory.get().lookup(words).mapNotNull { foods.get(it) }
-        val searched = packSearches(names).mapNotNull { query ->
+    /** Up to [limit] guesses from the pack's name lines and words and the [picture], best first. */
+    suspend fun guess(names: List<String>, words: Set<String>, picture: Picture?, limit: Int = 3): List<Food> {
+        val produce = picture?.let { Produce.likely(it.scores) }.orEmpty()
+        val learned = memory.get().lookup(words + produce.map(Produce::token)).mapNotNull { foods.get(it) }
+        val alike = picture?.let { memory.pictures().nearest(it.vector) }.orEmpty().mapNotNull { foods.get(it) }
+        val searched = (packSearches(names) + produce).mapNotNull { query ->
             runCatching { foodSource.search(query).firstOrNull() }.getOrNull()
         }
-        return (learned + searched).distinctBy { it.id }.take(limit)
+        return (learned + alike + searched).distinctBy { it.id }.take(limit)
     }
 
     /** Typed search on the "Name it" panel: my foods and NEVO, on the phone. */
@@ -67,10 +75,12 @@ internal class FoodGuesser(
         if (text.isBlank()) emptyList() else runCatching { foodSource.search(text) }.getOrDefault(emptyList()).take(30)
 }
 
-/** [PackMemory] in a small file on the phone (filesDir/pack-words.json), not shared or uploaded. */
+/** [PackMemory] in small files on the phone (filesDir/pack-words.json, pictures.bin), not shared or uploaded. */
 @Singleton
 internal class PackWordsStore @Inject constructor(@ApplicationContext context: Context) : PackMemory {
     private val file = File(context.filesDir, "pack-words.json")
+    private val pictureFile = File(context.filesDir, "pictures.bin")
+    private var pictureExamples: PictureMemory? = null
     private val lock = Mutex()
     private var words: PackWords? = null
     /** Its own scope, so learning finishes even when the camera closes right away. */
@@ -93,6 +103,26 @@ internal class PackWordsStore @Inject constructor(@ApplicationContext context: C
             }
         }
     }
+
+    override suspend fun pictures(): PictureMemory = lock.withLock { loadedPictures() }
+
+    override fun learnPicture(foodId: Id, vector: FloatArray) {
+        scope.launch {
+            lock.withLock {
+                val after = loadedPictures().learn(foodId, vector)
+                pictureExamples = after
+                try {
+                    pictureFile.writeBytes(after.encode())
+                } catch (e: IOException) {
+                    // Still known while the app runs.
+                }
+            }
+        }
+    }
+
+    private suspend fun loadedPictures(): PictureMemory =
+        pictureExamples ?: withContext(Dispatchers.IO) { PictureMemory.decode(runCatching { pictureFile.readBytes() }.getOrNull()) }
+            .also { pictureExamples = it }
 
     private suspend fun loaded(): PackWords =
         words ?: withContext(Dispatchers.IO) { PackWords.decode(runCatching { file.readText() }.getOrNull()) }.also { words = it }

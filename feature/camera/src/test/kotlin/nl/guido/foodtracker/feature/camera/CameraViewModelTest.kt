@@ -21,6 +21,8 @@ import nl.guido.foodtracker.core.model.FoodSource
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Nutrients
 import nl.guido.foodtracker.feature.camera.read.PackWords
+import nl.guido.foodtracker.feature.camera.read.Picture
+import nl.guido.foodtracker.feature.camera.read.PictureMemory
 import nl.guido.foodtracker.feature.camera.read.ScaleParse
 import nl.guido.foodtracker.feature.camera.read.TextLine
 import org.junit.After
@@ -63,8 +65,11 @@ class CameraViewModelTest {
 
     private class FakeMemory : PackMemory {
         var words = PackWords()
+        var pictures = PictureMemory()
         override suspend fun get() = words
         override fun learn(words: Set<String>, foodId: Id) { this.words = this.words.learn(words, foodId) }
+        override suspend fun pictures() = pictures
+        override fun learnPicture(foodId: Id, vector: FloatArray) { pictures = pictures.learn(foodId, vector) }
     }
 
     private object Session : SessionRepository {
@@ -259,5 +264,42 @@ class CameraViewModelTest {
         assertEquals(beans, vm.naming.value.chosen)
         assertEquals(250.0, vm.scale.value.grams)
         assertTrue(vm.back().not()) // back now leaves the screen
+    }
+    private val onion = Food("nevo-onion", "Onion raw", per100g = Nutrients(30.0, 1.2, 5.5, 0.1), source = FoodOrigin.NEVO)
+    private val pepper = Food("nevo-pepper", "Sweet pepper red raw", per100g = Nutrients(28.0, 1.0, 5.0, 0.3), source = FoodOrigin.NEVO)
+
+    /** A look at loose food: no scores above the starter model's bar unless given. */
+    private fun look(vector: FloatArray, scores: Map<Int, Float> = emptyMap()) =
+        Picture(FloatArray(1000) { scores[it] ?: 0f }, vector)
+
+    @Test fun `a vegetable the starter model knows is suggested`() {
+        val vm = weighing(FakeSource(null, found = mapOf("sweet pepper" to listOf(pepper))))
+        vm.onPackFrame(null, emptyList(), look(floatArrayOf(1f, 0f), mapOf(945 to 0.8f)))
+        assertEquals(listOf(pepper), vm.naming.value.guesses)
+    }
+
+    @Test fun `a vegetable named by hand is recognised from its picture next time`() {
+        foods.saved["nevo-onion"] = onion
+        val first = weighing(FakeSource(null, found = mapOf("onion" to listOf(onion))))
+        first.onPackFrame(null, emptyList(), look(floatArrayOf(1f, 0.1f, 0f)))
+        assertTrue(first.naming.value.guesses.isEmpty()) // not known yet
+        first.choose(onion)
+        first.useGrams(150.0)
+
+        val next = weighing(FakeSource(null))
+        next.onPackFrame(null, emptyList(), look(floatArrayOf(0.95f, 0.15f, 0.05f))) // a similar picture
+        assertEquals(listOf(onion), next.naming.value.guesses)
+        val other = weighing(FakeSource(null))
+        other.onPackFrame(null, emptyList(), look(floatArrayOf(0f, 0f, 1f))) // something else
+        assertTrue(other.naming.value.guesses.isEmpty())
+    }
+
+    @Test fun `correcting the starter model is remembered`() {
+        foods.saved["nevo-onion"] = onion
+        val vm = weighing(FakeSource(null, found = mapOf("apple" to listOf(beans))))
+        vm.onPackFrame(null, emptyList(), look(floatArrayOf(1f, 0f), mapOf(948 to 0.6f))) // "apple"
+        vm.choose(onion)
+        vm.useGrams(120.0)
+        assertEquals(listOf("nevo-onion"), memory.words.lookup(setOf("#apple")))
     }
 }

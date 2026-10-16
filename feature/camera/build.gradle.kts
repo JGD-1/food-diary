@@ -10,6 +10,8 @@ android {
     defaultConfig {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    // The picture models are read straight from the app file, so they must stay uncompressed.
+    androidResources { noCompress += "tflite" }
     // Guido's scale photos, used by the tests on the computer and on the phone alike.
     sourceSets.getByName("test").resources.srcDir("src/androidTest/assets")
 }
@@ -24,6 +26,8 @@ dependencies {
     // Reading barcodes and text on the phone (bundled models: work offline, nothing uploaded)
     implementation(libs.mlkit.barcode.scanning)
     implementation(libs.mlkit.text.recognition)
+    // Recognising loose fruit and vegetables, and pictures you named (models in assets, on the phone)
+    implementation(libs.litert)
 
     // ScalePhotosTest: the scale reader on Guido's photos, on a phone or emulator (Android's own picture decoding)
     androidTestImplementation(libs.androidx.test.runner)
