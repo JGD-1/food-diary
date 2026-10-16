@@ -25,6 +25,8 @@ import nl.guido.foodtracker.core.model.newId
 import nl.guido.foodtracker.feature.camera.read.Barcodes
 import nl.guido.foodtracker.feature.camera.read.NutritionLabelParser
 import nl.guido.foodtracker.feature.camera.read.PackTextVotes
+import nl.guido.foodtracker.feature.camera.read.Picture
+import nl.guido.foodtracker.feature.camera.read.Produce
 import nl.guido.foodtracker.feature.camera.read.packWords
 import nl.guido.foodtracker.feature.camera.read.ScaleParse
 import nl.guido.foodtracker.feature.camera.read.Stabilizer
@@ -114,7 +116,9 @@ internal class CameraViewModel @Inject constructor(
     private val codesLookedUp = mutableSetOf<String>()
     private var codeGuess: Food? = null
     private var textGuesses: List<Food> = emptyList()
-    private var namesSearched: List<String> = emptyList()
+    private var lookedFor: Any? = null
+    /** The latest look at the food itself; its fingerprint is learned when you name the food. */
+    private var lastPicture: Picture? = null
     private var guessJob: Job? = null
     private var searchJob: Job? = null
 
@@ -316,8 +320,8 @@ internal class CameraViewModel @Inject constructor(
         return namingAllowed && s.food == null && _naming.value.chosen == null
     }
 
-    /** A barcode (or none) and the text lines read on one frame while weighing. */
-    fun onPackFrame(code: String?, lines: List<TextLine>) {
+    /** A barcode (or none), the text lines and the look at the food on one frame while weighing. */
+    fun onPackFrame(code: String?, lines: List<TextLine>, picture: Picture? = null) {
         if (!wantsGuess()) return
         val steadyCode = code?.takeIf { Barcodes.isValid(it) }?.let { packCodes.offer(it) }
         if (steadyCode != null && codesLookedUp.add(steadyCode)) {
@@ -326,12 +330,18 @@ internal class CameraViewModel @Inject constructor(
             }
         }
         packText.offer(lines)
+        if (picture != null) lastPicture = picture
+        if (guessJob?.isActive == true) return
         val names = packText.names()
-        if (names.isEmpty() || names == namesSearched || guessJob?.isActive == true) return
-        namesSearched = names
+        val produce = picture?.let { Produce.likely(it.scores) }.orEmpty()
+        // Search again only when something new is in view; a new picture is always worth a look.
+        val key = Triple(names, produce, picture)
+        if (names.isEmpty() && picture == null) return
+        if (key == lookedFor) return
+        lookedFor = key
         val words = packText.words()
         guessJob = viewModelScope.launch {
-            textGuesses = guesser.fromText(names, words)
+            textGuesses = guesser.guess(names, words, picture)
             showGuesses()
         }
     }
@@ -365,10 +375,17 @@ internal class CameraViewModel @Inject constructor(
         }
     }
 
-    /** The pack's name words now point to [food], so it is the first guess next time. */
+    /**
+     * Teaches the phone: the pack's name words (or, for loose food, what the starter model saw)
+     * now point to [food], and the picture is kept as an example, unless the barcode already told.
+     */
     private fun rememberPack(food: Food) {
         val words = packText.names().flatMapTo(HashSet()) { packWords(it) }
-        if (words.isNotEmpty()) packMemory.learn(words, food.id)
+        val picture = lastPicture
+        val produce = picture?.let { Produce.likely(it.scores, limit = 1) }.orEmpty().map(Produce::token)
+        val learn = words.ifEmpty { produce.toSet() }
+        if (learn.isNotEmpty()) packMemory.learn(learn, food.id)
+        if (picture != null && food.id != codeGuess?.id) packMemory.learnPicture(food.id, picture.vector)
     }
 
     /** Back button: one step back inside the screen. False means leave the screen. */

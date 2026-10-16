@@ -85,7 +85,7 @@
     <string name="camera_scale_type_use">Dit gewicht gebruiken</string>
     <!-- Wat ligt er op de weegschaal (alleen wegen) -->
     <string name="camera_name_title">Wat is het?</string>
-    <string name="camera_name_hint">Houd de naam of streepjescode van de verpakking in beeld voor een suggestie, of benoem het zelf.</string>
+    <string name="camera_name_hint">Houd het eten, of de naam of streepjescode van de verpakking, in beeld voor een suggestie. Of benoem het zelf: dan weet hij het de volgende keer.</string>
     <string name="camera_name_looks_like">Lijkt op:</string>
     <string name="camera_name_myself">Zelf benoemen</string>
     <string name="camera_name_change">Wijzigen</string>
