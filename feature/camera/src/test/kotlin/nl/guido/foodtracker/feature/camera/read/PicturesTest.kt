@@ -31,4 +31,34 @@ class PicturesTest {
         assertEquals(listOf("pepper"), again.nearest(floatArrayOf(0f, 1f), limit = 1))
         assertTrue(PictureMemory.decode(byteArrayOf(1, 2, 3)).examples.isEmpty())
     }
+
+    /** Two dimensions, three kinds: onion leans on the first number, pepper on the second, "no food" on neither. */
+    private val head = HeadStart(
+        words = listOf("onions", "sweet pepper", ""),
+        weights = floatArrayOf(1f, -1f, 0f, -1f, 1f, 0f),
+        bias = floatArrayOf(0f, 0f, 0.5f),
+        scale = 5f,
+    )
+
+    @Test fun `the head start names the likely kind, and nothing when it sees no food`() {
+        assertEquals("onions", head.kinds(floatArrayOf(3f, 0.2f)).first())
+        assertEquals("sweet pepper", head.kinds(floatArrayOf(0.1f, 1f)).first())
+        val nothing = HeadStart(listOf("onions", ""), floatArrayOf(0f, 0f), floatArrayOf(0f, 3f), 1f)
+        assertTrue(nothing.kinds(floatArrayOf(1f)).isEmpty())
+        assertTrue(head.kinds(floatArrayOf(1f, 2f, 3f)).isEmpty()) // wrong size
+    }
+
+    @Test fun `the head start file is read back as written by the tool`() {
+        val bytes = java.io.ByteArrayOutputStream()
+        java.io.DataOutputStream(bytes).use { out ->
+            out.writeInt(1); out.writeInt(3); out.writeInt(2); out.writeFloat(5f)
+            listOf("onions", "sweet pepper", "").forEach(out::writeUTF)
+            floatArrayOf(1f, -1f, 0f, -1f, 1f, 0f).forEach(out::writeFloat)
+            floatArrayOf(0f, 0f, 0.5f).forEach(out::writeFloat)
+        }
+        val read = HeadStart.decode(bytes.toByteArray())!!
+        assertEquals(listOf("onions", "sweet pepper", ""), read.words)
+        assertEquals("onions", read.kinds(floatArrayOf(3f, 0.2f)).first())
+        assertEquals(null, HeadStart.decode(byteArrayOf(0, 0, 0, 9)))
+    }
 }

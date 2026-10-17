@@ -333,7 +333,7 @@ internal class CameraViewModel @Inject constructor(
         if (picture != null) lastPicture = picture
         if (guessJob?.isActive == true) return
         val names = packText.names()
-        val produce = picture?.let { Produce.likely(it.scores) }.orEmpty()
+        val produce = picture?.kinds.orEmpty()
         // Search again only when something new is in view; a new picture is always worth a look.
         val key = Triple(names, produce, picture)
         if (names.isEmpty() && picture == null) return
@@ -382,7 +382,7 @@ internal class CameraViewModel @Inject constructor(
     private fun rememberPack(food: Food) {
         val words = packText.names().flatMapTo(HashSet()) { packWords(it) }
         val picture = lastPicture
-        val produce = picture?.let { Produce.likely(it.scores, limit = 1) }.orEmpty().map(Produce::token)
+        val produce = picture?.kinds.orEmpty().take(1).map(Produce::token)
         val learn = words.ifEmpty { produce.toSet() }
         if (learn.isNotEmpty()) packMemory.learn(learn, food.id)
         if (picture != null && food.id != codeGuess?.id) packMemory.learnPicture(food.id, picture.vector)

@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import androidx.camera.core.ImageProxy
+import nl.guido.foodtracker.feature.camera.read.HeadStart
 import nl.guido.foodtracker.feature.camera.read.Picture
+import nl.guido.foodtracker.feature.camera.read.Produce
 import org.tensorflow.lite.Interpreter
 import java.io.Closeable
 import java.io.FileInputStream
@@ -24,6 +26,8 @@ internal class PictureReader(context: Context) : Closeable {
     private val embedder = Interpreter(asset(context, "food_embedder.tflite"))
     private val classes = classifier.getOutputTensor(0).shape()[1]
     private val embeddingSize = embedder.getOutputTensor(0).shape()[1]
+    /** The head start trained on photos of supermarket fruit and vegetables; null if it can't load. */
+    private val headStart = runCatching { context.assets.open("produce_head_start.bin").use { HeadStart.decode(it.readBytes()) } }.getOrNull()
 
     /** Reads the middle square of [frame]; the frame stays open. */
     fun read(frame: ImageProxy): Picture = read(frame.toBitmap(), frame.imageInfo.rotationDegrees)
@@ -47,7 +51,10 @@ internal class PictureReader(context: Context) : Closeable {
         val vector = Array(1) { FloatArray(embeddingSize) }
         embedder.run(floats, vector)
 
-        return Picture(FloatArray(classes) { (scores[0][it].toInt() and 0xFF) / 256f }, vector[0])
+        val starter = FloatArray(classes) { (scores[0][it].toInt() and 0xFF) / 256f }
+        // The head start knows more kinds; the starter model adds lemon and orange.
+        val kinds = (headStart?.kinds(vector[0]).orEmpty() + Produce.likely(starter)).distinct().take(3)
+        return Picture(starter, vector[0], kinds)
     }
 
     override fun close() {

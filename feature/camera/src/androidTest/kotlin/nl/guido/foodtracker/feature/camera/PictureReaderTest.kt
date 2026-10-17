@@ -28,6 +28,7 @@ class PictureReaderTest {
             // Tiny scores round down to 0 in the model, so they add up to a bit under 1.
             assertTrue("scores add up to under 1", picture.scores.sum() in 0.5f..1.05f)
             assertTrue("a bare scale is no vegetable", Produce.likely(picture.scores).isEmpty())
+            assertTrue("the head start sees no food on a bare scale either", picture.kinds.isEmpty())
             val turned = reader.read(bitmap, rotationDegrees = 90)
             val memory = PictureMemory().learn("scale", picture.vector)
             assertEquals(listOf("scale"), memory.nearest(reader.read(bitmap).vector))
