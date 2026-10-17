@@ -62,6 +62,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -100,6 +101,7 @@ internal fun TodayRoute(
     viewModel: TodayViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val shared by viewModel.shared.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val comingSoon = stringResource(R.string.today_coming_soon)
     val undo = stringResource(R.string.today_undo)
@@ -109,6 +111,7 @@ internal fun TodayRoute(
     val addedTo = stringResource(R.string.today_added_to)
     val movedTo = stringResource(R.string.today_moved_to)
     val copied = stringResource(R.string.today_copied)
+    val movedToFridge = stringResource(R.string.today_plate_to_fridge)
     val mealNames = Meal.entries.associateWith { stringResource(mealName(it)) }
 
     val scope = rememberCoroutineScope()
@@ -128,6 +131,8 @@ internal fun TodayRoute(
                 }
                 is TodayEvent.Removed -> removed.format(event.entry.displayName)
                 is TodayEvent.Logged -> addedTo.format(event.name, mealNames.getValue(event.meal).lowercase())
+                is TodayEvent.PlateAdded -> addedTo.format(event.name, mealNames.getValue(event.meal).lowercase())
+                is TodayEvent.PlateToFridge -> movedToFridge
                 is TodayEvent.Moved -> movedTo.format(mealNames.getValue(event.to).lowercase())
                 is TodayEvent.Copied -> copied
                 is TodayEvent.Open -> {
@@ -151,8 +156,12 @@ internal fun TodayRoute(
         state?.let { ui ->
             TodayContent(
                 ui = ui,
+                shared = shared,
                 snackbar = snackbar,
                 onProfile = { open(Routes.PROFILE) },
+                onFridge = { open(Routes.FRIDGE) },
+                onAddPlate = viewModel::addPlate,
+                onNotMine = viewModel::notMine,
                 onTarget = { open(Routes.ENERGY_TARGET) },
                 onDay = viewModel::showDay,
                 onAgain = viewModel::again,
@@ -178,8 +187,12 @@ private const val EARLIER_DAY_TINT = 0.07f
 @Composable
 private fun TodayContent(
     ui: TodayUiState,
+    shared: SharedFood,
     snackbar: SnackbarHostState,
     onProfile: () -> Unit,
+    onFridge: () -> Unit,
+    onAddPlate: (WaitingPlate) -> Unit,
+    onNotMine: (WaitingPlate) -> Unit,
     onTarget: () -> Unit,
     onDay: (LocalDate) -> Unit,
     onAgain: (Meal) -> Unit,
@@ -208,7 +221,13 @@ private fun TodayContent(
             ) {
                 Box {
                     Leaf(Modifier.align(Alignment.TopEnd).offset(x = 44.dp, y = (-34).dp))
-                    Header(ui, onDay, onProfile)
+                    Header(ui, shared.boxesInFridge, onDay, onFridge, onProfile)
+                }
+                // Plates belong to today, so they wait on Today only, not on an earlier day.
+                if (ui.isToday) {
+                    shared.plates.forEach { plate ->
+                        WaitingPlateCard(plate, onAdd = { onAddPlate(plate) }, onNotMine = { onNotMine(plate) })
+                    }
                 }
                 if (ui.yesterdayEmpty) {
                     TextButton(
@@ -283,7 +302,7 @@ private fun TodayContent(
  * so the title says exactly which day it is. A dot on ‹ means a recent day has nothing logged.
  */
 @Composable
-private fun Header(ui: TodayUiState, onDay: (LocalDate) -> Unit, onProfile: () -> Unit) {
+private fun Header(ui: TodayUiState, boxesInFridge: Int, onDay: (LocalDate) -> Unit, onFridge: () -> Unit, onProfile: () -> Unit) {
     val locale = Locale.forLanguageTag(stringResource(R.string.today_locale))
     val pattern = stringResource(R.string.today_date_pattern)
     val date = ui.date
@@ -316,6 +335,10 @@ private fun Header(ui: TodayUiState, onDay: (LocalDate) -> Unit, onProfile: () -
                 if (ui.canGoForward) {
                     DayArrow(TodayIcons.Forward, stringResource(R.string.today_next_day)) { nextDay(date, ui.today)?.let(onDay) }
                 }
+            }
+            if (boxesInFridge > 0) {
+                FridgeButton(boxesInFridge, onFridge)
+                Spacer(Modifier.width(8.dp))
             }
             SettingsButton(ui.displayName, onProfile)
         }
@@ -360,6 +383,77 @@ private fun SettingsButton(displayName: String, onClick: () -> Unit) {
                     displayName.take(1).uppercase(), style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
+            }
+        }
+    }
+}
+
+/** The fridge with the number of boxes in it (round 6, D3): opens "In the fridge". Shown while something is in it. */
+@Composable
+private fun FridgeButton(boxes: Int, onClick: () -> Unit) {
+    val label = pluralStringResource(R.plurals.today_fridge, boxes, boxes)
+    Box {
+        Surface(
+            onClick = onClick,
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surface,
+            contentColor = FoodTheme.colors.tints.sky.ink,
+            shadowElevation = CardShadow,
+            modifier = Modifier.size(48.dp).semantics { contentDescription = label },
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(TodayIcons.Fridge, contentDescription = null, modifier = Modifier.size(22.dp))
+            }
+        }
+        // The count sits on the button's top corner, like in the design; the label above already says it.
+        Box(
+            Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = (-4).dp).sizeIn(minWidth = 20.dp, minHeight = 20.dp)
+                .clip(CircleShape).background(MaterialTheme.colorScheme.primary).padding(horizontal = 5.dp)
+                .clearAndSetSemantics { },
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(boxes.toString(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimary)
+        }
+    }
+}
+
+/**
+ * "Guido dished up for you · Chili · 420 g · ≈ 545 kcal · dinner" with "Add to my diary" and
+ * "Not mine" (round 6, D2), in lilac so it stands apart from the meals.
+ */
+@Composable
+private fun WaitingPlateCard(plate: WaitingPlate, onAdd: () -> Unit, onNotMine: () -> Unit) {
+    val tint = FoodTheme.colors.tints.lilac
+    val meal = stringResource(mealName(mealForTime(java.time.LocalTime.now()))).lowercase()
+    Surface(shape = MaterialTheme.shapes.large, color = tint.fill, contentColor = MaterialTheme.colorScheme.onSurface) {
+        Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                IconTile(TodayIcons.Plate, Tint(MaterialTheme.colorScheme.surface, tint.ink), size = 48.dp, iconSize = 24.dp)
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        plate.servedByName?.let { stringResource(R.string.today_plate_from, it) }
+                            ?: stringResource(R.string.today_plate_from_someone),
+                        style = MaterialTheme.typography.labelLarge, color = tint.ink,
+                    )
+                    Text(plate.batch.name, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        stringResource(R.string.today_plate_detail, formatAmount(plate.portion.grams), formatKcal(plate.kcal), meal),
+                        style = MaterialTheme.typography.bodySmall, color = tint.ink,
+                    )
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(onClick = onAdd, shape = CircleShape, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.today_plate_add), style = MaterialTheme.typography.labelLarge)
+                }
+                Surface(
+                    onClick = onNotMine, shape = CircleShape, color = MaterialTheme.colorScheme.surface, contentColor = tint.ink,
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) {
+                    Box(Modifier.padding(horizontal = 16.dp), contentAlignment = Alignment.Center) {
+                        Text(stringResource(R.string.today_plate_not_mine), style = MaterialTheme.typography.labelLarge)
+                    }
+                }
             }
         }
     }
