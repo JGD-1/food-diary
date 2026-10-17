@@ -141,6 +141,8 @@ data class BatchPortionEntity(
     val logEntryId: String?,
     val updatedAt: Long,
     val deleted: Boolean = false,
+    val servedBy: String? = null,
+    val containerId: String? = null,
 )
 
 /** A pan and its empty weight (S9), shared in the household. */
@@ -152,4 +154,29 @@ data class PanEntity(
     val grams: Double,
     val updatedAt: Long,
     val deleted: Boolean = false,
+)
+
+/** A fridge or freezer container from a dish-up (round 6), shared in the household. */
+@Entity(tableName = "batch_container", indices = [Index("batchId"), Index("householdId")])
+data class BatchContainerEntity(
+    @PrimaryKey val id: String,
+    val batchId: String,
+    val householdId: String,
+    val grams: Double,
+    /** StoragePlace name: FRIDGE or FREEZER. */
+    val place: String,
+    val number: Int,
+    val updatedAt: Long,
+    val deleted: Boolean = false,
+)
+
+/**
+ * The household's members and their names (round 6). A copy of the server's list that sync
+ * replaces as a whole; it never syncs back, so it has no updatedAt or deleted.
+ */
+@Entity(tableName = "household_member", indices = [Index("householdId")])
+data class HouseholdMemberEntity(
+    @PrimaryKey val userId: String,
+    val householdId: String,
+    val displayName: String,
 )

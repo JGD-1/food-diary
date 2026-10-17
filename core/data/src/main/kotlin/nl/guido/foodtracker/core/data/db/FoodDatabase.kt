@@ -22,8 +22,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         FavouriteEntity::class,
         BatchPortionEntity::class,
         PanEntity::class,
+        BatchContainerEntity::class,
+        HouseholdMemberEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class FoodDatabase : RoomDatabase() {
@@ -101,5 +103,28 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
                 "`grams` REAL NOT NULL, `updatedAt` INTEGER NOT NULL, `deleted` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_pan_householdId` ON `pan` (`householdId`)")
+    }
+}
+
+/**
+ * Version 5 (round 6, cooking for two or more): who dished up a portion and which container it came
+ * from, the shared batch_container table and the household_member list. Only adds things.
+ */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `batch_portion` ADD COLUMN `servedBy` TEXT")
+        db.execSQL("ALTER TABLE `batch_portion` ADD COLUMN `containerId` TEXT")
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `batch_container` (`id` TEXT NOT NULL, `batchId` TEXT NOT NULL, " +
+                "`householdId` TEXT NOT NULL, `grams` REAL NOT NULL, `place` TEXT NOT NULL, `number` INTEGER NOT NULL, " +
+                "`updatedAt` INTEGER NOT NULL, `deleted` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_batch_container_batchId` ON `batch_container` (`batchId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_batch_container_householdId` ON `batch_container` (`householdId`)")
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `household_member` (`userId` TEXT NOT NULL, `householdId` TEXT NOT NULL, " +
+                "`displayName` TEXT NOT NULL, PRIMARY KEY(`userId`))",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_household_member_householdId` ON `household_member` (`householdId`)")
     }
 }

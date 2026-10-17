@@ -208,6 +208,8 @@ class SyncManager @Inject constructor(
                 // Pick up a partner joining (member count) before syncing recipes.
                 runCatching { api.ensureHousehold(account.accessToken) }.getOrNull()?.let { applyHousehold(account, it) }
                 val current = prefs.loadAccount() ?: return@withLock
+                // Names for "<name>'s plate" (round 6). Never stops the sync: an older server simply has no names yet.
+                runCatching { refreshMembers(current) }
                 engineFor(current).sync(SyncOwner(current.userId, current.householdId))
                 val now = System.currentTimeMillis()
                 prefs.lastSyncedAt = now
@@ -223,6 +225,13 @@ class SyncManager @Inject constructor(
                 _state.update { it.copy(syncing = false) }
             }
         }
+    }
+
+    /** Sends this person's Google name, then copies the household's members and names to the phone. */
+    private suspend fun refreshMembers(account: StoredAccount) {
+        account.displayName?.takeIf { it.isNotBlank() }?.let { api.setDisplayName(account.accessToken, it) }
+        val members = api.householdMembers(account.accessToken)
+        local.replaceMembers(account.householdId, members.map { it.userId to it.displayName.orEmpty() })
     }
 
     /** The account with a working access token, refreshing it when it's (nearly) expired. */

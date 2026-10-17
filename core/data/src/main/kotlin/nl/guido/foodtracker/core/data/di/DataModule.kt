@@ -13,6 +13,7 @@ import nl.guido.foodtracker.core.data.db.FoodDatabase
 import nl.guido.foodtracker.core.data.db.MIGRATION_1_2
 import nl.guido.foodtracker.core.data.db.MIGRATION_2_3
 import nl.guido.foodtracker.core.data.db.MIGRATION_3_4
+import nl.guido.foodtracker.core.data.db.MIGRATION_4_5
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.data.repo.ProfileRepository
@@ -33,7 +34,7 @@ internal object DatabaseModule {
     @Singleton
     fun database(@ApplicationContext context: Context): FoodDatabase =
         Room.databaseBuilder(context, FoodDatabase::class.java, "food-diary.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .build()
 
     @Provides fun foodDao(db: FoodDatabase) = db.foodDao()

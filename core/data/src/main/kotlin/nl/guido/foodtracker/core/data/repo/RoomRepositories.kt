@@ -9,9 +9,11 @@ import nl.guido.foodtracker.core.data.db.RecipeDao
 import nl.guido.foodtracker.core.data.db.toEntity
 import nl.guido.foodtracker.core.data.db.toModel
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
+import nl.guido.foodtracker.core.model.HouseholdMember
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Pan
@@ -76,6 +78,14 @@ internal class RoomRecipeRepository @Inject constructor(private val dao: RecipeD
         dao.pans(householdId).map { rows -> rows.map { it.toModel() } }
     override suspend fun savePan(pan: Pan) = dao.upsertPan(pan.toEntity(now()))
     override suspend fun deletePan(id: Id) = dao.markPanDeleted(id, now())
+    override fun containers(householdId: Id): Flow<List<BatchContainer>> =
+        dao.containers(householdId).map { rows -> rows.map { it.toModel() } }
+    override suspend fun saveContainer(container: BatchContainer) = dao.upsertContainer(container.toEntity(now()))
+    override suspend fun deleteContainer(id: Id) = dao.markContainerDeleted(id, now())
+    override fun waitingPlates(userId: Id): Flow<List<BatchPortion>> =
+        dao.waitingPlates(userId).map { rows -> rows.map { it.toModel() } }
+    override fun householdMembers(householdId: Id): Flow<List<HouseholdMember>> =
+        dao.householdMembers(householdId).map { rows -> rows.map { it.toModel() } }
 }
 
 internal class RoomProfileRepository @Inject constructor(private val dao: ProfileDao) : ProfileRepository {

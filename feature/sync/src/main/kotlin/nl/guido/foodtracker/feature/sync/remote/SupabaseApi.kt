@@ -43,6 +43,13 @@ data class HouseholdInfo(
     @SerialName("moved_from") val movedFrom: String? = null,
 )
 
+/** One person in the household (round 6). [displayName] is null until their app has sent it. */
+@Serializable
+data class MemberInfo(
+    @SerialName("user_id") val userId: String,
+    @SerialName("display_name") val displayName: String? = null,
+)
+
 /** The server said no (not a connection problem). [code] is the HTTP status. */
 class SupabaseException(val code: Int, message: String) : IOException("Supabase $code: $message")
 
@@ -88,6 +95,20 @@ class SupabaseApi(private val config: SupabaseConfig, private val http: Http) {
 
     suspend fun joinHousehold(accessToken: String, code: String): HouseholdInfo =
         rpc(accessToken, "join_household", buildJsonObject { put("code", code) })
+
+    /** Saves the signed-in person's name for the household's "<name>'s plate" (round 6). */
+    suspend fun setDisplayName(accessToken: String, name: String) {
+        val args = buildJsonObject { put("name", name) }
+        http.send(HttpRequest("POST", "${config.url}/rest/v1/rpc/set_display_name", headers(accessToken), args.toString())).ok()
+    }
+
+    /** Everyone in the signed-in person's household (the access rules show only that household). */
+    suspend fun householdMembers(accessToken: String): List<MemberInfo> {
+        val response = http.send(
+            HttpRequest("GET", "${config.url}/rest/v1/household_members?select=user_id,display_name", headers(accessToken)),
+        )
+        return supabaseJson.decodeFromString(ListSerializer(MemberInfo.serializer()), response.ok())
+    }
 
     private suspend fun rpc(accessToken: String, name: String, args: JsonObject): HouseholdInfo {
         val response = http.send(HttpRequest("POST", "${config.url}/rest/v1/rpc/$name", headers(accessToken), args.toString()))
