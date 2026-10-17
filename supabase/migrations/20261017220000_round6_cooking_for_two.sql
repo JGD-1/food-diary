@@ -10,8 +10,7 @@ alter table public.batch_portions
 
 -- A portion may be for anyone in the household (a plate waiting for them), but only for someone in it.
 -- The same rule covers changing it later: that person adds it (sets log_entry_id), either removes it.
-drop policy if exists "household portions" on public.batch_portions;
-create policy "household portions" on public.batch_portions for all to authenticated
+alter policy "household portions" on public.batch_portions
   using (household_id = public.my_household())
   with check (
     household_id = public.my_household()
