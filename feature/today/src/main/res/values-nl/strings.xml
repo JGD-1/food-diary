@@ -151,4 +151,15 @@
         <item quantity="one">%1$s stuk</item>
         <item quantity="other">%1$s stuks</item>
     </plurals>
+    <!-- Koken voor twee of meer (ronde 6) -->
+    <string name="today_plate_from">%1$s heeft voor je opgeschept</string>
+    <string name="today_plate_from_someone">Voor je opgeschept</string>
+    <string name="today_plate_detail">%1$s g · ≈ %2$s kcal · %3$s</string>
+    <string name="today_plate_add">In mijn dagboek</string>
+    <string name="today_plate_not_mine">Niet van mij</string>
+    <string name="today_plate_to_fridge">In de koelkast gezet voor later</string>
+    <plurals name="today_fridge">
+        <item quantity="one">In de koelkast, %1$d bakje</item>
+        <item quantity="other">In de koelkast, %1$d bakjes</item>
+    </plurals>
 </resources>

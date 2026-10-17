@@ -25,6 +25,7 @@ import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.data.repo.ProfileRepository
 import nl.guido.foodtracker.core.data.repo.RecipeRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
+import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.FoodNames
 import nl.guido.foodtracker.core.model.Id
@@ -73,8 +74,15 @@ internal sealed interface TodayEvent {
     data class Copied(val ids: List<Id>) : TodayEvent
     /** Something the camera scanned and weighed, logged straight away. */
     data class Logged(val name: String, val meal: Meal, val id: Id) : TodayEvent
+    /** A plate dished up for me went into my diary; Undo makes it wait again. */
+    data class PlateAdded(val name: String, val meal: Meal, val entry: LogEntry, val portion: BatchPortion) : TodayEvent
+    /** "Not mine": the plate became [box] in the fridge; Undo makes it wait again. */
+    data class PlateToFridge(val box: BatchContainer, val portion: BatchPortion) : TodayEvent
     data class Open(val route: String) : TodayEvent
 }
+
+/** Cooking for two or more (round 6): plates waiting for me and the number of boxes in the fridge. */
+internal data class SharedFood(val plates: List<WaitingPlate> = emptyList(), val boxesInFridge: Int = 0)
 
 private data class Goals(val targetKcal: Int?, val proteinG: Int?)
 
@@ -142,6 +150,40 @@ internal class TodayViewModel @Inject constructor(
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val shared: StateFlow<SharedFood> = session.currentUser.flatMapLatest { user ->
+        combine(
+            recipes.waitingPlates(user.userId),
+            recipes.batches(user.householdId),
+            recipes.householdMembers(user.householdId),
+            recipes.containers(user.householdId),
+            recipes.householdPortions(user.householdId),
+        ) { waiting, batches, members, containers, portions ->
+            SharedFood(waitingPlates(waiting, batches, members), boxesInFridge(containers, batches, portions))
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SharedFood())
+
+    /** "Add to my diary": today, in the meal that fits the time (Move in the meal changes it), with Undo. */
+    fun addPlate(plate: WaitingPlate) {
+        val meal = mealForTime(LocalTime.now())
+        val entry = plateEntry(plate, session.currentUser.value.userId, LocalDate.now(), meal, Instant.now())
+        viewModelScope.launch {
+            diary.save(entry)
+            recipes.savePortion(plate.portion.copy(logEntryId = entry.id))
+            events.send(TodayEvent.PlateAdded(plate.batch.name, meal, entry, plate.portion))
+        }
+    }
+
+    /** "Not mine": the grams go into the fridge as a box for the household, with Undo. */
+    fun notMine(plate: WaitingPlate) {
+        viewModelScope.launch {
+            val containers = recipes.containers(plate.batch.householdId).first()
+            val box = notMineBox(plate, containers)
+            recipes.saveContainer(box)
+            recipes.deletePortion(plate.portion.id)
+            events.send(TodayEvent.PlateToFridge(box, plate.portion))
+        }
+    }
 
     /** Readable names (S1) for the foods in [entries], looked up once per change of the day's lines. */
     private suspend fun readableNames(entries: List<LogEntry>): Map<Id, String> {
@@ -232,6 +274,14 @@ internal class TodayViewModel @Inject constructor(
                     event.portion?.let { recipes.savePortion(it) }
                 }
                 is TodayEvent.Logged -> diary.delete(event.id)
+                is TodayEvent.PlateAdded -> {
+                    diary.delete(event.entry.id)
+                    recipes.savePortion(event.portion)
+                }
+                is TodayEvent.PlateToFridge -> {
+                    recipes.deleteContainer(event.box.id)
+                    recipes.savePortion(event.portion)
+                }
                 is TodayEvent.Moved -> event.before.forEach { diary.save(it) }
                 is TodayEvent.Copied -> event.ids.forEach { diary.delete(it) }
                 is TodayEvent.Open -> Unit

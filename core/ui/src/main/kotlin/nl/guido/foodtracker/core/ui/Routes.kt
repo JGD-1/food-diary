@@ -48,6 +48,7 @@ object Routes {
     const val REMINDERS = "reminders"        // P5 (feature/reminders)
     const val FOOD_PICK = "food-pick"        // Q1 (feature/food): shared food picker, see FoodPickResult
     const val BATCH_EDIT = "batch-edit/{$ARG_BATCH_ID}" // Q2 (feature/recipes)
+    const val FRIDGE = "recipes/fridge"      // round 6 (feature/recipes): "In the fridge", opened from Today
 
     fun recipeLog(recipeId: Id, meal: Meal? = null, date: LocalDate? = null) =
         withArgs("recipe-log/$recipeId", ARG_MEAL to meal?.name, ARG_DATE to date?.toString())

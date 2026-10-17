@@ -154,4 +154,16 @@
         <item quantity="one">%1$s piece</item>
         <item quantity="other">%1$s pieces</item>
     </plurals>
+    <!-- Cooking for two or more (round 6) -->
+    <string name="today_plate_from">%1$s dished up for you</string>
+    <string name="today_plate_from_someone">Dished up for you</string>
+    <!-- "420 g · ≈ 545 kcal · dinner" -->
+    <string name="today_plate_detail">%1$s g · ≈ %2$s kcal · %3$s</string>
+    <string name="today_plate_add">Add to my diary</string>
+    <string name="today_plate_not_mine">Not mine</string>
+    <string name="today_plate_to_fridge">Put in the fridge for later</string>
+    <plurals name="today_fridge">
+        <item quantity="one">In the fridge, %1$d box</item>
+        <item quantity="other">In the fridge, %1$d boxes</item>
+    </plurals>
 </resources>
