@@ -105,6 +105,24 @@ interface RecipeDao {
 
     @Query("UPDATE pan SET deleted = 1, updatedAt = :now WHERE id = :id")
     suspend fun markPanDeleted(id: String, now: Long)
+
+    @Query("SELECT * FROM batch_container WHERE householdId = :householdId AND deleted = 0 ORDER BY batchId, number")
+    fun containers(householdId: String): Flow<List<BatchContainerEntity>>
+
+    @Upsert
+    suspend fun upsertContainer(container: BatchContainerEntity)
+
+    @Query("UPDATE batch_container SET deleted = 1, updatedAt = :now WHERE id = :id")
+    suspend fun markContainerDeleted(id: String, now: Long)
+
+    @Query(
+        "SELECT * FROM batch_portion WHERE userId = :userId AND logEntryId IS NULL AND servedBy IS NOT NULL " +
+            "AND deleted = 0 ORDER BY updatedAt",
+    )
+    fun waitingPlates(userId: String): Flow<List<BatchPortionEntity>>
+
+    @Query("SELECT * FROM household_member WHERE householdId = :householdId ORDER BY displayName")
+    fun householdMembers(householdId: String): Flow<List<HouseholdMemberEntity>>
 }
 
 @Dao

@@ -4,6 +4,7 @@ import nl.guido.foodtracker.core.data.db.toEntity
 import nl.guido.foodtracker.core.data.db.toModel
 import nl.guido.foodtracker.core.model.ActivityLevel
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
@@ -19,6 +20,7 @@ import nl.guido.foodtracker.core.model.Nutrients
 import nl.guido.foodtracker.core.model.Pan
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
+import nl.guido.foodtracker.core.model.StoragePlace
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.Instant
@@ -114,5 +116,16 @@ class MappersTest {
             .toEntity(now = 5)
             .copy(ingredientsJson = """[{"foodId":"f1","name":"Beans","grams":400.0,"per100g":{"kcal":100.0,"protein":7.0,"carbs":13.0,"fat":0.5}}]""")
         assertEquals(null, old.toModel().ingredients.single().amountLabel)
+    }
+
+    @Test
+    fun version5FieldsRoundTrip() {
+        val plate = BatchPortion("p1", "b1", "h1", "partner", 380.0, servedBy = "guido", containerId = null)
+        assertEquals(plate, plate.toEntity(now = 5).toModel())
+        val fromBox = BatchPortion("p2", "b1", "h1", "guido", 120.0, logEntryId = "e1", containerId = "c1")
+        assertEquals(fromBox, fromBox.toEntity(now = 5).toModel())
+        val box = BatchContainer("c1", "b1", "h1", 450.0, StoragePlace.FREEZER, number = 2)
+        assertEquals(box, box.toEntity(now = 5).toModel())
+        assertEquals("FREEZER", box.toEntity(now = 5).place)
     }
 }

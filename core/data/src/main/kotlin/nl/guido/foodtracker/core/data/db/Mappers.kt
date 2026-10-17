@@ -4,10 +4,12 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import nl.guido.foodtracker.core.model.ActivityLevel
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
+import nl.guido.foodtracker.core.model.HouseholdMember
 import nl.guido.foodtracker.core.model.Ingredient
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Logged
@@ -17,6 +19,7 @@ import nl.guido.foodtracker.core.model.Pan
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.RecipeVariant
+import nl.guido.foodtracker.core.model.StoragePlace
 import nl.guido.foodtracker.core.model.Sex
 import nl.guido.foodtracker.core.model.UserProfile
 import nl.guido.foodtracker.core.model.WeighIn
@@ -130,14 +133,28 @@ internal fun Favourite.toEntity(now: Long) = FavouriteEntity(
 
 internal fun BatchPortionEntity.toModel() = BatchPortion(
     id = id, batchId = batchId, householdId = householdId, userId = userId, grams = grams, logEntryId = logEntryId,
+    servedBy = servedBy, containerId = containerId,
 )
 
 internal fun BatchPortion.toEntity(now: Long) = BatchPortionEntity(
     id = id, batchId = batchId, householdId = householdId, userId = userId, grams = grams,
-    logEntryId = logEntryId, updatedAt = now,
+    logEntryId = logEntryId, updatedAt = now, servedBy = servedBy, containerId = containerId,
 )
 
 internal fun PanEntity.toModel() = Pan(id = id, householdId = householdId, name = name, grams = grams)
 
 internal fun Pan.toEntity(now: Long) =
     PanEntity(id = id, householdId = householdId, name = name, grams = grams, updatedAt = now)
+
+internal fun BatchContainerEntity.toModel() = BatchContainer(
+    id = id, batchId = batchId, householdId = householdId, grams = grams,
+    place = StoragePlace.entries.firstOrNull { it.name == place } ?: StoragePlace.FRIDGE,
+    number = number, deleted = deleted,
+)
+
+internal fun BatchContainer.toEntity(now: Long) = BatchContainerEntity(
+    id = id, batchId = batchId, householdId = householdId, grams = grams, place = place.name,
+    number = number, updatedAt = now, deleted = deleted,
+)
+
+internal fun HouseholdMemberEntity.toModel() = HouseholdMember(userId = userId, displayName = displayName)

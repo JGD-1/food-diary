@@ -110,15 +110,22 @@ object SyncTables {
         "batch_portion", "batch_portions", Scope.HOUSEHOLD, "householdId",
         listOf(
             text("id"), text("batchId"), text("householdId"), text("userId"), double("grams"), text("logEntryId"),
+            text("servedBy"), text("containerId"),
         ) + stamps,
+    )
+    val batchContainer = SyncTable(
+        "batch_container", "batch_containers", Scope.HOUSEHOLD, "householdId",
+        listOf(text("id"), text("batchId"), text("householdId"), double("grams"), text("place"), long("number")) + stamps,
     )
     val pan = SyncTable(
         "pan", "pans", Scope.HOUSEHOLD, "householdId",
         listOf(text("id"), text("householdId"), text("name"), double("grams")) + stamps,
     )
 
-    val all = listOf(profile, logEntry, weighIn, food, recipe, recipeVariant, favourite, batch, batchPortion, pan)
-    val household = listOf(recipe, recipeVariant, batch, batchPortion, pan)
+    val all = listOf(
+        profile, logEntry, weighIn, food, recipe, recipeVariant, favourite, batch, batchContainer, batchPortion, pan,
+    )
+    val household = listOf(recipe, recipeVariant, batch, batchContainer, batchPortion, pan)
 }
 
 /** Phone row → JSON for Supabase. */

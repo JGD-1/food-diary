@@ -3,9 +3,11 @@ package nl.guido.foodtracker.core.data.repo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
+import nl.guido.foodtracker.core.model.HouseholdMember
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Pan
@@ -76,6 +78,19 @@ interface RecipeRepository {
     fun pans(householdId: Id): Flow<List<Pan>>
     suspend fun savePan(pan: Pan)
     suspend fun deletePan(id: Id)
+
+    /** The household's fridge and freezer containers (round 6), not deleted; empty ones too. */
+    fun containers(householdId: Id): Flow<List<BatchContainer>>
+    suspend fun saveContainer(container: BatchContainer)
+
+    /** Soft delete, so it syncs. */
+    suspend fun deleteContainer(id: Id)
+
+    /** Plates someone dished up for [userId] that aren't in their diary yet ([BatchPortion.isWaiting]). */
+    fun waitingPlates(userId: Id): Flow<List<BatchPortion>>
+
+    /** Everyone in the household with their name (filled by sync; empty before signing in). */
+    fun householdMembers(householdId: Id): Flow<List<HouseholdMember>>
 }
 
 /** Profile and weigh-ins. Private to each person. */

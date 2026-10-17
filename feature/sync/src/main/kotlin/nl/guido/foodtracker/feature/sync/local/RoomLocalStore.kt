@@ -93,8 +93,10 @@ class RoomLocalStore @Inject constructor(private val database: FoodDatabase) : L
                 }
                 db.execSQL("UPDATE ${table.local} SET ${table.ownerColumn} = ? WHERE ${table.ownerColumn} = ?", arrayOf(to, from))
                 // Household rows that also name a person (batch portions) move to the real account too.
-                if (table.scope == Scope.HOUSEHOLD && table.columns.any { it.local == "userId" }) {
-                    db.execSQL("UPDATE ${table.local} SET userId = ? WHERE userId = ?", arrayOf(toUser, fromUser))
+                if (table.scope == Scope.HOUSEHOLD) {
+                    for (column in listOf("userId", "servedBy").filter { c -> table.columns.any { it.local == c } }) {
+                        db.execSQL("UPDATE ${table.local} SET $column = ? WHERE $column = ?", arrayOf(toUser, fromUser))
+                    }
                 }
             }
             db.setTransactionSuccessful()
@@ -110,6 +112,25 @@ class RoomLocalStore @Inject constructor(private val database: FoodDatabase) : L
             if (table.scope == Scope.HOUSEHOLD && tableExists(table.local)) {
                 db.execSQL("UPDATE ${table.local} SET householdId = ? WHERE householdId = ?", arrayOf(to, from))
             }
+        }
+        database.invalidationTracker.refreshVersionsAsync()
+    }
+
+    /** The household's members as the server knows them (round 6); replaces the whole list. */
+    suspend fun replaceMembers(householdId: String, members: List<Pair<String, String>>) = io {
+        if (!tableExists("household_member")) return@io
+        db.beginTransaction()
+        try {
+            db.execSQL("DELETE FROM household_member")
+            for ((userId, name) in members) {
+                db.execSQL(
+                    "INSERT OR REPLACE INTO household_member (userId, householdId, displayName) VALUES (?, ?, ?)",
+                    arrayOf(userId, householdId, name),
+                )
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
         }
         database.invalidationTracker.refreshVersionsAsync()
     }

@@ -80,4 +80,15 @@ class SyncTablesTest {
         assertTrue(SyncTables.pan in SyncTables.household)
         assertTrue(SyncTables.pan in SyncTables.all)
     }
+
+    @Test
+    fun `version 5 fields and containers sync, containers before the portions taken from them`() {
+        val names = { t: nl.guido.foodtracker.feature.sync.engine.SyncTable -> t.columns.map { it.remote } }
+        assertTrue(names(SyncTables.batchPortion).containsAll(listOf("served_by", "container_id")))
+        assertEquals("batch_containers", SyncTables.batchContainer.remote)
+        assertTrue(names(SyncTables.batchContainer).containsAll(listOf("batch_id", "household_id", "grams", "place", "number")))
+        assertTrue(SyncTables.batchContainer in SyncTables.household)
+        assertTrue(SyncTables.all.indexOf(SyncTables.batch) < SyncTables.all.indexOf(SyncTables.batchContainer))
+        assertTrue(SyncTables.all.indexOf(SyncTables.batchContainer) < SyncTables.all.indexOf(SyncTables.batchPortion))
+    }
 }

@@ -8,8 +8,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 import nl.guido.foodtracker.core.data.repo.RecipeRepository
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Favourite
+import nl.guido.foodtracker.core.model.HouseholdMember
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Pan
 import nl.guido.foodtracker.core.model.Portion
@@ -45,6 +47,11 @@ class RoomFavouritesTest {
         override fun pans(householdId: Id): Flow<List<Pan>> = emptyFlow()
         override suspend fun savePan(pan: Pan) = Unit
         override suspend fun deletePan(id: Id) = Unit
+        override fun containers(householdId: Id): Flow<List<BatchContainer>> = emptyFlow()
+        override suspend fun saveContainer(container: BatchContainer) = Unit
+        override suspend fun deleteContainer(id: Id) = Unit
+        override fun waitingPlates(userId: Id): Flow<List<BatchPortion>> = emptyFlow()
+        override fun householdMembers(householdId: Id): Flow<List<HouseholdMember>> = emptyFlow()
     }
 
     private val repo = FakeRepo()

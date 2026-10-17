@@ -67,4 +67,24 @@ class NutrientsTest {
         assertEquals(250.0, batch.gramsLeft(portions), 0.0)
         assertEquals(0.0, batch.gramsLeft(portions + BatchPortion("p4", "b", "h", "guido", 900.0)), 0.0)
     }
+
+    @Test
+    fun containerGramsLeftCountsOnlyPortionsFromThatContainer() {
+        val box = BatchContainer("c1", "b", "h", grams = 450.0, place = StoragePlace.FRIDGE, number = 1)
+        val portions = listOf(
+            BatchPortion("p1", "b", "h", "guido", 380.0),
+            BatchPortion("p2", "b", "h", "partner", 200.0, logEntryId = "e2", containerId = "c1"),
+            BatchPortion("p3", "b", "h", "guido", 100.0, containerId = "c2"),
+        )
+        assertEquals(250.0, box.gramsLeft(portions), 0.0)
+        assertEquals(0.0, box.gramsLeft(portions + BatchPortion("p4", "b", "h", "guido", 300.0, containerId = "c1")), 0.0)
+    }
+
+    @Test
+    fun aPlateWaitsUntilItsPersonAddsIt() {
+        val plate = BatchPortion("p1", "b", "h", userId = "partner", grams = 380.0, servedBy = "guido")
+        assertEquals(true, plate.isWaiting)
+        assertEquals(false, plate.copy(logEntryId = "e1").isWaiting)
+        assertEquals(false, plate.copy(servedBy = null).isWaiting)
+    }
 }

@@ -99,4 +99,16 @@ class SupabaseApiTest {
             http.sent.single().url,
         )
     }
+
+    @Test
+    fun `household members come with their names and the own name is sent`() = runTest {
+        http.response = HttpResponse(200, """[{"user_id":"u1","display_name":"Guido"},{"user_id":"u2","display_name":null}]""")
+        val members = api.householdMembers("token")
+        assertEquals(listOf("Guido", null), members.map { it.displayName })
+        assertEquals("https://abc.supabase.co/rest/v1/household_members?select=user_id,display_name", http.sent.last().url)
+        http.response = HttpResponse(204, "")
+        api.setDisplayName("token", "Guido")
+        assertEquals("https://abc.supabase.co/rest/v1/rpc/set_display_name", http.sent.last().url)
+        assertEquals("""{"name":"Guido"}""", http.sent.last().body)
+    }
 }
