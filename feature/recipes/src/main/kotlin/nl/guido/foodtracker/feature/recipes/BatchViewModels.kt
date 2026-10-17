@@ -463,7 +463,7 @@ internal class NewBatchViewModel @Inject constructor(
             outcome.myGrams?.let { grams ->
                 val entry = batch.logEntry(user.userId, s.cookedOn, s.meal, grams, Instant.now())
                 diary.save(entry)
-                recipes.savePortion(batch.portionFor(entry, user.householdId).copy(containerId = s.box?.id))
+                recipes.savePortion(batch.portionFor(entry, user.householdId))
             }
             outcome.portions.forEach { recipes.savePortion(it) }
             outcome.containers.forEach { recipes.saveContainer(it) }
@@ -589,7 +589,7 @@ internal class BatchPortionViewModel @Inject constructor(
             val entry = batch.logEntry(user.userId, s.date, s.meal, grams, Instant.now(), s.portionLabel)
             diary.save(entry)
             // Grams only, shared with the household so everyone sees what is left; my diary stays mine.
-            recipes.savePortion(batch.portionFor(entry, user.householdId))
+            recipes.savePortion(batch.portionFor(entry, user.householdId).copy(containerId = s.box?.id))
             if (s.lastPortion) recipes.finishBatch(batch.id, LocalDate.now())
             _state.update { it.copy(done = true) }
         }
