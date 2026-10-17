@@ -35,6 +35,15 @@ internal object TodayIcons {
     val EatOut = lineIcon("EatOut", "M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 2-2 6 0 8v10")
     val Search = lineIcon("Search", "M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4")
     val Back = lineIcon("Back", "M15 5l-7 7 7 7")
+    // One per meal, on its pastel tile (Garden).
+    val Breakfast = lineIcon(
+        "Breakfast",
+        "M8 14a4 4 0 1 0 8 0a4 4 0 1 0-8 0z",
+        "M12 4v3M4 14H2M22 14h-2M6 8l-1.5-1.5M18 8l1.5-1.5M3 20h18",
+    )
+    val Dinner = lineIcon("Dinner", "M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z")
+    val Snacks = lineIcon("Snacks", "M12 7c-4-2-8 1-7 6s4 8 7 7c3 1 6-2 7-7s-3-8-7-6zM12 7c0-2 1-3 3-4")
+    val Drinks = lineIcon("Drinks", "M6 4h12l-1.5 16h-9zM6.5 9h11")
     val Forward = lineIcon("Forward", "M9 5l7 7-7 7")
     val Settings = lineIcon(
         "Settings",
@@ -78,6 +87,14 @@ internal fun formatChange(kg: Double): String = when {
     kg < 0 -> "−" + formatAmount(abs(kg))
     kg > 0 -> "+" + formatAmount(kg)
     else -> "0"
+}
+
+internal fun mealIcon(meal: Meal): ImageVector = when (meal) {
+    Meal.BREAKFAST -> TodayIcons.Breakfast
+    Meal.LUNCH -> TodayIcons.EatOut
+    Meal.DINNER -> TodayIcons.Dinner
+    Meal.SNACKS -> TodayIcons.Snacks
+    Meal.DRINKS -> TodayIcons.Drinks
 }
 
 @StringRes

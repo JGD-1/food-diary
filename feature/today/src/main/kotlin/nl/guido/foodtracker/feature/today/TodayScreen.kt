@@ -48,15 +48,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -75,7 +79,11 @@ import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.ReviewSuggestion
 import nl.guido.foodtracker.core.model.WeeklyReview
+import nl.guido.foodtracker.core.ui.CardShadow
 import nl.guido.foodtracker.core.ui.FoodTheme
+import nl.guido.foodtracker.core.ui.IconTile
+import nl.guido.foodtracker.core.ui.Tint
+import nl.guido.foodtracker.core.ui.mealTint
 import nl.guido.foodtracker.core.ui.Routes
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -198,7 +206,10 @@ private fun TodayContent(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Header(ui, onDay, onProfile)
+                Box {
+                    Leaf(Modifier.align(Alignment.TopEnd).offset(x = 44.dp, y = (-34).dp))
+                    Header(ui, onDay, onProfile)
+                }
                 if (ui.yesterdayEmpty) {
                     TextButton(
                         onClick = { onDay(ui.today.minusDays(1)) },
@@ -213,6 +224,7 @@ private fun TodayContent(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     summary.filledMeals.forEach { meal ->
                         MealCard(
+                            meal = meal.meal,
                             title = stringResource(mealName(meal.meal)),
                             items = entriesText(meal.entries, ui.readable),
                             kcal = kcalText(meal.kcal, meal.hasEstimate),
@@ -222,6 +234,7 @@ private fun TodayContent(
                         }
                     }
                     MealCard(
+                        meal = Meal.DRINKS,
                         title = stringResource(R.string.today_meal_drinks),
                         items = if (summary.drinks.entries.isEmpty()) stringResource(R.string.today_drinks_none)
                         else entriesText(summary.drinks.entries, ui.readable),
@@ -329,6 +342,7 @@ private fun SettingsButton(displayName: String, onClick: () -> Unit) {
         onClick = onClick,
         shape = RoundedCornerShape(50),
         color = MaterialTheme.colorScheme.surface,
+        shadowElevation = CardShadow,
         modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = label },
     ) {
         Row(
@@ -384,40 +398,46 @@ private fun DrinkButton(icon: ImageVector, @StringRes text: Int, @StringRes spok
 
 @Composable
 private fun RingSection(summary: TodaySummary, proteinGoalG: Int?, onTarget: () -> Unit, onMacros: () -> Unit) {
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        KcalRing(summary)
-        Spacer(Modifier.size(4.dp))
-        val target = summary.targetKcal
-        val sumText = when {
-            target == null -> stringResource(R.string.today_set_target)
-            summary.hasEstimate -> stringResource(R.string.today_sum_estimate, formatKcal(target), formatKcal(summary.eatenKcal))
-            else -> stringResource(R.string.today_sum, formatKcal(target), formatKcal(summary.eatenKcal))
-        }
-        val openLabel = stringResource(R.string.today_sum_open)
-        TextButton(
-            onClick = onTarget,
-            contentPadding = PaddingValues(horizontal = 12.dp),
-            modifier = Modifier.heightIn(min = 36.dp).semantics { contentDescription = "$sumText. $openLabel" },
+    Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface, shadowElevation = CardShadow) {
+        Column(
+            Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 18.dp, bottom = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(sumText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        val eaten = summary.eaten
-        val macrosText = if (proteinGoalG != null) {
-            stringResource(
-                R.string.today_macros_goal, formatKcal(eaten.protein), formatKcal(proteinGoalG),
-                formatKcal(eaten.carbs), formatKcal(eaten.fat),
-            )
-        } else {
-            stringResource(R.string.today_macros, formatKcal(eaten.protein), formatKcal(eaten.carbs), formatKcal(eaten.fat))
-        }
-        TextButton(onClick = onMacros, contentPadding = PaddingValues(horizontal = 12.dp), modifier = Modifier.heightIn(min = 32.dp)) {
-            Text(macrosText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            KcalMeter(summary)
+            Spacer(Modifier.size(4.dp))
+            val target = summary.targetKcal
+            val sumText = when {
+                target == null -> stringResource(R.string.today_set_target)
+                summary.hasEstimate -> stringResource(R.string.today_sum_estimate, formatKcal(target), formatKcal(summary.eatenKcal))
+                else -> stringResource(R.string.today_sum, formatKcal(target), formatKcal(summary.eatenKcal))
+            }
+            val openLabel = stringResource(R.string.today_sum_open)
+            TextButton(
+                onClick = onTarget,
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                modifier = Modifier.heightIn(min = 36.dp).semantics { contentDescription = "$sumText. $openLabel" },
+            ) {
+                Text(sumText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            val eaten = summary.eaten
+            val macrosText = if (proteinGoalG != null) {
+                stringResource(
+                    R.string.today_macros_goal, formatKcal(eaten.protein), formatKcal(proteinGoalG),
+                    formatKcal(eaten.carbs), formatKcal(eaten.fat),
+                )
+            } else {
+                stringResource(R.string.today_macros, formatKcal(eaten.protein), formatKcal(eaten.carbs), formatKcal(eaten.fat))
+            }
+            TextButton(onClick = onMacros, contentPadding = PaddingValues(horizontal = 12.dp), modifier = Modifier.heightIn(min = 32.dp)) {
+                Text(macrosText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }
 
+/** The Garden half-circle meter: it fills from left to right as the day's kcal are eaten. */
 @Composable
-private fun KcalRing(summary: TodaySummary) {
+private fun KcalMeter(summary: TodaySummary) {
     val left = summary.kcalLeft
     val (number, label, description) = when {
         left == null -> Triple(summary.eatenKcal, R.string.today_kcal_eaten, R.string.today_ring_description_eaten)
@@ -425,33 +445,55 @@ private fun KcalRing(summary: TodaySummary) {
         else -> Triple(abs(left), R.string.today_kcal_over, R.string.today_ring_description_over)
     }
     val accent = MaterialTheme.colorScheme.primary
-    val track = FoodTheme.colors.accentTrack
-    val inner = MaterialTheme.colorScheme.surface
+    val track = FoodTheme.colors.meterTrack
     val spoken = stringResource(description, formatKcal(number))
-    Box(
-        Modifier.size(184.dp).clearAndSetSemantics { contentDescription = spoken },
-        contentAlignment = Alignment.Center,
-    ) {
-        Canvas(Modifier.size(184.dp)) {
-            val ring = 20.dp.toPx()
-            drawCircle(inner)
-            inset(ring / 2) {
-                drawArc(track, 0f, 360f, useCenter = false, style = Stroke(ring))
-                if (summary.ringFraction > 0f) {
-                    drawArc(
-                        accent, -90f, 360f * summary.ringFraction, useCenter = false,
-                        style = Stroke(ring, cap = StrokeCap.Butt),
-                    )
-                }
+    // With big text the number and label may need more room than the arc: the box then grows downwards.
+    Box(Modifier.width(240.dp).heightIn(min = 128.dp).clearAndSetSemantics { contentDescription = spoken }) {
+        Canvas(Modifier.align(Alignment.TopCenter).size(240.dp, 128.dp)) {
+            val line = 18.dp.toPx()
+            val radius = 100.dp.toPx()
+            val topLeft = Offset(size.width / 2 - radius, 116.dp.toPx() - radius)
+            val arc = Size(radius * 2, radius * 2)
+            drawArc(track, 180f, 180f, useCenter = false, topLeft = topLeft, size = arc, style = Stroke(line, cap = StrokeCap.Round))
+            if (summary.ringFraction > 0f) {
+                drawArc(
+                    accent, 180f, 180f * summary.ringFraction, useCenter = false, topLeft = topLeft, size = arc,
+                    style = Stroke(line, cap = StrokeCap.Round),
+                )
             }
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(140.dp)) {
+        Column(
+            Modifier.align(Alignment.BottomCenter).padding(top = 44.dp).width(150.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             FitText(formatKcal(number), MaterialTheme.typography.displayLarge)
             Text(
                 stringResource(label), style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
+        }
+    }
+}
+
+/** The small leaf drawing top-right on Today (Garden). Decoration only, so screen readers skip it. */
+@Composable
+private fun Leaf(modifier: Modifier = Modifier) {
+    val colors = FoodTheme.colors
+    val parts = remember(colors) {
+        listOf(
+            "M92 92C80 72 86 56 104 50C110 66 106 82 92 92Z" to colors.accentOutline,
+            "M118 72C120 52 134 42 152 44C150 62 138 72 118 72Z" to colors.accent,
+            "M76 112C58 104 52 88 60 74C74 82 80 96 76 112Z" to colors.accentTrack,
+        ).map { (d, color) -> PathParser().parsePathString(d).toPath() to color }
+    }
+    val stem = remember { PathParser().parsePathString("M60 130C70 90 100 70 140 62").toPath() }
+    Canvas(modifier.size(170.dp, 134.dp)) {
+        // Drawn on the design's 190 × 150 grid, scaled to fit.
+        scale(size.width / 190f, size.height / 150f, pivot = Offset.Zero) {
+            drawCircle(colors.accentSoft, radius = 70f, center = Offset(140f, 40f))
+            drawPath(stem, colors.accent, style = Stroke(3f, cap = StrokeCap.Round))
+            parts.forEach { (path, color) -> drawPath(path, color) }
         }
     }
 }
@@ -481,18 +523,20 @@ private const val MIN_FIT_SCALE = 0.5f
 
 @Composable
 private fun MealCard(
+    meal: Meal,
     title: String,
     items: String,
     kcal: String,
     onClick: () -> Unit,
     trailing: @Composable () -> Unit,
 ) {
-    Surface(onClick = onClick, shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface) {
+    Surface(onClick = onClick, shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surface) {
         Row(
-            Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 8.dp),
+            Modifier.fillMaxWidth().heightIn(min = 60.dp).padding(8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            IconTile(mealIcon(meal), mealTint(meal))
             Column(Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(
@@ -527,27 +571,32 @@ private fun AddMealCard(
     onAgain: () -> Unit,
 ) {
     val outline = MaterialTheme.colorScheme.outline
-    val shape = RoundedCornerShape(20.dp)
+    val invite = FoodTheme.colors.invite
+    val shape = MaterialTheme.shapes.medium
     Row(
         Modifier
             .fillMaxWidth()
-            .heightIn(min = 48.dp)
+            .heightIn(min = 60.dp)
+            .clip(shape)
+            .background(invite)
             .drawBehind {
                 val width = 2.dp.toPx()
                 drawRoundRect(
                     color = outline,
-                    topLeft = androidx.compose.ui.geometry.Offset(width / 2, width / 2),
-                    size = androidx.compose.ui.geometry.Size(size.width - width, size.height - width),
-                    cornerRadius = CornerRadius(20.dp.toPx()),
+                    topLeft = Offset(width / 2, width / 2),
+                    size = Size(size.width - width, size.height - width),
+                    cornerRadius = CornerRadius(22.dp.toPx()),
                     style = Stroke(width, pathEffect = PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(), 6.dp.toPx()))),
                 )
             }
             .clip(shape)
             .clickable(role = Role.Button, onClick = onAdd)
-            .padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+            .padding(start = 10.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        val colors = FoodTheme.colors
+        IconTile(mealIcon(meal), Tint(colors.accentSoft, colors.accentStrong), size = 40.dp, iconSize = 20.dp)
         Column(Modifier.weight(1f)) {
             Text(
                 stringResource(addMeal(meal)), style = MaterialTheme.typography.titleMedium,
@@ -584,7 +633,7 @@ private fun EarlierMeals(meals: List<Meal>, onAddTo: (Meal) -> Unit) {
 
 @Composable
 private fun ReviewCard(review: WeeklyReview, onDismiss: () -> Unit) {
-    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+    Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.primaryContainer) {
         Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 14.dp, bottom = 4.dp)) {
             Text(
                 stringResource(R.string.today_review_title), style = MaterialTheme.typography.titleMedium,
@@ -636,13 +685,18 @@ private fun BottomActions(onLogFood: () -> Unit, onScan: () -> Unit, onWeigh: ()
     val logFood = @Composable { modifier: Modifier ->
         Button(
             onClick = onLogFood,
-            shape = RoundedCornerShape(50),
+            shape = CircleShape,
             contentPadding = PaddingValues(horizontal = 12.dp),
-            modifier = modifier.heightIn(min = 56.dp),
+            modifier = modifier
+                .shadow(6.dp, CircleShape, ambientColor = MaterialTheme.colorScheme.primary, spotColor = MaterialTheme.colorScheme.primary)
+                .heightIn(min = 58.dp),
         ) {
             Icon(TodayIcons.Add, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.today_log_food_title), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(R.string.today_log_food_title),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Black),
+            )
         }
     }
     val shortcuts = @Composable { modifier: Modifier ->
@@ -684,9 +738,9 @@ private fun Shortcut(
 ) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
-        modifier = modifier.sizeIn(minWidth = 56.dp, minHeight = 56.dp),
+        modifier = modifier.sizeIn(minWidth = 58.dp, minHeight = 58.dp),
     ) {
         Column(
             Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
