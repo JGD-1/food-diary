@@ -23,7 +23,12 @@ class RecipesRoutesTest {
     @Test
     fun `log and portion screens take an optional meal and day`() {
         assertEquals("recipe-log/{recipeId}?meal={meal}&date={date}", RecipesRoutes.LOG)
-        assertEquals("batch-portion/{batchId}?meal={meal}&date={date}", RecipesRoutes.BATCH_PORTION)
+        assertEquals("batch-portion/{batchId}?meal={meal}&date={date}&box={box}", RecipesRoutes.BATCH_PORTION)
+    }
+
+    @Test
+    fun `a portion from a fridge box names the box`() {
+        assertEquals("batch-portion/b1?box=c1", RecipesRoutes.boxPortion("b1", "c1"))
     }
 
     @Test

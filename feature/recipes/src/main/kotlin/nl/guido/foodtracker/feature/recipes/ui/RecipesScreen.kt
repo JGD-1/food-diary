@@ -49,6 +49,7 @@ import nl.guido.foodtracker.core.ui.FoodTheme
 import nl.guido.foodtracker.core.ui.IconTile
 import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.RecipesViewModel
+import nl.guido.foodtracker.feature.recipes.WaitingPlatesViewModel
 import nl.guido.foodtracker.feature.recipes.logic.BatchDraft
 import nl.guido.foodtracker.feature.recipes.logic.Dish
 import nl.guido.foodtracker.feature.recipes.logic.OpenBatch
@@ -68,9 +69,12 @@ internal fun RecipesScreen(
     onNewBatch: () -> Unit,
     onBatchPortion: (Id) -> Unit,
     onEditBatch: (Id) -> Unit,
+    onFridge: () -> Unit,
     vm: RecipesViewModel = hiltViewModel(),
+    waitingVm: WaitingPlatesViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val waiting by waitingVm.state.collectAsStateWithLifecycle()
     val draft by vm.draft.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -78,7 +82,11 @@ internal fun RecipesScreen(
     val undoText = stringResource(R.string.recipes_undo)
     val thrownAwayText = stringResource(R.string.recipes_draft_thrown_away)
     Scaffold(
-        topBar = { RecipesTopBar(stringResource(R.string.recipes_recipes_title), onBack) },
+        topBar = {
+            RecipesTopBar(stringResource(R.string.recipes_recipes_title), onBack) {
+                FridgeButton(waiting.boxesInFridge, onFridge)
+            }
+        },
         snackbarHost = { SnackbarHost(snackbar) },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
@@ -91,8 +99,11 @@ internal fun RecipesScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            items(waiting.plates, key = { "plate-" + it.portion.id }) { plate ->
+                WaitingPlateCard(plate, onAdd = { waitingVm.add(plate) }, onNotMine = { waitingVm.notMine(plate) })
+            }
             item {
-                // A batch of your own: name it, add any ingredients, weigh the pot; no recipe needed.
+                // A batch of your own: name it, add any ingredients, dish up; no recipe needed.
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Button(onClick = onNewBatch, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                         Text(stringResource(R.string.recipes_cook_batch))

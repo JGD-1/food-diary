@@ -25,6 +25,11 @@ data class BatchDraft(
     /** "The pot stays on the scale" (B2) and the empty pot's weight. */
     val potOnScale: Boolean = false,
     val emptyPotText: String = "",
+    /** Round 6 (D1): dishing up into plates and boxes instead of weighing the pot. */
+    val dishingUp: Boolean = false,
+    val dishRows: List<DishRow> = emptyList(),
+    /** A guess of what is still in the pot after dishing up; becomes a fridge box. */
+    val restText: String = "",
 ) {
     /** Worth keeping: something was typed or added. */
     val hasContent: Boolean

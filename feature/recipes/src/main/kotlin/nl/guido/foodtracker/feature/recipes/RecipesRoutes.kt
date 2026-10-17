@@ -23,7 +23,9 @@ internal object RecipesRoutes {
     const val EDIT = "recipes/edit?$ARG_RECIPE_ID={$ARG_RECIPE_ID}"
     const val LOG = "${Routes.RECIPE_LOG}?$ARG_MEAL={$ARG_MEAL}&$ARG_DATE={$ARG_DATE}"
     const val NEW_BATCH = "recipes/batch?$ARG_RECIPE_ID={$ARG_RECIPE_ID}&$ARG_DATE={$ARG_DATE}"
-    const val BATCH_PORTION = "${Routes.BATCH_PORTION}?$ARG_MEAL={$ARG_MEAL}&$ARG_DATE={$ARG_DATE}"
+    /** Optional on BATCH_PORTION: the fridge or freezer box the portion comes from (round 6, D3). */
+    const val ARG_BOX = "box"
+    const val BATCH_PORTION = "${Routes.BATCH_PORTION}?$ARG_MEAL={$ARG_MEAL}&$ARG_DATE={$ARG_DATE}&$ARG_BOX={$ARG_BOX}"
 
     fun edit(recipeId: Id? = null) = if (recipeId == null) "recipes/edit" else "recipes/edit?$ARG_RECIPE_ID=$recipeId"
     fun log(recipeId: Id) = Routes.recipeLog(recipeId)
@@ -33,6 +35,11 @@ internal object RecipesRoutes {
         return if (args.isEmpty()) "recipes/batch" else "recipes/batch?" + args.joinToString("&")
     }
     fun batchPortion(batchId: Id) = Routes.batchPortion(batchId)
+    /** A portion from a fridge or freezer box (D3). */
+    fun boxPortion(batchId: Id, boxId: Id) = Routes.batchPortion(batchId) + "?$ARG_BOX=$boxId"
+
+    /** "In the fridge" (round 6, D3): every box not eaten yet, shared in the household. */
+    const val FRIDGE = "recipes/fridge"
 
     /** The meal passed by the opener, or null when none (or an unknown one) was given. */
     fun mealArg(value: String?): Meal? = Meal.entries.firstOrNull { it.name == value }
