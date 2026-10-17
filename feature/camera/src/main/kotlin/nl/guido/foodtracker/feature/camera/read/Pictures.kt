@@ -9,9 +9,74 @@ import kotlin.math.sqrt
 
 /**
  * What the picture models saw on one camera frame: [scores] from the starter model (one per
- * kind it knows), and [vector], the picture's fingerprint for comparing with your own examples.
+ * kind it knows), [vector], the picture's fingerprint for comparing with your own examples, and
+ * [kinds], the fruit or vegetables it probably is as search words, surest first.
  */
-class Picture(val scores: FloatArray, val vector: FloatArray)
+class Picture(
+    val scores: FloatArray,
+    val vector: FloatArray,
+    val kinds: List<String> = Produce.likely(scores),
+)
+
+/**
+ * The head start: a small layer trained on about 2,300 openly licensed photos (Open Images,
+ * CC BY 2.0) of 38 fruits and vegetables sold in Dutch supermarkets, plus pictures with no food.
+ * It reads a picture's fingerprint and says which kinds it probably is. Made by
+ * tools/produce-head-start (see MODELS.md); only the numbers are in the app, no photos.
+ */
+class HeadStart(
+    /** Search word per kind; an empty word is "no food". */
+    val words: List<String>,
+    /** [dim] × [words].size weights, row by row. */
+    private val weights: FloatArray,
+    private val bias: FloatArray,
+    private val scale: Float,
+) {
+    private val dim = weights.size / words.size
+
+    /** Likely kinds as search words, surest first; empty when it sees no food or isn't sure. */
+    fun kinds(vector: FloatArray, atLeast: Float = MIN_SURE, limit: Int = 3): List<String> {
+        if (vector.size != dim) return emptyList()
+        val length = sqrt(vector.fold(0f) { sum, x -> sum + x * x }).takeIf { it > 0f } ?: return emptyList()
+        val z = FloatArray(words.size) { k ->
+            var sum = bias[k]
+            for (i in 0 until dim) sum += vector[i] / length * scale * weights[i * words.size + k]
+            sum
+        }
+        val top = z.max()
+        val e = FloatArray(z.size) { kotlin.math.exp(z[it] - top) }
+        val total = e.sum()
+        val p = FloatArray(z.size) { e[it] / total }
+        val noFood = words.indexOf("")
+        if (noFood >= 0 && p[noFood] >= 0.5f) return emptyList()
+        val ranked = words.indices.filter { words[it].isNotEmpty() }.sortedByDescending { p[it] }
+        if (ranked.isEmpty() || p[ranked[0]] < atLeast) return emptyList()
+        return ranked.take(limit).filter { p[it] >= MIN_ALSO }.map { words[it] }.distinct()
+    }
+
+    companion object {
+        /** How sure the first guess must be; set from the test on held-back photos. */
+        const val MIN_SURE = 0.35f
+        /** The second and third guesses are shown from this. */
+        const val MIN_ALSO = 0.05f
+        private const val VERSION = 1
+
+        fun decode(bytes: ByteArray): HeadStart? = try {
+            DataInputStream(ByteArrayInputStream(bytes)).use { input ->
+                if (input.readInt() != VERSION) return null
+                val kinds = input.readInt()
+                val dim = input.readInt()
+                val scale = input.readFloat()
+                val words = List(kinds) { input.readUTF() }
+                val weights = FloatArray(dim * kinds) { input.readFloat() }
+                val bias = FloatArray(kinds) { input.readFloat() }
+                HeadStart(words, weights, bias, scale)
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+}
 
 /**
  * Loose fruit and vegetables the starter model knows (EfficientNet-Lite0, trained on ImageNet),

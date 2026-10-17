@@ -61,7 +61,7 @@ internal class FoodGuesser(
 
     /** Up to [limit] guesses from the pack's name lines and words and the [picture], best first. */
     suspend fun guess(names: List<String>, words: Set<String>, picture: Picture?, limit: Int = 3): List<Food> {
-        val produce = picture?.let { Produce.likely(it.scores) }.orEmpty()
+        val produce = picture?.kinds.orEmpty()
         val learned = memory.get().lookup(words + produce.map(Produce::token)).mapNotNull { foods.get(it) }
         val alike = picture?.let { memory.pictures().nearest(it.vector) }.orEmpty().mapNotNull { foods.get(it) }
         val searched = (packSearches(names) + produce).mapNotNull { query ->
