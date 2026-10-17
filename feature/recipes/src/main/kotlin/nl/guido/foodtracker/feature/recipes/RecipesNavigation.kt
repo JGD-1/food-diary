@@ -9,6 +9,7 @@ import nl.guido.foodtracker.core.ui.FoodPickPurpose
 import nl.guido.foodtracker.core.ui.Routes
 import nl.guido.foodtracker.feature.recipes.note.NoteScanScreen
 import nl.guido.foodtracker.feature.recipes.ui.BatchPortionScreen
+import nl.guido.foodtracker.feature.recipes.ui.FridgeScreen
 import nl.guido.foodtracker.feature.recipes.ui.LogRecipeScreen
 import nl.guido.foodtracker.feature.recipes.ui.NewBatchScreen
 import nl.guido.foodtracker.feature.recipes.ui.RecipeEditScreen
@@ -43,6 +44,13 @@ fun NavGraphBuilder.recipesScreens(navController: NavController) {
             onNewBatch = { navController.navigate(RecipesRoutes.newBatch()) },
             onBatchPortion = { navController.navigate(RecipesRoutes.batchPortion(it)) },
             onEditBatch = { navController.navigate(RecipesRoutes.batchEdit(it)) },
+            onFridge = { navController.navigate(RecipesRoutes.FRIDGE) },
+        )
+    }
+    composable(RecipesRoutes.FRIDGE) {
+        FridgeScreen(
+            onBack = { navController.popBackStack() },
+            onWeigh = { batchId, boxId -> navController.navigate(RecipesRoutes.boxPortion(batchId, boxId)) },
         )
     }
     composable(RecipesRoutes.EDIT, arguments = optionalRecipeId) { entry ->
@@ -80,9 +88,16 @@ fun NavGraphBuilder.recipesScreens(navController: NavController) {
                     popUpTo(RecipesRoutes.NEW_BATCH) { inclusive = true }
                 }
             },
+            // Dished up (round 6): my plate is logged, the rest waits or is in the fridge.
+            onDishedUp = { navController.popBackStack() },
         )
     }
-    composable(RecipesRoutes.BATCH_PORTION, arguments = listOf(navArgument(RecipesRoutes.ARG_BATCH_ID) { type = NavType.StringType }, optionalMeal, optionalDate)) { entry ->
+    val optionalBox = navArgument(RecipesRoutes.ARG_BOX) {
+        type = NavType.StringType
+        nullable = true
+        defaultValue = null
+    }
+    composable(RecipesRoutes.BATCH_PORTION, arguments = listOf(navArgument(RecipesRoutes.ARG_BATCH_ID) { type = NavType.StringType }, optionalMeal, optionalDate, optionalBox)) { entry ->
         BatchPortionScreen(
             navController = navController,
             savedState = entry.savedStateHandle,

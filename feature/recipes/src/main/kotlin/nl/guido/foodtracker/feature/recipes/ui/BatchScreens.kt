@@ -51,6 +51,10 @@ import nl.guido.foodtracker.feature.recipes.NewBatchViewModel.Weighing
 import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.RecipesRoutes
 import nl.guido.foodtracker.feature.recipes.logic.BATCH_SCALES
+import nl.guido.foodtracker.feature.recipes.logic.DishKind
+import nl.guido.foodtracker.feature.recipes.logic.DishRow
+import nl.guido.foodtracker.feature.recipes.logic.percentOf
+import nl.guido.foodtracker.feature.recipes.logic.shareOf
 import nl.guido.foodtracker.feature.recipes.logic.formatGrams
 import nl.guido.foodtracker.feature.recipes.logic.potReadingNow
 import nl.guido.foodtracker.feature.recipes.logic.shareOfPot
@@ -72,10 +76,14 @@ internal fun NewBatchScreen(
     onSaved: (Id, LocalDate) -> Unit,
     /** A changed batch was saved ([deleted] = false) or deleted. */
     onClosed: (deleted: Boolean) -> Unit = {},
+    /** Everything was dished up (round 6): the batch, my plate, other plates and boxes are saved. */
+    onDishedUp: () -> Unit = {},
     vm: NewBatchViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
+    var weighPot by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(state.dishedUp) { if (state.dishedUp) onDishedUp() }
     var deleting by rememberSaveable { mutableStateOf(false) }
     CameraGrams(savedState, vm::onWeighed)
     PickedFoods(savedState) { vm.add(it) }
@@ -99,6 +107,10 @@ internal fun NewBatchScreen(
         }
         if (savedState.contains(RecipesRoutes.ARG_BATCH_ID) && !editing) {
             Hint(stringResource(R.string.recipes_not_found), Modifier.padding(padding).padding(16.dp))
+            return@Scaffold
+        }
+        if (state.dishingUp) {
+            DishUpContent(state, vm, navController, Modifier.padding(padding))
             return@Scaffold
         }
         Column(
@@ -153,51 +165,6 @@ internal fun NewBatchScreen(
                 Hint(stringResource(R.string.recipes_batch_raw_total, state.rawTotal.kcal.roundToInt()))
             }
 
-            SectionTitle(stringResource(R.string.recipes_batch_step_cooked))
-            val emptyPot = state.emptyPotGrams.takeIf { it > 0.0 && state.pan == null }
-            Hint(
-                when {
-                    state.pan != null -> stringResource(R.string.recipes_batch_step_cooked_pan_hint)
-                    emptyPot != null -> stringResource(R.string.recipes_batch_step_cooked_pot_hint, formatGrams(emptyPot))
-                    else -> stringResource(R.string.recipes_batch_step_cooked_hint)
-                },
-            )
-            PanChips(state.pan, vm::setPan)
-            GramsField(
-                value = state.cookedText,
-                onValueChange = vm::setCooked,
-                label = stringResource(
-                    if (state.pan == null && emptyPot == null) R.string.recipes_batch_cooked_weight else R.string.recipes_batch_reading_with_pan,
-                ),
-                onWeigh = cameraWeigh(navController) { vm.startWeighing(Weighing.Cooked) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            val pan = state.pan
-            val cooked = state.cookedGrams
-            if (pan != null && cooked != null) {
-                Hint(stringResource(R.string.recipes_batch_minus_pan, pan.name, formatGrams(pan.grams), formatGrams(cooked)))
-            } else if (emptyPot != null && cooked != null) {
-                Hint(stringResource(R.string.recipes_batch_minus_pot, formatGrams(emptyPot), formatGrams(cooked)))
-            }
-            OutlinedTextField(
-                value = state.piecesText,
-                onValueChange = vm::setPieces,
-                label = { Text(stringResource(R.string.recipes_makes_pieces)) },
-                supportingText = { Text(stringResource(R.string.recipes_makes_pieces_hint)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            if (editing) {
-                Row(
-                    Modifier.fillMaxWidth().toggleable(state.frozen, role = Role.Checkbox, onValueChange = vm::setFrozen),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Checkbox(checked = state.frozen, onCheckedChange = null)
-                    Text(stringResource(R.string.recipes_batch_in_freezer), Modifier.padding(start = 8.dp))
-                }
-            }
-
             if (state.canSaveToRecipe) {
                 Row(
                     Modifier.fillMaxWidth().toggleable(state.saveToRecipe, role = Role.Checkbox, onValueChange = vm::setSaveToRecipe),
@@ -208,8 +175,65 @@ internal fun NewBatchScreen(
                 }
             }
 
-            Button(onClick = vm::save, enabled = state.canSave, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                Text(stringResource(if (editing) R.string.recipes_save else R.string.recipes_batch_save))
+            if (!editing) {
+                // Round 6 (D1): weigh the plates and boxes, not the hot pot.
+                SectionTitle(stringResource(R.string.recipes_dish_step))
+                Hint(stringResource(R.string.recipes_dish_step_hint))
+                Button(onClick = vm::startDishUp, enabled = state.canDishUp, modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                    Text(stringResource(R.string.recipes_dish_up))
+                }
+                TextButton(onClick = { weighPot = !weighPot }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(if (weighPot) R.string.recipes_dish_hide_pot else R.string.recipes_dish_weigh_pot_instead))
+                }
+            }
+            if (editing || weighPot) {
+                SectionTitle(stringResource(R.string.recipes_batch_step_cooked))
+                val emptyPot = state.emptyPotGrams.takeIf { it > 0.0 && state.pan == null }
+                Hint(
+                    when {
+                        state.pan != null -> stringResource(R.string.recipes_batch_step_cooked_pan_hint)
+                        emptyPot != null -> stringResource(R.string.recipes_batch_step_cooked_pot_hint, formatGrams(emptyPot))
+                        else -> stringResource(R.string.recipes_batch_step_cooked_hint)
+                    },
+                )
+                PanChips(state.pan, vm::setPan)
+                GramsField(
+                    value = state.cookedText,
+                    onValueChange = vm::setCooked,
+                    label = stringResource(
+                        if (state.pan == null && emptyPot == null) R.string.recipes_batch_cooked_weight else R.string.recipes_batch_reading_with_pan,
+                    ),
+                    onWeigh = cameraWeigh(navController) { vm.startWeighing(Weighing.Cooked) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                val pan = state.pan
+                val cooked = state.cookedGrams
+                if (pan != null && cooked != null) {
+                    Hint(stringResource(R.string.recipes_batch_minus_pan, pan.name, formatGrams(pan.grams), formatGrams(cooked)))
+                } else if (emptyPot != null && cooked != null) {
+                    Hint(stringResource(R.string.recipes_batch_minus_pot, formatGrams(emptyPot), formatGrams(cooked)))
+                }
+                OutlinedTextField(
+                    value = state.piecesText,
+                    onValueChange = vm::setPieces,
+                    label = { Text(stringResource(R.string.recipes_makes_pieces)) },
+                    supportingText = { Text(stringResource(R.string.recipes_makes_pieces_hint)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (editing) {
+                    Row(
+                        Modifier.fillMaxWidth().toggleable(state.frozen, role = Role.Checkbox, onValueChange = vm::setFrozen),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(checked = state.frozen, onCheckedChange = null)
+                        Text(stringResource(R.string.recipes_batch_in_freezer), Modifier.padding(start = 8.dp))
+                    }
+                }
+                Button(onClick = vm::save, enabled = state.canSave, modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                    Text(stringResource(if (editing) R.string.recipes_save else R.string.recipes_batch_save))
+                }
             }
             if (editing) {
                 if (state.canDelete) {
@@ -354,7 +378,12 @@ internal fun BatchPortionScreen(
                     batch.total.kcal.roundToInt(),
                 ),
             )
-            state.gramsLeft?.let { left ->
+            val boxLeft = state.boxLeft
+            val box = state.box
+            if (box != null && boxLeft != null) {
+                Hint(stringResource(R.string.recipes_box_in_box, box.number, formatGrams(boxLeft)))
+                Hint(stringResource(R.string.recipes_box_weigh_hint))
+            } else state.gramsLeft?.let { left ->
                 val pieces = state.piecesLeft
                 Hint(
                     if (pieces == null) {
@@ -364,8 +393,10 @@ internal fun BatchPortionScreen(
                     },
                 )
             }
-            SectionTitle(stringResource(R.string.recipes_batch_step_portion))
-            Hint(stringResource(R.string.recipes_batch_step_portion_hint))
+            if (box == null) {
+                SectionTitle(stringResource(R.string.recipes_batch_step_portion))
+                Hint(stringResource(R.string.recipes_batch_step_portion_hint))
+            }
             if (batch.pieces != null) PieceChips(state.portionLabel, vm::setPieces)
             GramsField(
                 value = state.gramsText,
@@ -374,6 +405,9 @@ internal fun BatchPortionScreen(
                 onWeigh = cameraWeigh(navController) { vm.startWeighing() },
                 modifier = Modifier.fillMaxWidth(),
             )
+            if (box != null) {
+                OutlinedButton(onClick = vm::takeWholeBox) { Text(stringResource(R.string.recipes_box_whole)) }
+            }
             state.nutrients?.let { share ->
                 val grams = state.grams
                 val percent = grams?.let { shareOfPot(it, batch.cookedWeightG) }
@@ -382,19 +416,141 @@ internal fun BatchPortionScreen(
                 }
                 NutrientsSummary(share)
             }
+            state.boxLeftAfter?.takeIf { state.grams != null }?.let { after ->
+                Text(stringResource(R.string.recipes_box_left_after, formatGrams(after)), style = MaterialTheme.typography.titleSmall)
+            }
             ForDay(state.date)
             MealChips(state.meal, vm::setMeal)
-            Row(
-                Modifier.fillMaxWidth().toggleable(state.lastPortion, role = Role.Checkbox, onValueChange = vm::setLastPortion),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Checkbox(checked = state.lastPortion, onCheckedChange = null)
-                Text(stringResource(R.string.recipes_batch_last_portion), Modifier.padding(start = 8.dp))
+            if (box == null) {
+                Row(
+                    Modifier.fillMaxWidth().toggleable(state.lastPortion, role = Role.Checkbox, onValueChange = vm::setLastPortion),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(checked = state.lastPortion, onCheckedChange = null)
+                    Text(stringResource(R.string.recipes_batch_last_portion), Modifier.padding(start = 8.dp))
+                }
             }
             Button(onClick = vm::log, enabled = state.canLog, modifier = Modifier.fillMaxWidth().height(56.dp)) {
                 Text(stringResource(R.string.recipes_log_my_portion))
             }
             TextButton(onClick = { onEdit(batch.id) }) { Text(stringResource(R.string.recipes_batch_change)) }
         }
+    }
+}
+
+/**
+ * Dish up (round 6, D1): every plate and box is weighed as it is filled, with the scale set to zero
+ * with the empty plate on it. Their sum is the whole batch, so nobody weighs the hot pot; each
+ * plate or box shows its share. "That's everything" logs my plate and saves the rest.
+ */
+@Composable
+private fun DishUpContent(state: NewBatchViewModel.State, vm: NewBatchViewModel, navController: NavController, modifier: Modifier) {
+    val total = state.dishTotal
+    val raw = state.rawTotal
+    Column(
+        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(state.name.trim(), style = MaterialTheme.typography.headlineSmall)
+        Hint(stringResource(R.string.recipes_dish_went_in, raw.kcal.roundToInt()))
+        Hint(stringResource(R.string.recipes_dish_zero_hint))
+        var boxNumber = 0
+        state.dishRows.forEach { row ->
+            val number = if (row.kind == DishKind.FRIDGE || row.kind == DishKind.FREEZER) ++boxNumber else 0
+            DishRowCard(
+                row = row,
+                title = dishRowTitle(row, number, state),
+                state = state,
+                share = row.grams?.let { grams ->
+                    percentOf(grams, total)?.let { percent ->
+                        stringResource(R.string.recipes_dish_share, percent, shareOf(raw, grams, total).kcal.roundToInt())
+                    }
+                },
+                onGrams = { vm.setDishGrams(row.key, it) },
+                onWeigh = cameraWeigh(navController) { vm.startWeighing(Weighing.Dish(row.key)) },
+                onKind = { kind, forUser -> vm.setDishKind(row.key, kind, forUser) },
+                onRemove = { vm.removeDishRow(row.key) },
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = { vm.addDishRow(DishKind.PLATE) }, modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.recipes_dish_add_plate))
+            }
+            OutlinedButton(onClick = { vm.addDishRow(DishKind.FRIDGE) }, modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.recipes_dish_add_box))
+            }
+        }
+        GramsField(
+            value = state.restText,
+            onValueChange = vm::setRest,
+            label = stringResource(R.string.recipes_dish_rest),
+            onWeigh = null,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Hint(stringResource(R.string.recipes_dish_rest_hint))
+        SectionTitle(stringResource(R.string.recipes_dish_total, formatGrams(total)))
+        Hint(stringResource(R.string.recipes_dish_total_hint, raw.kcal.roundToInt()))
+        if (state.dishRows.any { it.kind == DishKind.PLATE && (it.forUserId == null || it.forUserId == state.myUserId) && it.grams != null }) {
+            Text(stringResource(R.string.recipes_dish_my_meal), style = MaterialTheme.typography.titleSmall)
+            ForDay(state.cookedOn)
+            MealChips(state.meal, vm::setMeal)
+        }
+        Button(onClick = vm::finishDishUp, enabled = state.canFinishDishUp, modifier = Modifier.fillMaxWidth().height(56.dp)) {
+            Text(stringResource(R.string.recipes_dish_done))
+        }
+        TextButton(onClick = vm::backToCooking, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.recipes_dish_back))
+        }
+    }
+}
+
+@Composable
+private fun dishRowTitle(row: DishRow, boxNumber: Int, state: NewBatchViewModel.State): String = when (row.kind) {
+    DishKind.PLATE -> if (row.forUserId == null || row.forUserId == state.myUserId) {
+        stringResource(R.string.recipes_dish_my_plate)
+    } else {
+        stringResource(R.string.recipes_dish_their_plate, state.nameOf(row.forUserId) ?: stringResource(R.string.recipes_dish_partner))
+    }
+    DishKind.GUEST -> stringResource(R.string.recipes_dish_guest_plate)
+    DishKind.FRIDGE -> stringResource(R.string.recipes_dish_box_fridge, boxNumber)
+    DishKind.FREEZER -> stringResource(R.string.recipes_dish_box_freezer, boxNumber)
+}
+
+/** One plate or box: who it is for (or where it goes), its grams to weigh or type, and its share. */
+@Composable
+private fun DishRowCard(
+    row: DishRow,
+    title: String,
+    state: NewBatchViewModel.State,
+    share: String?,
+    onGrams: (String) -> Unit,
+    onWeigh: (() -> Unit)?,
+    onKind: (DishKind, String?) -> Unit,
+    onRemove: () -> Unit,
+) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            if (share != null) Hint(share)
+            TextButton(onClick = onRemove) { Text(stringResource(R.string.recipes_remove)) }
+        }
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (row.kind == DishKind.FRIDGE || row.kind == DishKind.FREEZER) {
+                FilterChip(selected = row.kind == DishKind.FRIDGE, onClick = { onKind(DishKind.FRIDGE, null) }, label = { Text(stringResource(R.string.recipes_dish_fridge)) })
+                FilterChip(selected = row.kind == DishKind.FREEZER, onClick = { onKind(DishKind.FREEZER, null) }, label = { Text(stringResource(R.string.recipes_dish_freezer)) })
+            } else {
+                val mine = row.kind == DishKind.PLATE && (row.forUserId == null || row.forUserId == state.myUserId)
+                FilterChip(selected = mine, onClick = { onKind(DishKind.PLATE, null) }, label = { Text(stringResource(R.string.recipes_dish_me)) })
+                state.members.filter { it.userId != state.myUserId }.forEach { member ->
+                    FilterChip(
+                        selected = row.kind == DishKind.PLATE && row.forUserId == member.userId,
+                        onClick = { onKind(DishKind.PLATE, member.userId) },
+                        label = { Text(member.displayName.ifBlank { stringResource(R.string.recipes_dish_partner) }) },
+                    )
+                }
+                FilterChip(selected = row.kind == DishKind.GUEST, onClick = { onKind(DishKind.GUEST, null) }, label = { Text(stringResource(R.string.recipes_dish_guest)) })
+            }
+        }
+        GramsField(row.gramsText, onGrams, stringResource(R.string.recipes_grams), onWeigh, modifier = Modifier.fillMaxWidth())
     }
 }
