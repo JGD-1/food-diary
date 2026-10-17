@@ -1,30 +1,38 @@
 package nl.guido.foodtracker.core.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
+import nl.guido.foodtracker.core.model.Meal
 import java.text.NumberFormat
 import kotlin.math.roundToInt
 
@@ -41,12 +49,20 @@ fun ScreenHeader(
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
-        modifier.fillMaxWidth().heightIn(min = 56.dp).padding(start = if (onBack == null) 16.dp else 4.dp, end = 8.dp),
+        modifier.fillMaxWidth().heightIn(min = 56.dp).padding(start = if (onBack == null) 16.dp else 12.dp, end = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         if (onBack != null) {
-            IconButton(onClick = onBack) {
+            // Garden: the back arrow sits in a round white button.
+            FilledIconButton(
+                onClick = onBack,
+                modifier = Modifier.padding(end = 6.dp).size(44.dp),
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                ),
+            ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.core_back))
             }
         }
@@ -76,7 +92,7 @@ fun FoodRow(
     modifier: Modifier = Modifier,
     trailing: (@Composable () -> Unit)? = null,
 ) {
-    Surface(onClick = onClick, modifier = modifier, shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface) {
+    Surface(onClick = onClick, modifier = modifier, shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surface) {
         Row(
             Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -93,6 +109,42 @@ fun FoodRow(
             }
             trailing?.invoke()
         }
+    }
+}
+
+/** The light shadow under Garden cards (Surface(shadowElevation = CardShadow)). */
+val CardShadow: Dp = 2.dp
+
+/**
+ * A small rounded square in a soft pastel with a line icon on it (Garden): before a meal,
+ * a favourite or a recipe. Decoration only: the text next to it says what it is.
+ */
+@Composable
+fun IconTile(
+    icon: ImageVector,
+    tint: Tint,
+    modifier: Modifier = Modifier,
+    size: Dp = 44.dp,
+    iconSize: Dp = 22.dp,
+) {
+    Box(
+        modifier.size(size).clip(RoundedCornerShape(size * 0.36f)).background(tint.fill),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = null, tint = tint.ink, modifier = Modifier.size(iconSize))
+    }
+}
+
+/** Each meal's own pastel: breakfast peach, lunch sky, dinner clay, snacks mint, drinks lilac. */
+@Composable
+fun mealTint(meal: Meal): Tint {
+    val tints = FoodTheme.colors.tints
+    return when (meal) {
+        Meal.BREAKFAST -> tints.peach
+        Meal.LUNCH -> tints.sky
+        Meal.DINNER -> tints.clay
+        Meal.SNACKS -> tints.mint
+        Meal.DRINKS -> tints.lilac
     }
 }
 

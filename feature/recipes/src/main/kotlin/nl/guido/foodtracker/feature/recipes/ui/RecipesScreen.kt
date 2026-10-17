@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -30,6 +31,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -37,6 +44,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Recipe
+import nl.guido.foodtracker.core.ui.CardShadow
+import nl.guido.foodtracker.core.ui.FoodTheme
+import nl.guido.foodtracker.core.ui.IconTile
 import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.RecipesViewModel
 import nl.guido.foodtracker.feature.recipes.logic.BatchDraft
@@ -165,7 +175,13 @@ internal fun RecipesScreen(
 /** The batch being cooked on this phone (B1): carry on with it, or throw it away. */
 @Composable
 private fun DraftCard(draft: BatchDraft, onCarryOn: () -> Unit, onThrowAway: () -> Unit) {
-    Card(Modifier.fillMaxWidth().clickable(onClick = onCarryOn)) {
+    // Garden: the batch on the stove gets the warm peach card.
+    val peach = FoodTheme.colors.tints.peach
+    Card(
+        Modifier.fillMaxWidth().clickable(onClick = onCarryOn),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = peach.fill),
+    ) {
         Column(Modifier.padding(start = 16.dp, top = 12.dp, end = 4.dp, bottom = 4.dp)) {
             Text(
                 stringResource(R.string.recipes_still_cooking, draft.name.trim().ifEmpty { stringResource(R.string.recipes_still_cooking_unnamed) }),
@@ -186,8 +202,16 @@ private fun recipeDetail(recipe: Recipe): String =
 
 @Composable
 private fun RecipeCard(name: String, detail: String, onOpen: () -> Unit, onEdit: () -> Unit) {
-    Card(Modifier.fillMaxWidth().clickable(onClick = onOpen)) {
-        Row(Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+    // Each recipe keeps its own pastel, picked from its name.
+    val tints = FoodTheme.colors.tints.all
+    val tint = tints[Math.floorMod(name.hashCode(), tints.size)]
+    Card(Modifier.fillMaxWidth().clickable(onClick = onOpen), colors = whiteCard(), elevation = cardShadow()) {
+        Row(
+            Modifier.padding(start = 8.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            IconTile(BowlIcon, tint)
             Column(Modifier.weight(1f)) {
                 Text(name, style = MaterialTheme.typography.titleMedium)
                 Hint(detail)
@@ -202,7 +226,7 @@ private val cookedDate = DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefa
 /** A batch in the freezer: one short line, with "Take out" to put it back in the pot list. */
 @Composable
 private fun FrozenRow(open: OpenBatch, onTakeOut: () -> Unit, onEdit: () -> Unit) {
-    Card(Modifier.fillMaxWidth().clickable(onClick = onEdit)) {
+    Card(Modifier.fillMaxWidth().clickable(onClick = onEdit), colors = whiteCard()) {
         Row(Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(open.batch.name, style = MaterialTheme.typography.titleSmall)
@@ -223,7 +247,7 @@ private fun FrozenRow(open: OpenBatch, onTakeOut: () -> Unit, onEdit: () -> Unit
 @Composable
 private fun BatchCard(open: OpenBatch, onWeigh: () -> Unit, onEdit: () -> Unit, onFreezer: () -> Unit, onFinished: () -> Unit) {
     val batch = open.batch
-    Card(Modifier.fillMaxWidth().clickable(onClick = onWeigh)) {
+    Card(Modifier.fillMaxWidth().clickable(onClick = onWeigh), colors = whiteCard(), elevation = cardShadow()) {
         Column(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 8.dp, end = 8.dp)) {
             Text(batch.name, style = MaterialTheme.typography.titleMedium)
             Hint(
@@ -245,3 +269,21 @@ private fun BatchCard(open: OpenBatch, onWeigh: () -> Unit, onEdit: () -> Unit, 
         }
     }
 }
+
+/** Garden cards are white on the cream background. */
+@Composable
+private fun whiteCard() = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+
+@Composable
+private fun cardShadow() = CardDefaults.cardElevation(defaultElevation = CardShadow)
+
+/** A bowl with steam, on each recipe's pastel tile (from the design). */
+private val BowlIcon: ImageVector = ImageVector.Builder("Bowl", 24.dp, 24.dp, 24f, 24f).apply {
+    addPath(
+        pathData = addPathNodes("M3 11h18a9 9 0 0 1-18 0zM8 7c0-2 2-2 2-4M14 7c0-2 2-2 2-4"),
+        stroke = SolidColor(Color.Black),
+        strokeLineWidth = 2f,
+        strokeLineCap = StrokeCap.Round,
+        strokeLineJoin = StrokeJoin.Round,
+    )
+}.build()
