@@ -28,4 +28,14 @@ class BarcodesTest {
         assertFalse(Barcodes.isValid("12345"))
         assertFalse(Barcodes.isValid("54490000009a6"))
     }
+
+    @Test fun `a shop's own code on weighed meat is known by its product part`() {
+        assertTrue(Barcodes.isValid("2369069708240"))
+        assertTrue(Barcodes.isShopCode("2369069708240"))
+        assertEquals("2369069000000", Barcodes.productKey("2369069708240"))
+        // Another pack of the same meat, another price.
+        assertEquals("2369069000000", Barcodes.productKey("2369069712346"))
+        assertEquals("8718452833115", Barcodes.productKey("8718452833115"))
+        assertFalse(Barcodes.isShopCode("8718452833115"))
+    }
 }

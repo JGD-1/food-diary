@@ -25,6 +25,8 @@ data class LabelValues(
  *
  * The table often has two columns, "per 100 g" and "per portie". EU labels always have the
  * per-100 g column; we use the number closest under its header, or else the first number in the row.
+ * Some labels have no table but running text ("per 100 g: energie 693 kJ/kcal 166, vetten 9,5 g, ...");
+ * those are read piece by piece, see [readRunningText].
  */
 object NutritionLabelParser {
     private const val KJ_PER_KCAL = 4.184
@@ -60,10 +62,23 @@ object NutritionLabelParser {
     }
 
     fun parse(lines: List<TextLine>): LabelValues {
+        val table = readTable(lines)
+        val running = readRunningText(lines)
+        // Running text read as table rows mixes up its values, so there the pieces win; else the table does.
+        val found = if (isRunningText(lines)) table + running else running + table
+        val energy = found[Nutrient.ENERGY]
+        val perMl = lines.firstOrNull { per100.containsMatchIn(normalize(it.text)) }
+            ?.let { Regex("100\\s*ml").containsMatchIn(normalize(it.text)) } ?: false
+        return LabelValues(
+            energy, found[Nutrient.PROTEIN], found[Nutrient.CARBS], found[Nutrient.FAT], perMl,
+            fibre = found[Nutrient.FIBRE], sugar = found[Nutrient.SUGAR], salt = found[Nutrient.SALT],
+        )
+    }
+
+    private fun readTable(lines: List<TextLine>): Map<Nutrient, Double> {
         val rows = groupIntoRows(lines)
         val header = rows.flatMap { it.lines }.firstOrNull { per100.containsMatchIn(normalize(it.text)) }
         val headerX = header?.let { columnX(it) }
-        val perMl = header?.let { Regex("100\\s*ml").containsMatchIn(normalize(it.text)) } ?: false
 
         val found = mutableMapOf<Nutrient, Double>()
         var kjOnly: Double? = null
@@ -91,11 +106,55 @@ object NutritionLabelParser {
             val grams = nums.filter { it.unit == Unit.G || it.unit == null }
             pick(grams, headerX) { it in 0.0..100.0 }?.let { found[nutrient] = it }
         }
-        val energy = found[Nutrient.ENERGY] ?: kjOnly?.let { Math.round(it / KJ_PER_KCAL).toDouble() }
-        return LabelValues(
-            energy, found[Nutrient.PROTEIN], found[Nutrient.CARBS], found[Nutrient.FAT], perMl,
-            fibre = found[Nutrient.FIBRE], sugar = found[Nutrient.SUGAR], salt = found[Nutrient.SALT],
-        )
+        if (Nutrient.ENERGY !in found) kjOnly?.let { found[Nutrient.ENERGY] = toKcal(it) }
+        return found
+    }
+
+    private fun toKcal(kj: Double) = Math.round(kj / KJ_PER_KCAL).toDouble()
+
+    /** Cuts at commas that are not decimal commas, at ; | • and at a full stop followed by a space. */
+    private val pieceBreak = Regex(",(?!\\d)|(?<!\\d),|[;|•·]|\\.\\s")
+
+    /** The label's text in reading order, cut into pieces like "vetten 9,5 g" (wrapped lines joined). */
+    private fun pieces(lines: List<TextLine>): List<String> =
+        normalize(lines.joinToString(" ") { it.text }).split(pieceBreak).map { it.trim() }.filter { it.isNotEmpty() }
+
+    /** True when one line holds two or more nutrients one after another, as in running text. */
+    private fun isRunningText(lines: List<TextLine>): Boolean = lines.any { line ->
+        pieces(listOf(line)).count { piece -> nutrientOf(piece) != null && numbersInText(piece).isNotEmpty() } >= 2
+    }
+
+    /** The nutrient a piece of text names, or null (sub-rows like "waarvan verzadigde" give null). */
+    private fun nutrientOf(text: String): Nutrient? {
+        if (keywords.first().second.any { text.contains(it) }) return Nutrient.ENERGY
+        extraRows.firstOrNull { (_, words) -> words.containsMatchIn(text) }?.let { (n, _) ->
+            return if (notExtra.any { text.contains(it) }) null else n
+        }
+        if (skipWords.any { text.contains(it) }) return null
+        return keywords.firstOrNull { (n, words) -> n != Nutrient.ENERGY && words.any { w -> text.contains(w) } }?.first
+    }
+
+    /**
+     * Running text: each piece holds one nutrient and its per-100 g value ("eiwitten 20,1 g").
+     * The first value counts (the per-100 g one comes first, e.g. "energie 693 kJ/kcal 166 (8%)").
+     */
+    private fun readRunningText(lines: List<TextLine>): Map<Nutrient, Double> {
+        val found = mutableMapOf<Nutrient, Double>()
+        var kjOnly: Double? = null
+        for (piece in pieces(lines)) {
+            val nutrient = nutrientOf(piece) ?: continue
+            val nums = numbersInText(piece)
+            if (nutrient == Nutrient.ENERGY) {
+                if (Nutrient.ENERGY in found) continue
+                nums.firstOrNull { it.unit == Unit.KCAL && it.value in 0.0..950.0 }?.let { found[Nutrient.ENERGY] = it.value }
+                    ?: run { if (kjOnly == null) kjOnly = nums.firstOrNull { it.unit == Unit.KJ && it.value in 0.0..4000.0 }?.value }
+                continue
+            }
+            if (nutrient in found) continue
+            nums.firstOrNull { (it.unit == Unit.G || it.unit == null) && it.value in 0.0..100.0 }?.let { found[nutrient] = it.value }
+        }
+        if (Nutrient.ENERGY !in found) kjOnly?.let { found[Nutrient.ENERGY] = toKcal(it) }
+        return found
     }
 
     private val per100 = Regex("100\\s*(g|gr|gram|ml)\\b")
@@ -130,21 +189,49 @@ object NutritionLabelParser {
     private val numberThenUnit = Regex("<?\\s*(\\d+(?:[.,]\\d+)?)\\s*(kcal|kj|mg|µg|ug|mcg|g|ml)?(?![a-z])")
 
     private fun numbersIn(row: Row): List<Num> = row.lines.flatMap { line ->
-        val text = normalize(line.text)
-        numberThenUnit.findAll(text).mapNotNull { m ->
-            val v = m.groupValues[1].replace(',', '.').toDoubleOrNull() ?: return@mapNotNull null
-            // A "100 g" in a header or row label is not a value.
-            if (v == 100.0 && text.contains(Regex("per\\s*100|100\\s*g\\s*(/|\\))"))) return@mapNotNull null
-            val unit = when (m.groupValues[2]) {
-                "" -> null
-                "g" -> Unit.G
-                "kcal" -> Unit.KCAL
-                "kj" -> Unit.KJ
-                else -> Unit.OTHER
-            }
-            Num(v, unit, xAt(line, m.range.first))
-        }.toList()
+        numbersInText(normalize(line.text)).map { it.copy(x = xAt(line, it.x.toInt())) }
     }
+
+    /** Numbers in normalized text with their unit; [Num.x] is the character index. */
+    private fun numbersInText(text: String): List<Num> {
+        // "kJ/kcal 1046/250": the pair belongs together, the first number is kJ, the second kcal.
+        val pair = energyPair.find(text) ?: return singleNumbers(text)
+        val kjFirst = pair.groupValues[1].startsWith("kj")
+        val a = pair.groupValues[2].replace(',', '.').toDoubleOrNull()
+        val b = pair.groupValues[3].replace(',', '.').toDoubleOrNull()
+        val x = pair.range.first.toFloat()
+        val inPair = listOfNotNull(
+            a?.let { Num(it, if (kjFirst) Unit.KJ else Unit.KCAL, x) },
+            b?.let { Num(it, if (kjFirst) Unit.KCAL else Unit.KJ, x + 1) },
+        )
+        val rest = text.replaceRange(pair.range, " ".repeat(pair.range.last - pair.range.first + 1))
+        return (inPair + singleNumbers(rest)).sortedBy { it.x }
+    }
+
+    private val energyPair =
+        Regex("(kj\\s*/\\s*kcal|kcal\\s*/\\s*kj)\\)?\\s*:?\\s*(\\d+(?:[.,]\\d+)?)\\s*/\\s*(\\d+(?:[.,]\\d+)?)")
+
+    private fun singleNumbers(text: String): List<Num> = numberThenUnit.findAll(text).mapNotNull { m ->
+        val v = m.groupValues[1].replace(',', '.').toDoubleOrNull() ?: return@mapNotNull null
+        // A "100 g" in a header or row label is not a value.
+        if (v == 100.0 && text.contains(Regex("per\\s*100|100\\s*g\\s*(/|\\))|\\(100\\s*(g|ml)\\)"))) return@mapNotNull null
+        val unit = when (m.groupValues[2]) {
+            // The unit may come first: "693 kJ/kcal 166".
+            "" -> when {
+                unitBefore.find(text.substring(0, m.range.first))?.groupValues?.get(1) == "kcal" -> Unit.KCAL
+                unitBefore.find(text.substring(0, m.range.first))?.groupValues?.get(1) == "kj" -> Unit.KJ
+                else -> null
+            }
+            "g" -> Unit.G
+            "kcal" -> Unit.KCAL
+            "kj" -> Unit.KJ
+            else -> Unit.OTHER
+        }
+        Num(v, unit, m.range.first.toFloat())
+    }.toList()
+
+    /** "kcal" or "kJ" right before a number ("kcal 166", "kJ: 693"). */
+    private val unitBefore = Regex("(kcal|kj)\\s*[:=]?\\s*<?\\s*$")
 
     /** Rough x position of a character, assuming characters are equally wide. */
     private fun xAt(line: TextLine, index: Int): Float {

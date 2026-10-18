@@ -175,12 +175,14 @@ internal class CameraViewModel @Inject constructor(
         if (Barcodes.isValid(current.text)) lookUp(current.text) else go(current.copy(invalid = true))
     }
 
-    private fun lookUp(code: String) {
+    private fun lookUp(scanned: String) {
+        // A shop's own code (weighed meat) is known by its product part only, so the next pack is found too.
+        val code = Barcodes.productKey(scanned)
         go(CameraStep.LookingUp(code))
         viewModelScope.launch {
             val next = try {
-                // Our own foods first (labels scanned earlier), then the food database.
-                val food = foods.byBarcode(code) ?: foodSource.byBarcode(code)
+                // Our own foods first (labels scanned earlier), then the food database (which never knows shop codes).
+                val food = foods.byBarcode(code) ?: if (Barcodes.isShopCode(code)) null else foodSource.byBarcode(code)
                 if (food == null) {
                     CameraStep.NotFound(code, offline = false, known = foodSource.nameByBarcode(code))
                 } else {

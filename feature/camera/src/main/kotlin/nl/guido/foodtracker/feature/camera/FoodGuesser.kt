@@ -18,6 +18,7 @@ import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodSource
 import nl.guido.foodtracker.core.model.Id
+import nl.guido.foodtracker.feature.camera.read.Barcodes
 import nl.guido.foodtracker.feature.camera.read.PackWords
 import nl.guido.foodtracker.feature.camera.read.Picture
 import nl.guido.foodtracker.feature.camera.read.PictureMemory
@@ -47,9 +48,10 @@ internal class FoodGuesser(
     private val memory: PackMemory,
 ) {
     /** The food for a barcode in view; stored so the screen that opened the camera can find it. */
-    suspend fun fromBarcode(code: String): Food? {
+    suspend fun fromBarcode(scanned: String): Food? {
+        val code = Barcodes.productKey(scanned)
         val food = try {
-            foods.byBarcode(code) ?: foodSource.byBarcode(code)
+            foods.byBarcode(code) ?: if (Barcodes.isShopCode(code)) null else foodSource.byBarcode(code)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

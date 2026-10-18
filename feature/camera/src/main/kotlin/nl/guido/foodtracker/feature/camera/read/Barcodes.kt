@@ -13,6 +13,18 @@ object Barcodes {
         }
     }
 
+    /**
+     * True for a shop's own barcode on something it weighs and prices itself (meat, cheese):
+     * 13 digits starting with 2. No food database knows these.
+     */
+    fun isShopCode(code: String): Boolean = code.length == 13 && code[0] == '2'
+
+    /**
+     * The part of a barcode that names the product. For a shop's own code that is the first 7 digits;
+     * the rest is the price or weight of this one pack, so it changes every time.
+     */
+    fun productKey(code: String): String = if (isShopCode(code)) code.take(7) + "000000" else code
+
     /** GTIN rule: from the right, digits alternate weight 3 and 1; the total must end in 0. */
     private fun checkDigitOk(code: String): Boolean {
         val sum = code.reversed().mapIndexed { i, c -> (c - '0') * if (i % 2 == 1) 3 else 1 }.sum()
