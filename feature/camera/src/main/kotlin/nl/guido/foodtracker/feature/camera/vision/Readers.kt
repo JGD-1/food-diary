@@ -18,6 +18,7 @@ import nl.guido.foodtracker.feature.camera.read.ScaleParse
 import nl.guido.foodtracker.feature.camera.read.TextLine
 import com.google.android.gms.tasks.Tasks
 import java.io.Closeable
+import kotlin.math.abs
 
 // All reading happens on the phone (Google ML Kit's built-in models, and our own scale reader). Nothing is uploaded.
 
@@ -92,7 +93,7 @@ internal class WeighReader(
             frame.close()
         }
         val grams = gray?.let { runCatching { SevenSegmentReader.read(it) }.getOrNull() }
-        onScale(if (grams != null && grams <= MAX_GRAMS) ScaleParse.Grams(grams.toDouble()) else ScaleParse.Unreadable)
+        onScale(if (grams != null && abs(grams) <= MAX_GRAMS) ScaleParse.Grams(grams.toDouble()) else ScaleParse.Unreadable)
     }
 
     override fun close() {

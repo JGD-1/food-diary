@@ -68,6 +68,7 @@ import nl.guido.foodtracker.feature.camera.vision.LabelReader
 import nl.guido.foodtracker.feature.camera.vision.PictureReader
 import nl.guido.foodtracker.feature.camera.vision.WeighReader
 import java.util.concurrent.Executors
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 private enum class CameraUse { BARCODE, LABEL, SCALE }
@@ -370,15 +371,19 @@ private fun ScalePanel(s: CameraStep.ReadScale, scale: ScaleView, naming: Naming
         grams == null -> Body(stringResource(if (showHint) R.string.camera_scale_hint else R.string.camera_scale_body))
         grams == 0.0 -> Body(stringResource(R.string.camera_scale_zero))
         else -> {
+            // Below zero: the scale was zeroed with the food on it and some was taken off; that part is used.
+            val taken = formatGrams(abs(grams))
             Text(
-                stringResource(R.string.camera_scale_reading, formatGrams(grams)),
+                if (grams < 0) stringResource(R.string.camera_scale_reading_minus, taken)
+                else stringResource(R.string.camera_scale_reading, taken),
                 style = MaterialTheme.typography.displayMedium,
                 color = MaterialTheme.colorScheme.primary,
             )
+            if (grams < 0) Body(stringResource(R.string.camera_scale_taken_off, taken))
             val chosen = naming?.chosen
             MainButton(
-                if (chosen == null) stringResource(R.string.camera_scale_use, formatGrams(grams))
-                else stringResource(R.string.camera_name_log, formatGrams(grams), vm.title(chosen)),
+                if (chosen == null) stringResource(R.string.camera_scale_use, taken)
+                else stringResource(R.string.camera_name_log, taken, vm.title(chosen)),
             ) { vm.useGrams(grams) }
         }
     }

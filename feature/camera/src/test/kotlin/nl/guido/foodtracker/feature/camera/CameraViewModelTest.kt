@@ -178,6 +178,14 @@ class CameraViewModelTest {
         assertEquals(CameraOutcome(null, 245.0), vm.outcome.value)
     }
 
+    @Test fun `a minus reading counts what was taken off the scale`() {
+        val vm = vm(args = mapOf(CameraViewModel.ARG_MODE to "scale"))
+        repeat(3) { vm.onScaleFrame(ScaleParse.Grams(-30.0)) }
+        assertEquals(-30.0, vm.scale.value.grams)
+        vm.useGrams(-30.0)
+        assertEquals(CameraOutcome(null, 30.0), vm.outcome.value)
+    }
+
     @Test fun `typed grams are the fallback`() {
         val vm = vm(args = mapOf(CameraViewModel.ARG_MODE to "scale"))
         vm.typeGrams()
