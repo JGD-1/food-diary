@@ -121,4 +121,54 @@ class NutritionLabelParserTest {
         assertEquals(0, v.foundCount)
         assertNull(v.kcal)
     }
+
+    /** Lines in reading order, one under the other (or side by side when [sideways], as in a photo taken turned). */
+    private fun text(vararg lines: String, sideways: Boolean = false): List<TextLine> = lines.mapIndexed { i, t ->
+        if (sideways) TextLine(t, 1000f - i * 40f, 0f, 1030f - i * 40f, t.length * 12f)
+        else TextLine(t, 0f, i * 40f, t.length * 12f, i * 40f + 30f)
+    }
+
+    // Jumbo runderriblap: no table, the values are a sentence.
+    private val riblap = arrayOf(
+        "Runderriblap",
+        "Ingrediënten: rundvlees.",
+        "Bereidingswijze: braadpan: verhit boter en/of olie en schroei het vlees",
+        "rondom. Voeg een beetje water toe en stoof het vlees op een lage tempera-",
+        "tuur gedurende 150-180 minuten. Let op, geef schadelijke bacteriën geen",
+        "Gemiddelde voedingswaarde per 100 g: energie 693 kJ/kcal 166,",
+        "vetten 9,5 g, waarvan verzadigde vetzuren 4,2 g, koolhydraten 0,0 g,",
+        "waarvan suikers 0,0 g, vezels 0,0 g, eiwitten 20,1 g, zout 0,18 g.",
+        "Bewaaradvies: zo spoedig mogelijk na aankoop consumeren, uiterlijk op",
+        "de vermelde houdbaarheidsdatum, mits gekoeld bewaard (max. 7°C).",
+    )
+    private val riblapValues =
+        LabelValues(kcal = 166.0, protein = 20.1, carbs = 0.0, fat = 9.5, fibre = 0.0, sugar = 0.0, salt = 0.18)
+
+    @Test fun `values written as running text instead of a table`() {
+        assertEquals(riblapValues, NutritionLabelParser.parse(text(*riblap)))
+    }
+
+    @Test fun `running text in a photo taken sideways`() {
+        assertEquals(riblapValues, NutritionLabelParser.parse(text(*riblap, sideways = true)))
+    }
+
+    @Test fun `running text with sugar before fibre in one line takes each its own value`() {
+        val v = NutritionLabelParser.parse(
+            text("Per 100 g: energie 1500 kJ / 358 kcal, vet 2 g, koolhydraten 70 g, vezels 3 g, suikers 2 g, eiwit 9 g, zout 0,5 g"),
+        )
+        assertEquals(LabelValues(kcal = 358.0, protein = 9.0, carbs = 70.0, fat = 2.0, fibre = 3.0, sugar = 2.0, salt = 0.5), v)
+    }
+
+    @Test fun `wine bottle with only energy per 100 ml`() {
+        val v = NutritionLabelParser.parse(text("75 Cl.", "14 % Vol.", "E (100 ml) 317 kJ/76 kcal", "CONTIENE SULFITOS"))
+        assertEquals(76.0, v.kcal)
+        assertTrue(v.perMl)
+        assertEquals(1, v.foundCount)
+    }
+
+    @Test fun `kcal written before the number, and a kJ and kcal pair`() {
+        assertEquals(166.0, NutritionLabelParser.parse(text("Energie 693 kJ / kcal 166")).kcal)
+        assertEquals(250.0, NutritionLabelParser.parse(text("Energie (kJ/kcal) 1046/250")).kcal)
+        assertEquals(250.0, NutritionLabelParser.parse(text("Energie kcal/kJ 250/1046")).kcal)
+    }
 }
