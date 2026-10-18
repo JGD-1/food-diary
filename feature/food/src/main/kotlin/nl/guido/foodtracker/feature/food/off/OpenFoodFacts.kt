@@ -12,6 +12,7 @@ import kotlinx.serialization.json.jsonObject
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.core.model.ProductName
 import nl.guido.foodtracker.feature.food.net.WebClient
 import nl.guido.foodtracker.feature.food.offId
 import java.net.URLEncoder
@@ -39,15 +40,21 @@ internal class OpenFoodFacts(
 
     private val headers = mapOf("User-Agent" to OFF_USER_AGENT, "Accept" to "application/json")
 
+    /** What Open Food Facts knows about a barcode: [food] when it has calories, else maybe only its [name]. */
+    data class Lookup(val food: Food?, val name: ProductName?)
+
     /** The product, or null when it isn't in Open Food Facts, has no calories, or we can't ask now. */
-    suspend fun product(barcode: String): Food? {
+    suspend fun product(barcode: String): Food? = lookUp(barcode)?.food
+
+    /** Null when the product isn't in Open Food Facts or we can't ask now. */
+    suspend fun lookUp(barcode: String): Lookup? {
         if (!isBarcode(barcode) || !productLimit.tryAcquire()) return null
         val response = web.get("$BASE/api/v2/product/$barcode?fields=$FIELDS", headers)
         if (response.code != 200) return null
         val root = parse(response.body) ?: return null
         if (root["status"]?.let { (it as? JsonPrimitive)?.intOrNull } != 1) return null
         val product = root["product"] as? JsonObject ?: return null
-        return toFood(product, barcode)
+        return Lookup(toFood(product, barcode), nameOf(product))
     }
 
     suspend fun search(text: String): List<Food> {
@@ -74,10 +81,16 @@ internal class OpenFoodFacts(
 
         fun isBarcode(code: String) = code.length in 8..14 && code.all { it in '0'..'9' }
 
-        /** Turns an Open Food Facts product into a food per 100 g, or null if it has no name or calories. */
-        fun toFood(p: JsonObject, barcode: String): Food? {
+        /** The product's name and brand, or null if it has no name. */
+        fun nameOf(p: JsonObject): ProductName? {
             val name = listOf("product_name", "product_name_nl", "product_name_en")
                 .firstNotNullOfOrNull { key -> p.string(key)?.trim()?.takeIf { it.isNotEmpty() } } ?: return null
+            return ProductName(name, p.string("brands")?.split(',')?.firstOrNull()?.trim()?.takeIf { it.isNotEmpty() })
+        }
+
+        /** Turns an Open Food Facts product into a food per 100 g, or null if it has no name or calories. */
+        fun toFood(p: JsonObject, barcode: String): Food? {
+            val (name, brand) = nameOf(p) ?: return null
             val n = p["nutriments"] as? JsonObject ?: return null
             val kcal = n.number("energy-kcal_100g") ?: n.number("energy_100g")?.let { it / 4.184 } ?: return null
             val categories = (p["categories_tags"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.orEmpty()
@@ -85,7 +98,7 @@ internal class OpenFoodFacts(
             return Food(
                 id = offId(barcode),
                 name = name,
-                brand = p.string("brands")?.split(',')?.firstOrNull()?.trim()?.takeIf { it.isNotEmpty() },
+                brand = brand,
                 barcode = barcode,
                 per100g = Nutrients(
                     kcal = kcal,

@@ -285,8 +285,20 @@ private fun LookingUpPanel(code: String) {
 
 @Composable
 private fun NotFoundPanel(s: CameraStep.NotFound, vm: CameraViewModel, onSearchByName: () -> Unit) {
-    Title(stringResource(if (s.offline) R.string.camera_offline_title else R.string.camera_not_found_title))
-    Body(stringResource(if (s.offline) R.string.camera_offline_body else R.string.camera_not_found_body))
+    when {
+        s.offline -> {
+            Title(stringResource(R.string.camera_offline_title))
+            Body(stringResource(R.string.camera_offline_body))
+        }
+        s.known != null -> {
+            Title(stringResource(R.string.camera_not_found_known_title, s.known.name))
+            Body(stringResource(R.string.camera_not_found_known_body))
+        }
+        else -> {
+            Title(stringResource(R.string.camera_not_found_title))
+            Body(stringResource(R.string.camera_not_found_body))
+        }
+    }
     MainButton(stringResource(R.string.camera_alt_label), onClick = vm::scanLabel)
     OtherButton(stringResource(R.string.camera_alt_search), onSearchByName)
     OtherButton(stringResource(R.string.camera_alt_type_food), vm::typeFood)

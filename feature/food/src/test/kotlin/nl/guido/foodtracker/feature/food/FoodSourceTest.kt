@@ -2,6 +2,7 @@ package nl.guido.foodtracker.feature.food
 
 import kotlinx.coroutines.test.runTest
 import nl.guido.foodtracker.core.model.FoodOrigin
+import nl.guido.foodtracker.core.model.ProductName
 import nl.guido.foodtracker.feature.food.net.WebResponse
 import nl.guido.foodtracker.feature.food.nevo.NevoInfo
 import nl.guido.foodtracker.feature.food.off.OpenFoodFacts
@@ -42,6 +43,16 @@ class FoodSourceTest {
         now = 25 * 60 * 60 * 1000L
         source.byBarcode("12345678")
         assertEquals(2, web.urls.size)
+    }
+
+    @Test fun aNameWithoutCaloriesIsKeptForTheLabelScan() = runTest {
+        val noKcal = """{"status":1,"product":{"product_name":"Pindakaas","brands":"AH","nutriments":{}}}"""
+        val web = FakeWeb { WebResponse(200, noKcal) }
+        val source = RealFoodSource(FakeFoods(), OpenFoodFacts(web), {}, { emptyMap() })
+        assertNull(source.nameByBarcode("12345678"))
+        assertNull(source.byBarcode("12345678"))
+        assertEquals(ProductName("Pindakaas", "AH"), source.nameByBarcode("12345678"))
+        assertNull(source.nameByBarcode("87654321"))
     }
 
     @Test fun offlineBarcodeGivesNull() = runTest {

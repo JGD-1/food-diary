@@ -2,6 +2,7 @@ package nl.guido.foodtracker.feature.food
 
 import kotlinx.coroutines.test.runTest
 import nl.guido.foodtracker.core.model.FoodOrigin
+import nl.guido.foodtracker.core.model.ProductName
 import nl.guido.foodtracker.feature.food.net.WebResponse
 import nl.guido.foodtracker.feature.food.off.OFF_USER_AGENT
 import nl.guido.foodtracker.feature.food.off.OpenFoodFacts
@@ -68,6 +69,14 @@ class OpenFoodFactsTest {
         assertNull(OpenFoodFacts(FakeWeb { WebResponse(404, """{"status":0}""") }).product("12345678"))
         val noKcal = """{"status":1,"product":{"product_name":"Mystery","nutriments":{}}}"""
         assertNull(OpenFoodFacts(FakeWeb { WebResponse(200, noKcal) }).product("12345678"))
+    }
+
+    @Test fun aProductWithoutCaloriesStillGivesItsName() = runTest {
+        val noKcal = """{"status":1,"product":{"product_name":"Mystery","brands":"Jumbo, Other","nutriments":{}}}"""
+        val lookup = OpenFoodFacts(FakeWeb { WebResponse(200, noKcal) }).lookUp("12345678")!!
+        assertNull(lookup.food)
+        assertEquals(ProductName("Mystery", "Jumbo"), lookup.name)
+        assertNull(OpenFoodFacts(FakeWeb { WebResponse(404, """{"status":0}""") }).lookUp("12345678"))
     }
 
     @Test fun notABarcodeIsNeverSent() = runTest {
