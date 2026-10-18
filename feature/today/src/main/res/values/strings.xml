@@ -125,6 +125,7 @@
     <string name="today_online_unreachable">Couldn\'t reach Open Food Facts. Check the internet, or scan the barcode.</string>
     <string name="today_all_recipes">Recipes ›</string>
     <string name="today_all_recipes_detail">Your recipes and batch meals</string>
+    <string name="today_eat_out_detail">A restaurant, take-away or a meal at friends</string>
     <string name="today_section_favourites">Favourites</string>
     <string name="today_section_pot">From the pot</string>
     <string name="today_section_recent">Recent</string>
