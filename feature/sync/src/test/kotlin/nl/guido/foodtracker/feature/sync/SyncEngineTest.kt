@@ -145,6 +145,28 @@ class SyncEngineTest {
     }
 
     @Test
+    fun `a partner's scanned food arrives on my phone and is never pushed back as mine`() = runTest {
+        val foods = SyncTables.food
+        val (partner, enginePartner) = phone()
+        val (mine, engineMine) = phone()
+        partner.put(
+            foods,
+            mapOf(
+                "id" to "f1", "ownerId" to "u2", "name" to "Muesli", "brand" to null, "barcode" to "8710400000000",
+                "kcal" to 380.0, "protein" to 9.0, "carbs" to 60.0, "fat" to 7.0, "source" to "LABEL",
+                "isDrink" to false, "updatedAt" to 5L, "deleted" to false,
+            ),
+        )
+        enginePartner.sync(SyncOwner("u2", "h1"), listOf(foods))
+        engineMine.sync(me, listOf(foods))
+        assertEquals("8710400000000", mine.tables["food"]!!["f1"]!!["barcode"])
+        val calls = remote.upsertCalls
+        val result = engineMine.sync(me, listOf(foods))
+        assertEquals(0, result.pushed)
+        assertEquals(calls, remote.upsertCalls)
+    }
+
+    @Test
     fun `household recipes are shared with the partner`() = runTest {
         val (mine, engineMine) = phone()
         val (partner, enginePartner) = phone()

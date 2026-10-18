@@ -126,6 +126,9 @@ object SyncTables {
         profile, logEntry, weighIn, food, recipe, recipeVariant, favourite, batch, batchContainer, batchPortion, pan,
     )
     val household = listOf(recipe, recipeVariant, batch, batchContainer, batchPortion, pan)
+
+    /** Fetched again from the start when the household changes: its tables, and foods (members see each other's barcode foods). */
+    val refetchOnHouseholdChange = household + food
 }
 
 /** Phone row → JSON for Supabase. */

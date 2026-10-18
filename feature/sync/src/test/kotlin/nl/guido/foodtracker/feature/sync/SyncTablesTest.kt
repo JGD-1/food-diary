@@ -91,4 +91,11 @@ class SyncTablesTest {
         assertTrue(SyncTables.all.indexOf(SyncTables.batch) < SyncTables.all.indexOf(SyncTables.batchContainer))
         assertTrue(SyncTables.all.indexOf(SyncTables.batchContainer) < SyncTables.all.indexOf(SyncTables.batchPortion))
     }
+
+    @Test
+    fun `a household change fetches foods again, as members see each other's barcode foods`() {
+        assertTrue(SyncTables.food in SyncTables.refetchOnHouseholdChange)
+        assertTrue(SyncTables.refetchOnHouseholdChange.containsAll(SyncTables.household))
+        assertTrue(SyncTables.food !in SyncTables.household)
+    }
 }
