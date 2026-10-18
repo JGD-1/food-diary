@@ -31,6 +31,12 @@ internal object TodayRoutes {
         return if (args.isEmpty()) Routes.LOG_FOOD else Routes.LOG_FOOD + "?" + args.joinToString("&")
     }
 
+    /** "Weigh what's left" for a food weighed before eating (round 7); only opened from Today. */
+    const val ARG_ID = "id"
+    const val WEIGH_LEFT_PATTERN = "today/weigh-left/{$ARG_ID}"
+
+    fun weighLeft(id: Id): String = "today/weigh-left/${Uri.encode(id)}"
+
 }
 
 /**

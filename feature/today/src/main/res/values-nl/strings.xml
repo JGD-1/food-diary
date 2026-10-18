@@ -162,4 +162,21 @@
         <item quantity="one">In de koelkast, %1$d bakje</item>
         <item quantity="other">In de koelkast, %1$d bakjes</item>
     </plurals>
+    <!-- Round 7: weigh after eating -->
+    <string name="today_weigh_after">Weeg na</string>
+    <string name="today_weigh_after_hint">Weeg na: eet ervan en weeg daarna wat over is. Alleen wat je at komt in je dagboek.</string>
+    <string name="today_weigh_after_added">%1$s staat klaar op Vandaag: weeg na het eten wat over is</string>
+    <string name="today_weigh_after_label">Gewogen voor het eten</string>
+    <string name="today_weigh_after_detail">%1$s g aan het begin · %2$s</string>
+    <string name="today_weigh_after_detail_day">%1$s g aan het begin · %2$s · %3$s</string>
+    <string name="today_weigh_after_weigh_left">Weeg wat over is</string>
+    <string name="today_weigh_after_all">Alles op</string>
+    <string name="today_weigh_after_remove">Weghalen</string>
+    <string name="today_weigh_after_removed">%1$s weggehaald</string>
+    <string name="today_weigh_left_title">Weeg wat over is</string>
+    <string name="today_weigh_left_start">%1$s g aan het begin</string>
+    <string name="today_weigh_left_hint">Leg wat over is op de weegschaal (net zoals je het eerst woog), of typ het aantal gram.</string>
+    <string name="today_weigh_left_field">Over</string>
+    <string name="today_weigh_left_eaten">Je at %1$s g · ≈ %2$s kcal</string>
+    <string name="today_weigh_left_more">Dat is meer dan de %1$s g aan het begin. Staat de kom of het bord ook op de weegschaal?</string>
 </resources>

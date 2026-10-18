@@ -79,6 +79,10 @@ internal sealed interface TodayEvent {
     /** "Not mine": the plate became [box] in the fridge; Undo makes it wait again. */
     data class PlateToFridge(val box: BatchContainer, val portion: BatchPortion) : TodayEvent
     data class Open(val route: String) : TodayEvent
+    /** "Ate it all" logged [item] in full; Undo takes the line out and makes it wait again. */
+    data class WeighAfterLogged(val item: WeighAfterItem, val entryId: Id) : TodayEvent
+    /** A food waiting to be weighed again was taken off Today; Undo puts it back. */
+    data class WeighAfterRemoved(val item: WeighAfterItem) : TodayEvent
 }
 
 /** Cooking for two or more (round 6): plates waiting for me and the number of boxes in the fridge. */
@@ -100,6 +104,7 @@ internal class TodayViewModel @Inject constructor(
     private val profiles: ProfileRepository,
     private val recipes: RecipeRepository,
     private val reviewPrefs: ReviewPrefs,
+    private val weighAfter: WeighAfterStore,
     /** The app's readable names under NEVO names (S1), bound by feature/food. */
     private val foodNames: Optional<FoodNames>,
 ) : ViewModel() {
@@ -162,6 +167,27 @@ internal class TodayViewModel @Inject constructor(
             SharedFood(waitingPlates(waiting, batches, members), boxesInFridge(containers, batches, portions))
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SharedFood())
+
+    /** Foods weighed before eating ("Weigh after" in Log food), waiting for what's left to be weighed. */
+    val waitingToWeigh: StateFlow<List<WeighAfterItem>> = combine(session.currentUser, weighAfter.items) { user, items ->
+        items.filter { it.userId == user.userId }.sortedBy { it.startedAt }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** "Ate it all": the whole starting weight goes in the diary, in the meal and on the day it was started. */
+    fun ateItAll(item: WeighAfterItem) {
+        viewModelScope.launch {
+            val food = foods.get(item.foodId) ?: return@launch
+            val line = cameraEntry(food, item.startGrams, item.userId, item.date, item.meal, Instant.now())
+            diary.save(line)
+            weighAfter.remove(item.id)
+            events.send(TodayEvent.WeighAfterLogged(item, line.id))
+        }
+    }
+
+    fun forgetWeighAfter(item: WeighAfterItem) {
+        weighAfter.remove(item.id)
+        viewModelScope.launch { events.send(TodayEvent.WeighAfterRemoved(item)) }
+    }
 
     /** "Add to my diary": today, in the meal that fits the time (Move in the meal changes it), with Undo. */
     fun addPlate(plate: WaitingPlate) {
@@ -284,6 +310,11 @@ internal class TodayViewModel @Inject constructor(
                 }
                 is TodayEvent.Moved -> event.before.forEach { diary.save(it) }
                 is TodayEvent.Copied -> event.ids.forEach { diary.delete(it) }
+                is TodayEvent.WeighAfterLogged -> {
+                    diary.delete(event.entryId)
+                    weighAfter.add(event.item)
+                }
+                is TodayEvent.WeighAfterRemoved -> weighAfter.add(event.item)
                 is TodayEvent.Open -> Unit
             }
         }

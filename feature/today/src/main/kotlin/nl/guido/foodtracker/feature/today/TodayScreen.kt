@@ -102,6 +102,7 @@ internal fun TodayRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val shared by viewModel.shared.collectAsStateWithLifecycle()
+    val waitingToWeigh by viewModel.waitingToWeigh.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val comingSoon = stringResource(R.string.today_coming_soon)
     val undo = stringResource(R.string.today_undo)
@@ -112,6 +113,7 @@ internal fun TodayRoute(
     val movedTo = stringResource(R.string.today_moved_to)
     val copied = stringResource(R.string.today_copied)
     val movedToFridge = stringResource(R.string.today_plate_to_fridge)
+    val weighAfterRemoved = stringResource(R.string.today_weigh_after_removed)
     val mealNames = Meal.entries.associateWith { stringResource(mealName(it)) }
 
     val scope = rememberCoroutineScope()
@@ -135,6 +137,8 @@ internal fun TodayRoute(
                 is TodayEvent.PlateToFridge -> movedToFridge
                 is TodayEvent.Moved -> movedTo.format(mealNames.getValue(event.to).lowercase())
                 is TodayEvent.Copied -> copied
+                is TodayEvent.WeighAfterLogged -> addedTo.format(event.item.title, mealNames.getValue(event.item.meal).lowercase())
+                is TodayEvent.WeighAfterRemoved -> weighAfterRemoved.format(event.item.title)
                 is TodayEvent.Open -> {
                     if (!navController.navigateSafely(event.route)) snackbar.showSnackbar(comingSoon)
                     null
@@ -157,11 +161,15 @@ internal fun TodayRoute(
             TodayContent(
                 ui = ui,
                 shared = shared,
+                waitingToWeigh = waitingToWeigh,
                 snackbar = snackbar,
                 onProfile = { open(Routes.PROFILE) },
                 onFridge = { open(Routes.FRIDGE) },
                 onAddPlate = viewModel::addPlate,
                 onNotMine = viewModel::notMine,
+                onWeighLeft = { item -> open(TodayRoutes.weighLeft(item.id)) },
+                onAteItAll = viewModel::ateItAll,
+                onForgetWeighAfter = viewModel::forgetWeighAfter,
                 onTarget = { open(Routes.ENERGY_TARGET) },
                 onDay = viewModel::showDay,
                 onAgain = viewModel::again,
@@ -188,11 +196,15 @@ private const val EARLIER_DAY_TINT = 0.07f
 private fun TodayContent(
     ui: TodayUiState,
     shared: SharedFood,
+    waitingToWeigh: List<WeighAfterItem>,
     snackbar: SnackbarHostState,
     onProfile: () -> Unit,
     onFridge: () -> Unit,
     onAddPlate: (WaitingPlate) -> Unit,
     onNotMine: (WaitingPlate) -> Unit,
+    onWeighLeft: (WeighAfterItem) -> Unit,
+    onAteItAll: (WeighAfterItem) -> Unit,
+    onForgetWeighAfter: (WeighAfterItem) -> Unit,
     onTarget: () -> Unit,
     onDay: (LocalDate) -> Unit,
     onAgain: (Meal) -> Unit,
@@ -227,6 +239,12 @@ private fun TodayContent(
                 if (ui.isToday) {
                     shared.plates.forEach { plate ->
                         WaitingPlateCard(plate, onAdd = { onAddPlate(plate) }, onNotMine = { onNotMine(plate) })
+                    }
+                    waitingToWeigh.forEach { item ->
+                        WeighAfterCard(
+                            item, today = ui.today,
+                            onWeighLeft = { onWeighLeft(item) }, onAteItAll = { onAteItAll(item) }, onForget = { onForgetWeighAfter(item) },
+                        )
                     }
                 }
                 if (ui.yesterdayEmpty) {
@@ -453,6 +471,48 @@ private fun WaitingPlateCard(plate: WaitingPlate, onAdd: () -> Unit, onNotMine: 
                     Box(Modifier.padding(horizontal = 16.dp), contentAlignment = Alignment.Center) {
                         Text(stringResource(R.string.today_plate_not_mine), style = MaterialTheme.typography.labelLarge)
                     }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * "Weighed before eating · Crisps · 150 g at the start · snacks" with "Weigh what's left",
+ * "Ate it all" and "Remove" (round 7, W2). Nothing is in the diary until one of the first two.
+ */
+@Composable
+private fun WeighAfterCard(item: WeighAfterItem, today: LocalDate, onWeighLeft: () -> Unit, onAteItAll: () -> Unit, onForget: () -> Unit) {
+    val tint = FoodTheme.colors.tints.sky
+    val meal = stringResource(mealName(item.meal)).lowercase()
+    val locale = Locale.forLanguageTag(stringResource(R.string.today_locale))
+    val day = item.date.format(DateTimeFormatter.ofPattern(stringResource(R.string.today_date_pattern), locale))
+    val detail = if (item.date == today) stringResource(R.string.today_weigh_after_detail, formatAmount(item.startGrams), meal)
+    else stringResource(R.string.today_weigh_after_detail_day, formatAmount(item.startGrams), meal, day)
+    Surface(shape = MaterialTheme.shapes.large, color = tint.fill, contentColor = MaterialTheme.colorScheme.onSurface) {
+        Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                IconTile(TodayIcons.Weigh, Tint(MaterialTheme.colorScheme.surface, tint.ink), size = 48.dp, iconSize = 24.dp)
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.today_weigh_after_label), style = MaterialTheme.typography.labelLarge, color = tint.ink)
+                    Text(item.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(detail, style = MaterialTheme.typography.bodySmall, color = tint.ink)
+                }
+            }
+            Button(onClick = onWeighLeft, shape = CircleShape, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.today_weigh_after_weigh_left), style = MaterialTheme.typography.labelLarge)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    onClick = onAteItAll, shape = CircleShape, color = MaterialTheme.colorScheme.surface, contentColor = tint.ink,
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                ) {
+                    Box(Modifier.padding(horizontal = 16.dp), contentAlignment = Alignment.Center) {
+                        Text(stringResource(R.string.today_weigh_after_all), style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+                TextButton(onClick = onForget, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.today_weigh_after_remove), color = tint.ink)
                 }
             }
         }
