@@ -97,6 +97,7 @@ internal fun LogFoodRoute(
     val added = stringResource(R.string.today_added)
     val undo = stringResource(R.string.today_undo)
     val comingSoon = stringResource(R.string.today_coming_soon)
+    val waitingToWeigh = stringResource(R.string.today_weigh_after_added)
 
     CameraResults(backStackEntry, viewModel::onCameraResult)
 
@@ -110,6 +111,11 @@ internal fun LogFoodRoute(
                 }
                 is LogFoodEvent.Open ->
                     if (!navController.navigateSafely(event.route)) snackbar.showSnackbar(comingSoon)
+                is LogFoodEvent.WeighAfter -> launch {
+                    snackbar.currentSnackbarData?.dismiss()
+                    val result = snackbar.showSnackbar(waitingToWeigh.format(event.name), undo, duration = SnackbarDuration.Short)
+                    if (result == SnackbarResult.ActionPerformed) viewModel.undoWeighAfter(event.id)
+                }
             }
         }
     }
@@ -146,6 +152,7 @@ internal fun LogFoodRoute(
                     onDismiss = viewModel::closeAmount,
                     onWeigh = { open(Routes.CAMERA_SCALE, Routes.CAMERA) },
                     onAdd = viewModel::add,
+                    onWeighAfter = viewModel::weighAfter,
                     onPin = viewModel::pin,
                     onUnpin = viewModel::unpin,
                     onEditFood = { foodId -> viewModel.closeAmount(); open(Routes.foodEdit(foodId)) },
@@ -424,6 +431,7 @@ private fun AmountSheet(
     onDismiss: () -> Unit,
     onWeigh: () -> Unit,
     onAdd: (grams: Double, label: String?) -> Unit,
+    onWeighAfter: (grams: Double) -> Unit,
     onPin: (Double) -> Unit,
     onUnpin: () -> Unit,
     onEditFood: (String) -> Unit,
@@ -511,13 +519,33 @@ private fun AmountSheet(
                     style = MaterialTheme.typography.titleMedium,
                 )
             }
-            Button(
-                onClick = { grams?.let(add) },
-                enabled = grams != null,
-                shape = RoundedCornerShape(50),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) {
-                Text(stringResource(addToMeal(meal)), style = MaterialTheme.typography.titleMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(
+                    onClick = { grams?.let(add) },
+                    enabled = grams != null,
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                ) {
+                    Text(stringResource(addToMeal(meal)), style = MaterialTheme.typography.titleMedium)
+                }
+                // Round 7: weigh it now, eat, weigh what's left; only the difference goes in the diary.
+                if (pick.foodId != null && !pick.isDrink) {
+                    OutlinedButton(
+                        onClick = { grams?.let(onWeighAfter) },
+                        enabled = grams != null,
+                        shape = RoundedCornerShape(50),
+                        modifier = Modifier.heightIn(min = 56.dp),
+                    ) {
+                        Text(stringResource(R.string.today_weigh_after), style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+            }
+            if (pick.foodId != null && !pick.isDrink) {
+                Text(
+                    stringResource(R.string.today_weigh_after_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }

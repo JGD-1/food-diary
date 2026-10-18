@@ -37,6 +37,7 @@ import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
+import nl.guido.foodtracker.core.model.newId
 import nl.guido.foodtracker.core.ui.Routes
 import java.time.Instant
 import java.time.LocalDate
@@ -80,6 +81,8 @@ internal data class LogFoodUiState(
 internal sealed interface LogFoodEvent {
     data class Added(val name: String, val meal: Meal, val id: Id) : LogFoodEvent
     data class Open(val route: String) : LogFoodEvent
+    /** "Weigh after": [name] waits on Today to be weighed again; nothing is in the diary yet. */
+    data class WeighAfter(val name: String, val id: Id) : LogFoodEvent
 }
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -95,6 +98,7 @@ internal class LogFoodViewModel @Inject constructor(
     private val commonPortions: Optional<CommonPortions>,
     /** The app's readable names for NEVO foods (S1), bound by feature/food. */
     private val foodNames: Optional<FoodNames>,
+    private val weighAfter: WeighAfterStore,
 ) : ViewModel() {
 
     private val meal = MutableStateFlow(
@@ -312,6 +316,27 @@ internal class LogFoodViewModel @Inject constructor(
     fun undo(id: Id) {
         viewModelScope.launch { diary.delete(id) }
     }
+
+    /**
+     * "Weigh after" (round 7): keep the food and its starting weight on this phone; Today asks to
+     * weigh what's left and logs the difference then. Only for foods (not drinks, recipes or pots).
+     */
+    fun weighAfter(grams: Double) {
+        val step = amount.value ?: return
+        val foodId = step.pick.foodId ?: return
+        if (step.pick.isDrink) return
+        viewModelScope.launch {
+            step.pick.food?.let { food -> if (foods.get(food.id) == null) foods.save(food) }
+            val title = step.pick.food?.let(::readableName) ?: step.pick.name
+            val item = WeighAfterItem(newId(), user.value.userId, foodId, title, grams, meal.value, day(), Instant.now())
+            weighAfter.add(item)
+            amount.value = null
+            weighedGrams = null
+            events.send(LogFoodEvent.WeighAfter(title, item.id))
+        }
+    }
+
+    fun undoWeighAfter(id: Id) = weighAfter.remove(id)
 
     fun openRecipe(recipe: Recipe) {
         viewModelScope.launch { events.send(LogFoodEvent.Open(Routes.recipeLog(recipe.id, meal.value, date))) }

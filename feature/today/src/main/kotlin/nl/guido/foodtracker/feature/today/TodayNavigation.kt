@@ -31,4 +31,10 @@ fun NavGraphBuilder.todayScreens(navController: NavController) {
     ) { entry ->
         LogFoodRoute(navController, entry)
     }
+    composable(
+        TodayRoutes.WEIGH_LEFT_PATTERN,
+        arguments = listOf(navArgument(TodayRoutes.ARG_ID) { type = NavType.StringType }),
+    ) { entry ->
+        WeighLeftRoute(navController, entry)
+    }
 }

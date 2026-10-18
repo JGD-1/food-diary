@@ -166,4 +166,21 @@
         <item quantity="one">In the fridge, %1$d box</item>
         <item quantity="other">In the fridge, %1$d boxes</item>
     </plurals>
+    <!-- Round 7: weigh after eating -->
+    <string name="today_weigh_after">Weigh after</string>
+    <string name="today_weigh_after_hint">Weigh after: eat from it, then weigh what\'s left. Only what you ate goes in your diary.</string>
+    <string name="today_weigh_after_added">%1$s is waiting on Today: weigh what\'s left after eating</string>
+    <string name="today_weigh_after_label">Weighed before eating</string>
+    <string name="today_weigh_after_detail">%1$s g at the start · %2$s</string>
+    <string name="today_weigh_after_detail_day">%1$s g at the start · %2$s · %3$s</string>
+    <string name="today_weigh_after_weigh_left">Weigh what\'s left</string>
+    <string name="today_weigh_after_all">Ate it all</string>
+    <string name="today_weigh_after_remove">Remove</string>
+    <string name="today_weigh_after_removed">Removed %1$s</string>
+    <string name="today_weigh_left_title">Weigh what\'s left</string>
+    <string name="today_weigh_left_start">%1$s g at the start</string>
+    <string name="today_weigh_left_hint">Put what\'s left on the scale (the same way you weighed it before), or type the grams.</string>
+    <string name="today_weigh_left_field">Left over</string>
+    <string name="today_weigh_left_eaten">You ate %1$s g · ≈ %2$s kcal</string>
+    <string name="today_weigh_left_more">That\'s more than the %1$s g at the start. Is the bowl or plate on the scale too?</string>
 </resources>
