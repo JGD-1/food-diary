@@ -186,7 +186,10 @@ class SyncManager @Inject constructor(
         if (info.householdId != account.householdId) {
             // Recipes made alone come along (the server moved them too); then fetch the new household's recipes.
             if (info.movedFrom != null) local.moveHousehold(account.householdId, info.householdId)
-            prefs.forgetPulls(SyncTables.household)
+            prefs.forgetPulls(SyncTables.refetchOnHouseholdChange)
+        } else if (info.memberCount != account.memberCount) {
+            // Someone joined: fetch foods again, so the barcodes they scanned before joining arrive too.
+            prefs.forgetPulls(listOf(SyncTables.food))
         }
         val updated = account.copy(householdId = info.householdId, inviteCode = info.inviteCode, memberCount = info.memberCount)
         prefs.saveAccount(updated)
