@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -183,7 +184,6 @@ internal fun TodayRoute(
                 onScan = { viewModel.openingCamera(forDrink = false); open(Routes.CAMERA) },
                 onScanDrink = { viewModel.openingCamera(forDrink = true); open(Routes.CAMERA_DRINK, Routes.CAMERA) },
                 onWeigh = { viewModel.openingCamera(forDrink = false); open(Routes.CAMERA_SCALE, Routes.CAMERA) },
-                onEatOut = { open(Routes.eatOut(ui.dateArg), Routes.EAT_OUT) },
             )
         }
     }
@@ -218,7 +218,6 @@ private fun TodayContent(
     onScan: () -> Unit,
     onScanDrink: () -> Unit,
     onWeigh: () -> Unit,
-    onEatOut: () -> Unit,
 ) {
     val summary = ui.summary
     var openMeal by rememberSaveable { mutableStateOf<Meal?>(null) }
@@ -278,8 +277,11 @@ private fun TodayContent(
                         kcal = kcalText(summary.drinks.kcal, summary.drinks.hasEstimate),
                         onClick = { if (summary.drinks.entries.isEmpty()) onAddTo(Meal.DRINKS) else openMeal = Meal.DRINKS },
                     ) {
-                        DrinkButton(TodayIcons.Scan, R.string.today_drink_scan, R.string.today_scan_drink, onScanDrink)
-                        DrinkButton(TodayIcons.Add, R.string.today_drink_add, R.string.today_add_drink) { onAddTo(Meal.DRINKS) }
+                        // Scan and Add as two small icon buttons on top of each other, so "Drinks" keeps its room.
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            DrinkButton(TodayIcons.Scan, R.string.today_scan_drink, onScanDrink)
+                            DrinkButton(TodayIcons.Add, R.string.today_add_drink) { onAddTo(Meal.DRINKS) }
+                        }
                     }
                     summary.nextEmptyMeal?.let { meal ->
                         AddMealCard(
@@ -295,7 +297,7 @@ private fun TodayContent(
             }
             SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(horizontal = 8.dp))
         }
-        BottomActions(onLogFood, onScan, onWeigh, onEatOut)
+        BottomActions(onLogFood, onScan, onWeigh)
     }
 
     openMeal?.let { meal ->
@@ -537,16 +539,9 @@ private fun DayArrow(icon: ImageVector, label: String, dot: Boolean = false, onC
 
 /** "Scan" or "Add" on the Drinks card: icon and word, 48 dp high; [spoken] says it is for a drink. */
 @Composable
-private fun DrinkButton(icon: ImageVector, @StringRes text: Int, @StringRes spoken: Int, onClick: () -> Unit) {
-    val description = stringResource(spoken)
-    FilledTonalButton(
-        onClick = onClick,
-        contentPadding = PaddingValues(horizontal = 10.dp),
-        modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = description },
-    ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
-        Spacer(Modifier.width(4.dp))
-        Text(stringResource(text), style = MaterialTheme.typography.labelLarge, maxLines = 1)
+private fun DrinkButton(icon: ImageVector, @StringRes spoken: Int, onClick: () -> Unit) {
+    FilledTonalIconButton(onClick = onClick, modifier = Modifier.size(44.dp)) {
+        Icon(icon, contentDescription = stringResource(spoken), modifier = Modifier.size(20.dp))
     }
 }
 
@@ -692,7 +687,7 @@ private fun MealCard(
         ) {
             IconTile(mealIcon(meal), mealTint(meal))
             Column(Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
+                Text(title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
                     items, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2, overflow = TextOverflow.Ellipsis,
@@ -834,7 +829,7 @@ private fun suggestionText(s: ReviewSuggestion): Int = when (s) {
  * row below, so no label gets cut off.
  */
 @Composable
-private fun BottomActions(onLogFood: () -> Unit, onScan: () -> Unit, onWeigh: () -> Unit, onEatOut: () -> Unit) {
+private fun BottomActions(onLogFood: () -> Unit, onScan: () -> Unit, onWeigh: () -> Unit) {
     val stacked = LocalDensity.current.fontScale >= LARGE_TEXT_SCALE
     val logFood = @Composable { modifier: Modifier ->
         Button(
@@ -843,20 +838,21 @@ private fun BottomActions(onLogFood: () -> Unit, onScan: () -> Unit, onWeigh: ()
             contentPadding = PaddingValues(horizontal = 12.dp),
             modifier = modifier
                 .shadow(6.dp, CircleShape, ambientColor = MaterialTheme.colorScheme.primary, spotColor = MaterialTheme.colorScheme.primary)
-                .heightIn(min = 58.dp),
+                .heightIn(min = 52.dp),
         ) {
             Icon(TodayIcons.Add, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(6.dp))
             Text(
                 stringResource(R.string.today_log_food_title),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Black),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
     val shortcuts = @Composable { modifier: Modifier ->
         Shortcut(TodayIcons.Scan, stringResource(R.string.today_scan), onScan, modifier)
         Shortcut(TodayIcons.Weigh, stringResource(R.string.today_weigh), onWeigh, modifier)
-        Shortcut(TodayIcons.EatOut, stringResource(R.string.today_eat_out), onEatOut, modifier)
     }
     if (stacked) {
         Column(
@@ -894,10 +890,10 @@ private fun Shortcut(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
-        modifier = modifier.sizeIn(minWidth = 58.dp, minHeight = 58.dp),
+        modifier = modifier.sizeIn(minWidth = 64.dp, minHeight = 52.dp),
     ) {
         Column(
-            Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+            Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {

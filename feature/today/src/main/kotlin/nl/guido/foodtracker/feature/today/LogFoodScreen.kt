@@ -259,6 +259,15 @@ private fun LogFoodContent(
                         onClick = onAllRecipes,
                     )
                 }
+                // Eating out lives here now, not as a button on Today: a restaurant meal is one way to log a meal.
+                item(key = "eat-out") {
+                    FoodRow(
+                        title = stringResource(R.string.today_eat_out),
+                        plainLine = null,
+                        detail = stringResource(R.string.today_eat_out_detail),
+                        onClick = onTypeKcal,
+                    )
+                }
             }
             if (ui.pinned.isNotEmpty() || ui.pinnedFoods.isNotEmpty()) {
                 section(R.string.today_section_favourites)

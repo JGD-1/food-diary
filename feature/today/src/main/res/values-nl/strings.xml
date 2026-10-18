@@ -124,6 +124,7 @@
     <string name="today_online_unreachable">Open Food Facts is niet bereikbaar. Controleer je internet, of scan de barcode.</string>
     <string name="today_all_recipes">Recepten ›</string>
     <string name="today_all_recipes_detail">Je recepten en pannen met eten</string>
+    <string name="today_eat_out_detail">Restaurant, afhaal of eten bij vrienden</string>
     <string name="today_section_favourites">Favorieten</string>
     <string name="today_section_pot">Uit de pan</string>
     <string name="today_section_recent">Recent</string>
