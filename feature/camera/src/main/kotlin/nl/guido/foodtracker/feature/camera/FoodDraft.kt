@@ -4,6 +4,7 @@ import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.core.model.ProductName
 import nl.guido.foodtracker.feature.camera.read.LabelValues
 
 /** The food form after a label scan, typed in by hand, or opened to edit a food: text fields. */
@@ -63,6 +64,13 @@ data class FoodDraft(
             isDrink = isDrink,
         )
     }
+
+    /** The draft with this name and brand filled in (from the food database, or typed before a retake). */
+    fun withName(known: ProductName?): FoodDraft =
+        if (known == null) this else copy(name = known.name, brand = known.brand.orEmpty())
+
+    /** The name and brand typed so far, or null when there is no name yet. */
+    fun knownName(): ProductName? = name.trim().takeIf { it.isNotEmpty() }?.let { ProductName(it, brand.trim().ifEmpty { null }) }
 
     companion object {
         fun fromLabel(values: LabelValues, barcode: String?, drinkHint: Boolean) = FoodDraft(

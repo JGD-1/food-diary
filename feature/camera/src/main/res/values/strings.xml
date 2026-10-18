@@ -21,6 +21,8 @@
     <string name="camera_looking_up">Looking up %1$s…</string>
     <string name="camera_not_found_title">We don\'t know this product yet</string>
     <string name="camera_not_found_body">Scan its nutrition label and we\'ll remember it next time.</string>
+    <string name="camera_not_found_known_title">This is %1$s</string>
+    <string name="camera_not_found_known_body">We don\'t have its nutrition yet. Scan the label and we\'ll remember it next time.</string>
     <string name="camera_offline_title">We couldn\'t look this up right now</string>
     <string name="camera_offline_body">There may be no internet. You can scan the nutrition label instead.</string>
     <string name="camera_scan_again">Scan again</string>

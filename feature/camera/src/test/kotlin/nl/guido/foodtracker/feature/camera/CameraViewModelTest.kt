@@ -16,6 +16,7 @@ import nl.guido.foodtracker.core.data.repo.SessionRepository
 import nl.guido.foodtracker.core.model.CommonPortions
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.Portion
+import nl.guido.foodtracker.core.model.ProductName
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.FoodSource
 import nl.guido.foodtracker.core.model.Id
@@ -54,8 +55,10 @@ class CameraViewModelTest {
         val food: Food?,
         val fail: Boolean = false,
         val found: Map<String, List<Food>> = emptyMap(),
+        val names: Map<String, ProductName> = emptyMap(),
     ) : FoodSource {
         val searched = mutableListOf<String>()
+        override suspend fun nameByBarcode(code: String) = names[code]
         override suspend fun byBarcode(code: String): Food? {
             if (fail) throw IOException("no internet")
             return food?.takeIf { it.barcode == code }
@@ -125,6 +128,31 @@ class CameraViewModelTest {
         assertEquals(CameraStep.NotFound("8710398527554", offline = false), vm.step.value)
         vm.scanLabel()
         assertEquals(CameraStep.PhotoLabel("8710398527554"), vm.step.value)
+    }
+
+    @Test fun `a product the database knows without calories starts the label scan with its name`() {
+        val peanut = ProductName("Pindakaas", "AH")
+        val vm = vm(FakeSource(null, names = mapOf("8710398527554" to peanut)))
+        vm.see("8710398527554")
+        assertEquals(CameraStep.NotFound("8710398527554", offline = false, known = peanut), vm.step.value)
+        vm.scanLabel()
+        vm.onLabelPhotoTaken()
+        vm.onLabelRead(emptyList())
+        val draft = (vm.step.value as CameraStep.EditFood).draft
+        assertEquals("Pindakaas", draft.name)
+        assertEquals("AH", draft.brand)
+        assertEquals("8710398527554", draft.barcode)
+    }
+
+    @Test fun `typing the food also starts with the known name, and a retake keeps the name`() {
+        val vm = vm(FakeSource(null, names = mapOf("8710398527554" to ProductName("Pindakaas", null))))
+        vm.see("8710398527554")
+        vm.typeFood()
+        val edit = vm.step.value as CameraStep.EditFood
+        assertEquals("Pindakaas", edit.draft.name)
+        vm.onDraftChange(edit.draft.copy(name = "Pindakaas crunchy"))
+        vm.scanLabel()
+        assertEquals(CameraStep.PhotoLabel("8710398527554", ProductName("Pindakaas crunchy", null)), vm.step.value)
     }
 
     @Test fun `no internet offers the alternatives too`() {

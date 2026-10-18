@@ -10,6 +10,7 @@ import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.FoodSource
 import nl.guido.foodtracker.core.model.Id
+import nl.guido.foodtracker.core.model.ProductName
 import nl.guido.foodtracker.feature.food.nevo.NevoImporter
 import nl.guido.foodtracker.feature.food.nevo.NevoInfo
 import nl.guido.foodtracker.feature.food.off.OpenFoodFacts
@@ -47,23 +48,30 @@ internal class RealFoodSource(
     /** Barcodes Open Food Facts didn't know, so we don't ask again for a day. */
     private val unknown = mutableMapOf<String, Long>()
 
+    /** Names Open Food Facts had for barcodes without calories, for [nameByBarcode]. */
+    private val names = mutableMapOf<String, ProductName>()
+
     override suspend fun byBarcode(code: String): Food? {
         val barcode = code.trim()
         foods.byBarcode(barcode)?.let { return it }
         val askedAt = synchronized(unknown) { unknown[barcode] }
         if (askedAt != null && clock() - askedAt < DAY) return null
-        val found = try {
-            off.product(barcode)
+        val lookup = try {
+            off.lookUp(barcode)
         } catch (e: IOException) {
             return null
         }
+        val found = lookup?.food
         if (found == null) {
             synchronized(unknown) { unknown[barcode] = clock() }
+            lookup?.name?.let { name -> synchronized(names) { names[barcode] = name } }
             return null
         }
         foods.save(found)
         return found
     }
+
+    override suspend fun nameByBarcode(code: String): ProductName? = synchronized(names) { names[code.trim()] }
 
     override suspend fun search(text: String): List<Food> {
         val words = searchWords(text)

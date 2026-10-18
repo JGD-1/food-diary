@@ -20,6 +20,7 @@ import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodNames
 import nl.guido.foodtracker.core.model.FoodSource
 import nl.guido.foodtracker.core.model.Portion
+import nl.guido.foodtracker.core.model.ProductName
 import nl.guido.foodtracker.core.model.WeightSource
 import nl.guido.foodtracker.core.model.newId
 import nl.guido.foodtracker.feature.camera.read.Barcodes
@@ -42,9 +43,10 @@ internal sealed interface CameraStep {
     data object ScanBarcode : CameraStep
     data class TypeBarcode(val text: String = "", val invalid: Boolean = false) : CameraStep
     data class LookingUp(val code: String) : CameraStep
-    data class NotFound(val code: String, val offline: Boolean) : CameraStep
-    data class PhotoLabel(val barcode: String?) : CameraStep
-    data class ReadingLabel(val barcode: String?) : CameraStep
+    /** [known]: the name and brand the food database has without calories; the label scan starts with them. */
+    data class NotFound(val code: String, val offline: Boolean, val known: ProductName? = null) : CameraStep
+    data class PhotoLabel(val barcode: String?, val known: ProductName? = null) : CameraStep
+    data class ReadingLabel(val barcode: String?, val known: ProductName? = null) : CameraStep
     /** [readCount]: how many of the 4 values the label scan found; null when typed by hand. */
     data class EditFood(val draft: FoodDraft, val readCount: Int?) : CameraStep
     /** [pieces]: common pieces for this food ("1 apple ≈ 150 g"), shown as chips next to serving and pack. */
@@ -180,7 +182,7 @@ internal class CameraViewModel @Inject constructor(
                 // Our own foods first (labels scanned earlier), then the food database.
                 val food = foods.byBarcode(code) ?: foodSource.byBarcode(code)
                 if (food == null) {
-                    CameraStep.NotFound(code, offline = false)
+                    CameraStep.NotFound(code, offline = false, known = foodSource.nameByBarcode(code))
                 } else {
                     // Make sure the food is stored, so the screen that opened us can find it by id.
                     if (foods.get(food.id) == null) foods.save(food)
@@ -203,28 +205,30 @@ internal class CameraViewModel @Inject constructor(
     // ---- Label ----
 
     fun scanLabel() {
-        val barcode = when (val s = _step.value) {
-            is CameraStep.NotFound -> s.code
-            is CameraStep.EditFood -> s.draft.barcode
-            else -> null
+        when (val s = _step.value) {
+            is CameraStep.NotFound -> go(CameraStep.PhotoLabel(s.code, s.known))
+            // Retaking the photo keeps the name typed so far.
+            is CameraStep.EditFood -> go(CameraStep.PhotoLabel(s.draft.barcode, s.draft.knownName()))
+            else -> go(CameraStep.PhotoLabel(null))
         }
-        go(CameraStep.PhotoLabel(barcode))
     }
 
     fun onLabelPhotoTaken() {
-        (_step.value as? CameraStep.PhotoLabel)?.let { go(CameraStep.ReadingLabel(it.barcode)) }
+        (_step.value as? CameraStep.PhotoLabel)?.let { go(CameraStep.ReadingLabel(it.barcode, it.known)) }
     }
 
     /** Text found on the label photo; empty when the photo or reading failed. */
     fun onLabelRead(lines: List<TextLine>) {
         val reading = _step.value as? CameraStep.ReadingLabel ?: return
         val values = NutritionLabelParser.parse(lines)
-        go(CameraStep.EditFood(FoodDraft.fromLabel(values, reading.barcode, drinkHint), values.foundCount))
+        val draft = FoodDraft.fromLabel(values, reading.barcode, drinkHint).withName(reading.known)
+        go(CameraStep.EditFood(draft, values.foundCount))
     }
 
     fun typeFood() {
-        val barcode = (_step.value as? CameraStep.NotFound)?.code
-        go(CameraStep.EditFood(FoodDraft(isDrink = drinkHint, barcode = barcode), readCount = null))
+        val notFound = _step.value as? CameraStep.NotFound
+        val draft = FoodDraft(isDrink = drinkHint, barcode = notFound?.code).withName(notFound?.known)
+        go(CameraStep.EditFood(draft, readCount = null))
     }
 
     fun onDraftChange(draft: FoodDraft) {

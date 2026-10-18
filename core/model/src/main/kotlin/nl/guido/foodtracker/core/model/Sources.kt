@@ -16,7 +16,16 @@ interface FoodSource {
 
     /** Search that may use the internet (Open Food Facts). Only on an explicit search, never per keystroke. */
     suspend fun searchOnline(text: String): List<Food> = emptyList()
+
+    /**
+     * Name and brand the food database has for a barcode without calories, so a label scan can start
+     * with them. Only what the last [byBarcode] learned: never asks the internet itself.
+     */
+    suspend fun nameByBarcode(code: String): ProductName? = null
 }
+
+/** A product's name and brand without its nutrition (e.g. an Open Food Facts product nobody filled in yet). */
+data class ProductName(val name: String, val brand: String?)
 
 /**
  * Common pieces for a food, e.g. Portion(150.0, "1 apple"), shown as amount chips (finding 2).
