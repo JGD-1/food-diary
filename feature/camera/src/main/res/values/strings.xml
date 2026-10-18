@@ -78,6 +78,8 @@
     <string name="camera_scale_title">Read the scale</string>
     <string name="camera_scale_body">Point the camera at your scale\'s display.</string>
     <string name="camera_scale_reading">%1$s g</string>
+    <string name="camera_scale_reading_minus">−%1$s g</string>
+    <string name="camera_scale_taken_off">The scale shows a minus: %1$s g was taken off it.</string>
     <string name="camera_scale_zero">The scale shows 0. Put the food on it.</string>
     <string name="camera_scale_use">Use %1$s g</string>
     <string name="camera_scale_hint">Can\'t read it yet. Move closer, avoid reflections on the display, or turn on the light.</string>

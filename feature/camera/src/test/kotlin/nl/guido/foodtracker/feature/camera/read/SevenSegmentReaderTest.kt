@@ -44,6 +44,17 @@ class SevenSegmentReaderTest {
         assertEquals(0, SevenSegmentReader.read(display("0", 0.0)))
     }
 
+    @Test fun `reads a minus in front of the digits`() {
+        for (turn in listOf(0, 90, 180, 270, 25)) {
+            assertEquals("turned $turn°", -25, SevenSegmentReader.read(display("-25", turn.toDouble())))
+            assertEquals("turned $turn°", -669, SevenSegmentReader.read(display("-669", turn.toDouble())))
+            // A "1" only has right-hand bars, so the minus stands further off.
+            assertEquals("turned $turn°", -12, SevenSegmentReader.read(display("-12", turn.toDouble())))
+            assertEquals("turned $turn°", -1053, SevenSegmentReader.read(display("-1053", turn.toDouble())))
+        }
+        assertEquals(-5, SevenSegmentReader.read(display("-5", 0.0)))
+    }
+
     @Test fun `an empty picture has no number`() =
         assertNull(SevenSegmentReader.read(Gray(300, 200, IntArray(300 * 200) { 12 })))
 
@@ -72,7 +83,7 @@ class SevenSegmentReaderTest {
     /** Which bars (a..g) each digit lights. */
     private val segments = mapOf(
         '0' to "abcdef", '1' to "bc", '2' to "abdeg", '3' to "abcdg", '4' to "bcfg",
-        '5' to "acdfg", '6' to "acdefg", '7' to "abc", '8' to "abcdefg", '9' to "abcdfg",
+        '5' to "acdfg", '6' to "acdefg", '7' to "abc", '8' to "abcdefg", '9' to "abcdfg", '-' to "g",
     )
 
     /** Draws a scale display showing [digits] plus a small "g" sign, turned by [degrees]. */

@@ -78,6 +78,8 @@
     <string name="camera_scale_title">Weegschaal aflezen</string>
     <string name="camera_scale_body">Richt de camera op het schermpje van je weegschaal.</string>
     <string name="camera_scale_reading">%1$s g</string>
+    <string name="camera_scale_reading_minus">−%1$s g</string>
+    <string name="camera_scale_taken_off">De weegschaal staat in de min: er is %1$s g af gehaald.</string>
     <string name="camera_scale_zero">De weegschaal staat op 0. Leg het eten erop.</string>
     <string name="camera_scale_use">%1$s g gebruiken</string>
     <string name="camera_scale_hint">Nog niet leesbaar. Ga dichterbij, vermijd weerspiegeling op het scherm, of zet de lamp aan.</string>

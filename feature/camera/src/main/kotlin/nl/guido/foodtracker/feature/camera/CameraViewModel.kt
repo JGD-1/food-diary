@@ -33,6 +33,7 @@ import nl.guido.foodtracker.feature.camera.read.Stabilizer
 import nl.guido.foodtracker.feature.camera.read.TextLine
 import java.util.Optional
 import javax.inject.Inject
+import kotlin.math.abs
 
 internal enum class CameraMode { BARCODE, LABEL, SCALE }
 
@@ -290,8 +291,12 @@ internal class CameraViewModel @Inject constructor(
         (_step.value as? CameraStep.ReadScale)?.let { go(it.copy(typed = text)) }
     }
 
-    /** Accept the grams: the scale reading, or the typed number when typing. */
-    fun useGrams(grams: Double) {
+    /**
+     * Accept the grams: the scale reading, or the typed number when typing. A reading below zero
+     * (the scale was zeroed with the food on it, then some was taken off) counts what was taken.
+     */
+    fun useGrams(reading: Double) {
+        val grams = abs(reading)
         if (grams <= 0) return
         val s = _step.value as? CameraStep.ReadScale ?: return
         if (s.food == null) {

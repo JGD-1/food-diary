@@ -45,7 +45,7 @@ object SevenSegmentReader {
     internal data class Blob(val x: Double, val y: Double, val angle: Double, val length: Double, val width: Double, val area: Int)
 
     /**
-     * The weight in grams, or null when no clear number is seen. The picture is looked at in a few
+     * The weight in grams (below 0 when the display shows a minus), or null when no clear number is seen. The picture is looked at in a few
      * ways; the number those readings agree on most wins.
      */
     fun read(image: Gray): Int? {
@@ -138,16 +138,20 @@ object SevenSegmentReader {
                 ?: DigitSlots(u(bar) - halfWidth, isOne = true).also { digits += it }
             one.lit = one.lit or if (v(bar) < middle) B else C
         }
-        val ordered = digits.sortedBy { it.centre }
+        val sorted = digits.sortedBy { it.centre }
+        // A minus ("−30": the scale was zeroed with the food on it and some was taken off) is only
+        // a middle bar in front of the digits. Seen with the digits, it is a slot with just that bar.
+        val minusSlot = sorted.size > 1 && sorted.first().lit == G
+        val ordered = if (minusSlot) sorted.drop(1) else sorted
         val values = ordered.map { DIGITS[it.lit] }
         if (values.isEmpty() || values.size > 5 || values.any { it == null }) return null
-        // Digits on one display are evenly spaced; a big hole means two separate things were seen.
 
         var score = values.size.toDouble() - unused
         // Right way up or upside down? The small unit sign ("g") sits top right of the digits, so
         // compare how much lights up there with the same spot turned round (bottom left).
         val first = ordered.first().centre
         val last = ordered.last().centre
+        val start = sorted.first().centre // the minus, when it is grouped with the digits
         fun litIn(u0: Double, u1: Double, v0: Double, v1: Double): Int {
             var count = 0
             for (p in bright) {
@@ -160,7 +164,7 @@ object SevenSegmentReader {
             return count
         }
         val topRight = litIn(last + halfWidth * 1.5, last + halfWidth * 3.5, upper - rowGap * 0.8, upper + rowGap * 0.2)
-        val bottomLeft = litIn(first - halfWidth * 3.5, first - halfWidth * 1.5, lower - rowGap * 0.2, lower + rowGap * 0.8)
+        val bottomLeft = litIn(start - halfWidth * 3.5, start - halfWidth * 1.5, lower - rowGap * 0.2, lower + rowGap * 0.8)
         if (topRight > bottomLeft * 1.5 + 3) score += 2
         if (bottomLeft > topRight * 1.5 + 3) score -= 2
         // A "1" only has bars on its right-hand side, so it sits at the normal spacing from its
@@ -172,9 +176,22 @@ object SevenSegmentReader {
             val gap = if (i + 1 < ordered.size) ordered[i + 1].centre - one.centre else one.centre - ordered[i - 1].centre
             score -= 2 * abs(gap - pitch) / pitch
         }
+        // The minus can also stand too far off to be grouped with the digits (before a "1", which
+        // only has right-hand bars): look for a lit middle bar one digit to the left, with nothing above or below it.
+        val minus = minusSlot || run {
+            val bar = across.map { it.area }.sorted()[across.size / 2]
+            val u0 = first - pitch - halfWidth * 1.5
+            val u1 = first - pitch + halfWidth * 1.5
+            val middleBar = litIn(u0, u1, middle - rowGap * 0.25, middle + rowGap * 0.25)
+            val aboveOrBelow = litIn(u0, u1, upper - rowGap * 0.7, middle - rowGap * 0.3) +
+                litIn(u0, u1, middle + rowGap * 0.3, lower + rowGap * 0.7)
+            middleBar > bar * 0.4 && aboveOrBelow < bar * 0.3
+        }
+        if (minus) score += 1
         // Leading zeros don't happen on a scale ("0" alone does).
         if (values.size > 1 && values.first() == 0) score -= 3
-        return Reading(values.joinToString("").toInt(), score)
+        val number = values.joinToString("").toInt()
+        return Reading(if (minus) -number else number, score)
     }
 
     private class DigitSlots(val centre: Double, val isOne: Boolean = false) { var lit = 0 }
