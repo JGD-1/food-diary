@@ -23,6 +23,7 @@ import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.ProductName
 import nl.guido.foodtracker.core.model.WeightSource
 import nl.guido.foodtracker.core.model.newId
+import nl.guido.foodtracker.core.ui.Routes
 import nl.guido.foodtracker.feature.camera.read.Barcodes
 import nl.guido.foodtracker.feature.camera.read.NutritionLabelParser
 import nl.guido.foodtracker.feature.camera.read.PackTextVotes
@@ -32,6 +33,7 @@ import nl.guido.foodtracker.feature.camera.read.packWords
 import nl.guido.foodtracker.feature.camera.read.ScaleParse
 import nl.guido.foodtracker.feature.camera.read.Stabilizer
 import nl.guido.foodtracker.feature.camera.read.TextLine
+import java.net.URLEncoder
 import java.util.Optional
 import javax.inject.Inject
 import kotlin.math.abs
@@ -99,6 +101,9 @@ internal class CameraViewModel @Inject constructor(
         else -> CameraMode.BARCODE
     }
     private val drinkHint = savedStateHandle.get<Boolean>(ARG_DRINK) ?: false
+    /** "Scan the label again" from Edit food: the label's values replace this food's (same id, barcode, packs). */
+    private val replaceId = savedStateHandle.get<String>(ARG_REPLACE)
+    private var replacing: Food? = null
 
     private val _step = MutableStateFlow(firstStep())
     val step: StateFlow<CameraStep> = _step.asStateFlow()
@@ -131,6 +136,11 @@ internal class CameraViewModel @Inject constructor(
 
     init {
         if (_step.value is CameraStep.ReadScale) listenToScales()
+        if (replaceId != null) viewModelScope.launch {
+            val food = foods.get(replaceId) ?: return@launch
+            replacing = food
+            (_step.value as? CameraStep.PhotoLabel)?.let { go(CameraStep.PhotoLabel(food.barcode, ProductName(food.name, food.brand))) }
+        }
     }
 
     private fun firstStep(): CameraStep = when (mode) {
@@ -223,7 +233,7 @@ internal class CameraViewModel @Inject constructor(
     fun onLabelRead(lines: List<TextLine>) {
         val reading = _step.value as? CameraStep.ReadingLabel ?: return
         val values = NutritionLabelParser.parse(lines)
-        val draft = FoodDraft.fromLabel(values, reading.barcode, drinkHint).withName(reading.known)
+        val draft = FoodDraft.fromLabel(values, reading.barcode, drinkHint || replacing?.isDrink == true).withName(reading.known)
         go(CameraStep.EditFood(draft, values.foundCount))
     }
 
@@ -239,6 +249,14 @@ internal class CameraViewModel @Inject constructor(
 
     fun saveFood() {
         val edit = _step.value as? CameraStep.EditFood ?: return
+        replacing?.let { old ->
+            val food = edit.draft.applyTo(old) ?: return
+            viewModelScope.launch {
+                foods.save(food)
+                _outcome.value = CameraOutcome(food.id, grams = 0.0)
+            }
+            return
+        }
         val food = edit.draft.toFood(newId(), session.currentUser.value.userId) ?: return
         viewModelScope.launch {
             foods.save(food)
@@ -419,6 +437,11 @@ internal class CameraViewModel @Inject constructor(
     companion object {
         const val ARG_MODE = "mode"
         const val ARG_DRINK = "drink"
+        const val ARG_REPLACE = "replace"
+
+        /** The label camera for "Scan the label again": its values replace this food's. */
+        fun relabelRoute(foodId: String) =
+            "${Routes.CAMERA}?$ARG_MODE=label&$ARG_REPLACE=${URLEncoder.encode(foodId, Charsets.UTF_8.name()).replace("+", "%20")}"
         private const val SEARCH_PAUSE_MS = 250L
     }
 }

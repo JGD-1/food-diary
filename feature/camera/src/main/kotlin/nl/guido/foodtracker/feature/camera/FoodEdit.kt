@@ -10,12 +10,18 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -36,15 +42,19 @@ import nl.guido.foodtracker.core.ui.Routes
 import nl.guido.foodtracker.core.ui.ScreenHeader
 import javax.inject.Inject
 
-/** "Edit food": loading, the form, a food that can't be changed (NEVO, or gone), or saved. */
+/** "Edit food": loading, the form, a food that can't be changed (NEVO, or gone), saved or deleted. */
 internal sealed interface FoodEditState {
     data object Loading : FoodEditState
     data class Editing(val original: Food, val draft: FoodDraft) : FoodEditState
     data object CannotEdit : FoodEditState
     data object Saved : FoodEditState
+    data object Deleted : FoodEditState
 }
 
-/** Routes.FOOD_EDIT ("food-edit/{foodId}"): change a food's name, brand and per 100 g values. */
+/**
+ * Routes.FOOD_EDIT ("food-edit/{foodId}"): change a food's name, brand and per 100 g values,
+ * scan its label again, or delete it (a wrong scan). Meals already logged keep their numbers.
+ */
 @HiltViewModel
 internal class FoodEditViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -71,12 +81,24 @@ internal class FoodEditViewModel @Inject constructor(
         _state.value = FoodEditState.Saved
         viewModelScope.launch { foods.save(updated) }
     }
+
+    /** Gone from search and barcode scans (also on the partner's phone); next scan starts fresh. */
+    fun delete() {
+        val s = _state.value as? FoodEditState.Editing ?: return
+        _state.value = FoodEditState.Deleted
+        viewModelScope.launch { foods.delete(s.original.id) }
+    }
 }
 
 @Composable
-internal fun FoodEditScreen(onDone: () -> Unit, vm: FoodEditViewModel = hiltViewModel()) {
+internal fun FoodEditScreen(
+    onDone: () -> Unit,
+    onScanAgain: (foodId: String) -> Unit,
+    vm: FoodEditViewModel = hiltViewModel(),
+) {
     val state by vm.state.collectAsStateWithLifecycle()
-    LaunchedEffect(state) { if (state == FoodEditState.Saved) onDone() }
+    var askDelete by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(state) { if (state == FoodEditState.Saved || state == FoodEditState.Deleted) onDone() }
     BackHandler(onBack = onDone)
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         ScreenHeader(stringResource(R.string.camera_edit_title), onBack = onDone)
@@ -85,7 +107,7 @@ internal fun FoodEditScreen(onDone: () -> Unit, vm: FoodEditViewModel = hiltView
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             when (val s = state) {
-                FoodEditState.Loading, FoodEditState.Saved -> Unit
+                FoodEditState.Loading, FoodEditState.Saved, FoodEditState.Deleted -> Unit
                 FoodEditState.CannotEdit -> Text(
                     stringResource(R.string.camera_edit_cannot),
                     style = MaterialTheme.typography.bodyLarge,
@@ -103,8 +125,29 @@ internal fun FoodEditScreen(onDone: () -> Unit, vm: FoodEditViewModel = hiltView
                         enabled = s.draft.canSave,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                     ) { Text(stringResource(R.string.camera_edit_save)) }
+                    OutlinedButton(
+                        onClick = { onScanAgain(s.original.id) },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    ) { Text(stringResource(R.string.camera_edit_scan_again)) }
+                    OutlinedButton(
+                        onClick = { askDelete = true },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    ) { Text(stringResource(R.string.camera_edit_delete)) }
                 }
             }
         }
+    }
+    if (askDelete && state is FoodEditState.Editing) {
+        AlertDialog(
+            onDismissRequest = { askDelete = false },
+            title = { Text(stringResource(R.string.camera_edit_delete_title)) },
+            text = { Text(stringResource(R.string.camera_edit_delete_body)) },
+            confirmButton = {
+                TextButton(onClick = { askDelete = false; vm.delete() }) { Text(stringResource(R.string.camera_edit_delete_yes)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { askDelete = false }) { Text(stringResource(R.string.camera_edit_delete_no)) }
+            },
+        )
     }
 }

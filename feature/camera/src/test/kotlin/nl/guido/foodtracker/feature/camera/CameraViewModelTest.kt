@@ -183,6 +183,29 @@ class CameraViewModelTest {
         assertEquals(food, foods.saved[food.id])
     }
 
+    @Test fun `scanning the label again replaces the food's values, keeping its id, barcode and name`() {
+        val wrong = Food(
+            "label-1", "Crackers", brand = "Bakker", barcode = "8710398527554",
+            per100g = Nutrients(38.0, 1.0, 7.0, 0.3), source = FoodOrigin.LABEL, ownerId = "user-1", packageG = 250.0,
+        )
+        foods.saved[wrong.id] = wrong
+        val vm = vm(args = mapOf(CameraViewModel.ARG_MODE to "label", CameraViewModel.ARG_REPLACE to wrong.id))
+        assertEquals(CameraStep.PhotoLabel("8710398527554", ProductName("Crackers", "Bakker")), vm.step.value)
+        vm.onLabelPhotoTaken()
+        vm.onLabelRead(
+            listOf("Voedingswaarde per 100 g", "Energie 1600 kJ/382 kcal", "Vet 3,1 g", "Koolhydraten 75 g", "Eiwitten 11 g")
+                .mapIndexed { i, t -> TextLine(t, 0f, i * 40f, 300f, i * 40f + 30f) },
+        )
+        assertEquals("Crackers", (vm.step.value as CameraStep.EditFood).draft.name)
+        vm.saveFood()
+        assertEquals(CameraOutcome("label-1", 0.0), vm.outcome.value) // done: no "how much" step
+        assertEquals(listOf("label-1"), foods.saved.keys.toList())
+        val saved = foods.saved.getValue("label-1")
+        assertEquals(Nutrients(382.0, 11.0, 75.0, 3.1), saved.per100g)
+        assertEquals("8710398527554", saved.barcode)
+        assertEquals(250.0, saved.packageG!!, 0.0)
+    }
+
     @Test fun `unreadable label opens the form to type`() {
         val vm = vm(args = mapOf(CameraViewModel.ARG_MODE to "label"))
         vm.onLabelPhotoTaken()
