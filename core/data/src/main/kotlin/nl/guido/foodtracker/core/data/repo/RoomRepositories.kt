@@ -46,6 +46,7 @@ internal class RoomFoodRepository @Inject constructor(private val dao: FoodDao) 
         val time = now()
         dao.upsertAll(foods.map { it.toEntity(time) })
     }
+    override suspend fun delete(id: Id) = dao.markDeleted(id, now())
 }
 
 internal class RoomRecipeRepository @Inject constructor(private val dao: RecipeDao) : RecipeRepository {

@@ -25,6 +25,7 @@ internal class FakeFoods(vararg start: Food) : FoodRepository {
 
     override suspend fun save(food: Food) { rows[food.id] = food }
     override suspend fun saveAll(foods: List<Food>) = foods.forEach { rows[it.id] = it }
+    override suspend fun delete(id: Id) { rows.remove(id) }
 }
 
 internal class FakeWeb(var reply: (String) -> WebResponse = { WebResponse(404, "") }) : WebClient {

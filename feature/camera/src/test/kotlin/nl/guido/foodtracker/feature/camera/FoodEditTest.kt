@@ -37,6 +37,7 @@ class FoodEditTest {
         override fun search(text: String, limit: Int): Flow<List<Food>> = flowOf(emptyList())
         override suspend fun save(food: Food) { saved[food.id] = food }
         override suspend fun saveAll(foods: List<Food>) = foods.forEach { saved[it.id] = it }
+        override suspend fun delete(id: Id) { saved.remove(id) }
     }
 
     @Before fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
