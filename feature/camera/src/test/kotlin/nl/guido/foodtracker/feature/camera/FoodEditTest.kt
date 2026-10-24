@@ -66,6 +66,14 @@ class FoodEditTest {
         assertEquals(750.0, saved.packageG!!, 0.0)
     }
 
+    @Test fun `deleting a wrongly scanned food removes it`() {
+        val foods = FakeFoods(muesli)
+        val vm = vm(foods, muesli.id)
+        vm.delete()
+        assertEquals(FoodEditState.Deleted, vm.state.value)
+        assertTrue(foods.saved.isEmpty())
+    }
+
     @Test fun `NEVO foods and unknown ids can't be edited`() {
         assertEquals(FoodEditState.CannotEdit, vm(FakeFoods(apple), apple.id).state.value)
         assertEquals(FoodEditState.CannotEdit, vm(FakeFoods(), "gone").state.value)

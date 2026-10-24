@@ -75,6 +75,12 @@
     <string name="camera_edit_body">Change the numbers to match the packet. Food you logged before keeps its numbers.</string>
     <string name="camera_edit_cannot">This food can\'t be changed here. Foods from the NEVO table stay as they are.</string>
     <string name="camera_edit_save">Save changes</string>
+    <string name="camera_edit_scan_again">Scan the label again</string>
+    <string name="camera_edit_delete">Delete this food</string>
+    <string name="camera_edit_delete_title">Delete this food?</string>
+    <string name="camera_edit_delete_body">It won\'t show up in search or when you scan its barcode. Next time you scan it, you start fresh. Meals you already logged keep their numbers.</string>
+    <string name="camera_edit_delete_yes">Delete</string>
+    <string name="camera_edit_delete_no">Keep it</string>
 
     <!-- Scale -->
     <string name="camera_scale_title">Read the scale</string>
