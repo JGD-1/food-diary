@@ -1,0 +1,36 @@
+0|0|1151|251|1338|DS
+0|88|1389|320|1435|VEZELMETER
+0|137|1583|398|1628|EROW WA VEZELS
+0|133|1640|418|1694|DIt brood bevat 3,1g
+0|108|1681|468|1745|vOedingsvezels per 100 g
+0|0|2009|259|2059|RI-SCORE
+0|527|582|1150|652|Wite dubbelgevouwen platte tarwebroden
+0|516|637|1169|701|heredinten:verrijkt tarwebloem (TARWEbloem,
+0|493|678|1141|745|mineralen: calciumcarbonaat en ijzer()sulfaat,
+0|493|725|1153|789|vitaminen: niacine [B3] en thiamine (B1), water,
+0|493|774|1242|835|raapzaadolie, gist, brandewijnazijn, rijsmiddelen: E450,
+0|506|820|1221|873|ES00 en E341, zout, conserveermiddel: E282, geinacti-
+0|504|866|1222|919|veerde gist, TARWEzetmeel, TARWEbloem. E= door EU
+0|492|914|1210|960|qoedgekeurde hulpstof Verpakt onder beschermende
+0|492|962|1212|1013|atmosfeer. Alergenen: tarwe (gluten). Kan bevaten:
+0|518|993|1230|1070|melk. Gemiddelde voe pswaarde per 100 g; energje
+0|498|1058|1199|1102|kW 1212 / kcal 287, vetten 5,0 g, waarvan verzadigde
+0|500|1102|1231|1150|vetzuren 0,6g, koolhydraten 50,4 g, waarvan suiters
+0|500|1140|1139|1198|22g, vezels 3,7 g, eiwitten 8,2 g, zout O,86 g.
+0|526|1195|1092|1248|Berekingswije verwijder de verpakking.
+0|509|1237|1229|1289|Broodrooster: rooster 11,5 minuut. Grill: verwarm de
+0|527|1284|1225|1334|grill voor. Besprenkel de tlatbread met water en grill
+0|514|1334|1167|1386|ca.2 minuten. Regelmatig keren. Oven (180°C):
+0|518|1382|1239|1426|besprenkel de flatbread met water en verwarm in een
+0|521|1426|1135|1467|voorverwarmde oven gedurende 3 minuten.
+0|542|1461|1050|1506|Besaaradvies: koel en droog bewaren.
+0|549|1502|1159|1554|Gotsunentenserice: Jumbo Supermarkten B.V.
+0|543|1541|876|1583|Antwoordnummer 10072
+0|547|1576|903|1629|5460 VB Veghel, Nederland
+0|542|1619|695|1662|Jumbo.com
+0|538|1699|579|1743|leg
+0|609|1689|1003|1803|081226
+0|532|1787|1033|1891|6272 14:30- L6
+0|939|1597|1269|1717|200ge
+0|-16|2054|1173|2298|BD BUPUASTIE8718452633364"
+0|537|2218|615|2269|AFVAL

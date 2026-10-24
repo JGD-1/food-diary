@@ -1,0 +1,25 @@
+0|636|853|1368|925|Grana Padano kaas, min. 32% vet in droges
+0|636|914|1373|975|Ingrediënten: rauwe MELK, Zout, dierlijk stremsa
+0|632|964|1103|1024|cOnserveermiddel: El-lysozym.
+0|632|1013|958|1076|Allergenen: ei, melk.
+0|631|1070|1265|1124|Gemiddelde voedingswaarde per 100 g:
+0|632|1131|1400|1180|nergie kJ 1654 / kcal 398, vetten 29,0 g, waarvan
+0|633|1182|1353|1233|erzadigde vetzuren 18,0 g, koolhydraten 0,0 g
+0|632|1230|1421|1276|vaarvan suikers 0,0 g, vezels 0,0 g, eiwitten 33,0g,
+0|629|1284|781|1334|Dut 1,5 g.
+0|629|1338|1152|1375|en minste houdbaar tot en met:
+0|671|1424|885|1470|26P1149
+0|623|1570|1302|1634|Bewaaradvies: gekoeld bewaren (max. 7°C).
+0|649|1623|1244|1683|Waarschuwing: bereid met rauwe melk.
+0|620|1660|1347|1730|Consumentenservice: Jumbo Supermarkten BV
+0|618|1695|1432|1782|Antwoordnummer 10072, 5460 VB Veghel, Nederland
+0|619|1784|802|1818|Jumbo.com
+0|706|1900|724|1925|IT
+0|678|1932|752|1959|05 195
+0|699|1962|728|1988|UE
+0|627|2033|771|2062|VERPAKKING
+0|1096|1418|1346|1470|28-02-2027
+0|624|2224|776|2260|BIJ PLASTIC
+0|651|2246|748|2286|AFVAL
+0|1131|1848|1453|1967|200g e
+0|922|2154|1387|2290|8 "718452%37423"

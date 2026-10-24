@@ -13,3 +13,10 @@ fun pickLabelText(upright: List<TextLine>, turned: List<TextLine>): List<TextLin
 /** [needsTurning] and [pickLabelText] together, for a reader that can read turned on the spot. */
 fun readLabelText(upright: List<TextLine>, readTurned: () -> List<TextLine>): List<TextLine> =
     if (needsTurning(upright)) pickLabelText(upright, readTurned()) else upright
+
+/**
+ * Lines of an upside-down packet in reading order. The text reader reads each line the right way round,
+ * but lists them bottom to top with upside-down positions; turning the positions around fixes both.
+ */
+fun turnAround(lines: List<TextLine>): List<TextLine> =
+    lines.reversed().map { TextLine(it.text, -it.right, -it.bottom, -it.left, -it.top) }

@@ -215,4 +215,27 @@ class NutritionLabelParserTest {
         assertEquals(turned, readLabelText(nonsense) { turned })
         assertEquals(turned, readLabelText(turned) { error("no second read needed") })
     }
+
+    // Iceland chicken balti, as the phone read it: "g" read as "9", commas lost. The calories show which reading is right.
+    @Test fun `g read as 9 and lost commas are fixed by the calories`() {
+        val v = NutritionLabelParser.parse(
+            table(
+                row("(typical values)" to 0f, "Per 100g Microwaved" to 300f),
+                row("Energy" to 0f, "515 kJ / 123 kcal" to 300f),
+                row("Fat" to 0f, "6.79" to 300f),
+                row("(of which saturates" to 0f, "08g" to 300f),
+                row("Carbohydrate" to 0f, "499" to 300f),
+                row("(of which sugars" to 0f, "3.8g" to 300f),
+                row("Fibre" to 0f, "1.39" to 300f),
+                row("Protein" to 0f, "101g" to 300f),
+                row("Salt" to 0f, "079" to 300f),
+            ),
+        )
+        assertEquals(LabelValues(kcal = 123.0, protein = 10.1, carbs = 4.9, fat = 6.7, fibre = 1.3, sugar = 3.8, salt = 0.7), v)
+    }
+
+    @Test fun `numbers inside ingredient codes are not values`() {
+        val v = NutritionLabelParser.parse(text("(varkensvlees, zout, dextrose, antioxidanten: E301 en", "zeezout, vitaminen: B2, B12 en D."))
+        assertNull(v.salt)
+    }
 }

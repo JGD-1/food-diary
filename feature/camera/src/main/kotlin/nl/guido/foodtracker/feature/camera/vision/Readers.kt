@@ -18,6 +18,7 @@ import nl.guido.foodtracker.feature.camera.read.ScaleParse
 import nl.guido.foodtracker.feature.camera.read.TextLine
 import nl.guido.foodtracker.feature.camera.read.needsTurning
 import nl.guido.foodtracker.feature.camera.read.pickLabelText
+import nl.guido.foodtracker.feature.camera.read.turnAround
 import com.google.android.gms.tasks.Tasks
 import java.io.Closeable
 import kotlin.math.abs
@@ -158,10 +159,13 @@ internal class LabelReader : Closeable {
     override fun close() = recognizer.close()
 }
 
-internal fun Text.toLines(): List<TextLine> = textBlocks.flatMap { block ->
-    block.lines.mapNotNull { line ->
-        line.boundingBox?.let { box ->
-            TextLine(line.text, box.left.toFloat(), box.top.toFloat(), box.right.toFloat(), box.bottom.toFloat())
-        }
+internal fun Text.toLines(): List<TextLine> {
+    val lines = textBlocks.flatMap { it.lines }.filter { it.boundingBox != null }
+    val read = lines.map { line ->
+        val box = line.boundingBox!!
+        TextLine(line.text, box.left.toFloat(), box.top.toFloat(), box.right.toFloat(), box.bottom.toFloat())
     }
+    // Most lines upside down (a packet held the wrong way round): put them in reading order.
+    val upsideDown = lines.count { abs(it.angle) > 135f } * 2 > lines.size
+    return if (upsideDown) turnAround(read) else read
 }
