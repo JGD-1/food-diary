@@ -171,4 +171,71 @@ class NutritionLabelParserTest {
         assertEquals(250.0, NutritionLabelParser.parse(text("Energie (kJ/kcal) 1046/250")).kcal)
         assertEquals(250.0, NutritionLabelParser.parse(text("Energie kcal/kJ 250/1046")).kcal)
     }
+
+    @Test fun `values in one line without commas`() {
+        val v = NutritionLabelParser.parse(text("Per 100 g: Energie 1046 kJ / 250 kcal Vet 10 g Koolhydraten 30 g Eiwit 5 g Zout 1,1 g"))
+        assertEquals(LabelValues(kcal = 250.0, protein = 5.0, carbs = 30.0, fat = 10.0, salt = 1.1), v)
+    }
+
+    @Test fun `each name with its value on the next line`() {
+        val v = NutritionLabelParser.parse(text("Voedingswaarde per 100 g", "Energie", "250 kcal", "Vet", "10 g", "Koolhydraten", "30 g", "Eiwit", "5 g"))
+        assertEquals(LabelValues(kcal = 250.0, protein = 5.0, carbs = 30.0, fat = 10.0), v)
+    }
+
+    @Test fun `words broken over two lines with a hyphen`() {
+        val v = NutritionLabelParser.parse(
+            text("per 100 g: energie 1500 kJ/358 kcal, vetten 2 g, koolhy-", "draten 70 g, eiwit-", "ten 9 g, zout 0,5 g."),
+        )
+        assertEquals(LabelValues(kcal = 358.0, protein = 9.0, carbs = 70.0, fat = 2.0, salt = 0.5), v)
+    }
+
+    // AH sperziebonen: "vetten, waarvan" is the fat row itself, not a sub-row.
+    @Test fun `vetten waarvan and koolhydraten waarvan rows`() {
+        val v = NutritionLabelParser.parse(
+            table(
+                row("Voedingswaarde per" to 0f, "100 g" to 300f, "portie (200 g)" to 500f),
+                row("energie" to 0f, "106 kJ / 25 kcal" to 300f, "212 kJ / 51 kcal" to 500f),
+                row("vetten, waarvan" to 0f, "0,2 g" to 300f, "0,4 g" to 500f),
+                row("- verzadigde vetzuren" to 0f, "0,1 g" to 300f, "0,2 g" to 500f),
+                row("- onverzadigde vetzuren" to 0f, "0,1 g" to 300f, "0,2 g" to 500f),
+                row("koolhydraten, waarvan" to 0f, "1,8 g" to 300f, "3,6 g" to 500f),
+                row("- suikers" to 0f, "1,2 g" to 300f, "2,4 g" to 500f),
+                row("vezels" to 0f, "3,6 g" to 300f, "7,2 g" to 500f),
+                row("eiwitten" to 0f, "2,3 g" to 300f, "4,6 g" to 500f),
+                row("zout" to 0f, "0 g" to 300f, "0 g" to 500f),
+            ),
+        )
+        assertEquals(LabelValues(kcal = 25.0, protein = 2.3, carbs = 1.8, fat = 0.2, fibre = 3.6, sugar = 1.2, salt = 0.0), v)
+    }
+
+    @Test fun `an upside-down read that finds nothing is replaced by the turned read`() {
+        val nonsense = text("6 0 1noz 6 L'0 uelmie", "'6 L'L Sjayins ueniem")
+        val turned = text("per 100 g: energie 173 kJ / 41 kcal, vetten 0,2 g, koolhydraten 7,7 g, eiwitten 0,7 g")
+        assertTrue(needsTurning(nonsense))
+        assertEquals(turned, readLabelText(nonsense) { turned })
+        assertEquals(turned, readLabelText(turned) { error("no second read needed") })
+    }
+
+    // Iceland chicken balti, as the phone read it: "g" read as "9", commas lost. The calories show which reading is right.
+    @Test fun `g read as 9 and lost commas are fixed by the calories`() {
+        val v = NutritionLabelParser.parse(
+            table(
+                row("(typical values)" to 0f, "Per 100g Microwaved" to 300f),
+                row("Energy" to 0f, "515 kJ / 123 kcal" to 300f),
+                row("Fat" to 0f, "6.79" to 300f),
+                row("(of which saturates" to 0f, "08g" to 300f),
+                row("Carbohydrate" to 0f, "499" to 300f),
+                row("(of which sugars" to 0f, "3.8g" to 300f),
+                row("Fibre" to 0f, "1.39" to 300f),
+                row("Protein" to 0f, "101g" to 300f),
+                row("Salt" to 0f, "079" to 300f),
+            ),
+        )
+        assertEquals(LabelValues(kcal = 123.0, protein = 10.1, carbs = 4.9, fat = 6.7, fibre = 1.3, sugar = 3.8, salt = 0.7), v)
+    }
+
+    @Test fun `numbers inside ingredient codes are not values`() {
+        val v = NutritionLabelParser.parse(text("(varkensvlees, zout, dextrose, antioxidanten: E301 en", "zeezout, vitaminen: B2, B12 en D."))
+        assertNull(v.salt)
+    }
 }

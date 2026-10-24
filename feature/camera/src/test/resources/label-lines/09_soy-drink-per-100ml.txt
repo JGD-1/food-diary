@@ -1,0 +1,73 @@
+0|642|182|1403|306|Wehebben alles op een ijje genet watje uwil
+0|599|247|889|310|weten Oue one
+0|592|295|1448|379|Sojadrink met toegevoegd calcium, vitamine B2,
+0|591|337|1338|420|B12 en D, door verhitting langer houdbaar
+0|589|382|862|442|gemaakt (UHT)
+0|594|426|800|485|Dit zit ein
+0|585|474|1308|550|Ingrediënten: water, gepelde SOJAbonen 12%,
+0|585|514|1322|588|mineraal: calciumcarbonaat, stabilisator: E418,
+0|583|557|1304|627|zeezout, vitaminen: riboflavine (B2), B12 en D.
+0|581|596|1145|671|E= door EU goedgekeurde hulpstof.
+0|585|643|1092|715|Alsje egens niet tegen kar
+0|577|685|847|746|Allergenen: soja.
+0|583|732|1120|804|Geniddelde voedingswaande
+0|575|825|699|864|Energie
+0|570|908|681|941|Vetten
+0|596|949|925|999|waarvan verzadigde
+0|597|997|736|1027|vetzuren
+0|569|1034|789|1079|Koolhydraten
+0|593|1079|855|1116|waarvan suikers
+0|564|1117|669|1153|Vezels
+0|566|1161|703|1195|Eiwitten
+0|907|799|1080|834|per 100 ml
+0|979|839|1078|871|kJ 143
+0|966|880|1079|913|kcal 34
+0|551|1934|876|1994|Weiinewouje
+0|545|1982|890|2018|Consumentenservice
+0|543|2023|960|2065|Jumbo Supermarkten B.V.
+0|543|2060|963|2100|Antwoordnummer 10072
+0|545|2109|986|2147|5460 VB Veghel, Nederland
+0|540|2145|728|2182|Jumbo.com
+0|1001|925|1079|963|1,7g
+0|545|2249|670|2272|VERPAKKING
+0|998|1007|1077|1047|0,3 g
+0|997|1049|1076|1089|1,2 g
+0|994|1090|1076|1131|0,5 g
+0|997|1135|1074|1173|0,4 g
+0|996|1177|1073|1214|3,3 g
+0|547|2188|1066|2244|Zo gooije de vexpakkingweg
+0|1188|812|1455|845|per 250 ml RI*
+0|1259|849|1358|880|kJ 357
+0|1096|2001|1155|2412|8718452876273
+0|1256|888|1357|925|kcal 85
+0|1278|931|1360|973|4,3 g
+0|1280|1019|1355|1055|0,8 g
+0|1279|1059|1354|1095|3,0 g
+0|1279|1102|1354|1139|1,3 g
+0|1275|1140|1353|1180|1,0 g
+0|1276|1185|1444|1222|8,3 g 17%
+0|564|1205|639|1235|Zout
+0|972|1213|1072|1255|0,07 g
+0|1253|1224|1349|1259|0,18 g
+0|562|1244|1343|1302|Vitamine B2 0,21 mg (15%***) 0,52 mg (37%***)
+0|560|1285|1344|1343|Vitamine B12 0,38 ug (156***) 0,95 ug (38%**)
+0|560|1331|1342|1382|Vitamine D 0,75 ug (15%***) 1,8 ug (36%***)
+0|560|1371|1342|1426|Calcium 120 mg (15%***) 300 mg (37%***)
+0|569|1414|1288|1468|**Rl = Referentie-inname van een gemiddelde
+0|597|1457|1130|1504|volwassene (8.400 k/2.000 kcal).
+0|558|1498|1253|1550|***Percentage van de aanbevolen dagelijkse
+0|594|1541|1186|1590|referentie-inname voor volwassenen.
+0|556|1583|1086|1633|Deze verpakking bevat 4 porties.
+0|560|1627|1039|1682|Zomaakje het goed klaar
+0|552|1671|1276|1726|Gebruiksaanwijzing: schudden voor gebruik.
+0|560|1719|1174|1766|Hoe it het met de houdbaarheid?
+0|549|1765|1334|1813|Ten minste houdbaar tot en met: zie bovenzijde.
+0|548|1808|1306|1852|Bewaaradvies: koel, droog en donker bewaren.
+0|549|1853|1335|1897|Na openen nog 3 dagen houdbaar in de koelkast
+0|548|1890|724|1933|(max. 7°C).
+0|1406|901|1453|928|4%
+0|1407|942|1450|969|6%
+0|1404|1024|1449|1051|4%
+0|1404|1062|1447|1096|1%
+0|1403|1102|1446|1139|1%
+0|1399|1227|1442|1260|3%
