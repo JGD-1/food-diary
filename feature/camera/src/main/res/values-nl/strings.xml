@@ -73,6 +73,12 @@
     <string name="camera_edit_body">Pas de getallen aan zodat ze kloppen met de verpakking. Wat je eerder hebt ingevuld, houdt zijn eigen getallen.</string>
     <string name="camera_edit_cannot">Dit product kan hier niet gewijzigd worden. Producten uit de NEVO-tabel blijven zoals ze zijn.</string>
     <string name="camera_edit_save">Wijzigingen opslaan</string>
+    <string name="camera_edit_scan_again">Etiket opnieuw scannen</string>
+    <string name="camera_edit_delete">Dit product verwijderen</string>
+    <string name="camera_edit_delete_title">Dit product verwijderen?</string>
+    <string name="camera_edit_delete_body">Het verschijnt niet meer bij zoeken of als je de barcode scant. De volgende keer dat je het scant, begin je opnieuw. Maaltijden die je al hebt ingevuld, houden hun eigen getallen.</string>
+    <string name="camera_edit_delete_yes">Verwijderen</string>
+    <string name="camera_edit_delete_no">Bewaren</string>
 
     <!-- Weegschaal -->
     <string name="camera_scale_title">Weegschaal aflezen</string>
