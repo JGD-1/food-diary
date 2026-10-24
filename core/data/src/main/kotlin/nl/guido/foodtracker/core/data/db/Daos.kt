@@ -21,6 +21,9 @@ interface FoodDao {
 
     @Upsert
     suspend fun upsertAll(foods: List<FoodEntity>)
+
+    @Query("UPDATE food SET deleted = 1, updatedAt = :now WHERE id = :id")
+    suspend fun markDeleted(id: String, now: Long)
 }
 
 @Dao

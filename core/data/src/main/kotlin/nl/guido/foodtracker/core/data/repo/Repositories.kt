@@ -42,6 +42,8 @@ interface FoodRepository {
     fun search(text: String, limit: Int = 50): Flow<List<Food>>
     suspend fun save(food: Food)
     suspend fun saveAll(foods: List<Food>)
+    /** Hidden everywhere and synced as deleted; meals already logged keep their own nutrients. */
+    suspend fun delete(id: Id)
 }
 
 /** Recipes, variants and batch meals, shared within the household. Favourites are per person. */
