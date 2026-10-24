@@ -109,6 +109,8 @@ internal fun CameraScreen(
 
     val controller = remember {
         LifecycleCameraController(context).apply {
+            // The label photo: best quality over speed, so small digits come out sharp.
+            imageCaptureMode = ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY
             // Sharper frames than the default make small digits easier to read.
             imageAnalysisResolutionSelector = ResolutionSelector.Builder()
                 .setResolutionStrategy(

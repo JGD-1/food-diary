@@ -26,15 +26,22 @@ internal fun FoodFields(d: FoodDraft, onChange: (FoodDraft) -> Unit) {
     FormNumber(d.protein, { onChange(d.copy(protein = it)) }, stringResource(R.string.camera_food_protein))
     FormNumber(d.carbs, { onChange(d.copy(carbs = it)) }, stringResource(R.string.camera_food_carbs))
     FormNumber(d.fat, { onChange(d.copy(fat = it)) }, stringResource(R.string.camera_food_fat))
+    if (d.caloriesOff) CheckHint(stringResource(R.string.camera_food_check_kcal))
     Text(stringResource(R.string.camera_food_optional), style = MaterialTheme.typography.titleMedium)
     FormNumber(d.fibre, { onChange(d.copy(fibre = it)) }, stringResource(R.string.camera_food_fibre))
     FormNumber(d.sugar, { onChange(d.copy(sugar = it)) }, stringResource(R.string.camera_food_sugar))
+    if (d.sugarOff) CheckHint(stringResource(R.string.camera_food_check_sugar))
     FormNumber(d.salt, { onChange(d.copy(salt = it)) }, stringResource(R.string.camera_food_salt))
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(stringResource(R.string.camera_food_is_drink), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
         Switch(checked = d.isDrink, onCheckedChange = { onChange(d.copy(isDrink = it)) })
     }
 }
+
+/** A gentle "check this" under the fields it is about (no warning colours). */
+@Composable
+private fun CheckHint(text: String) =
+    Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
 
 @Composable
 private fun FormText(value: String, onChange: (String) -> Unit, label: String) =

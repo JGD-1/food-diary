@@ -43,6 +43,8 @@
     <string name="camera_food_unread">We couldn\'t read the label this time. Try another photo, or type the numbers from the packet.</string>
     <string name="camera_food_typed">Type the values from the packet.</string>
     <string name="camera_food_retake">Take another photo</string>
+    <string name="camera_food_check_kcal">Please check: the kcal doesn\'t match the fat, carbs and protein. One of these numbers may be read wrong.</string>
+    <string name="camera_food_check_sugar">Please check: sugars are part of the carbs, so they can\'t be more than the carbs.</string>
     <string name="camera_food_name">Name</string>
     <string name="camera_food_brand">Brand (optional)</string>
     <string name="camera_food_per100g">Per 100 g</string>

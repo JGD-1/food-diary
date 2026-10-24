@@ -63,4 +63,20 @@ class FoodDraftTest {
         assertNull(parseAmount("-3"))
         assertNull(parseAmount("abc"))
     }
+
+    @Test fun `calories that don't match fat, carbs and protein ask for a check`() {
+        // Guido's flatbread label: 287 kcal = 5.0 fat, 50.4 carbs, 8.2 protein, 3.7 fibre.
+        val right = FoodDraft(kcal = "287", fat = "5,0", carbs = "50,4", protein = "8,2", fibre = "3,7")
+        assertFalse(right.caloriesOff)
+        assertTrue(right.copy(fat = "50").caloriesOff) // a lost comma
+        assertFalse(right.copy(protein = "").caloriesOff) // not filled in yet: no check
+        assertFalse(right.copy(fat = "50", isDrink = true).caloriesOff) // drinks may have alcohol
+    }
+
+    @Test fun `more sugar than carbs asks for a check`() {
+        val d = FoodDraft(carbs = "12", sugar = "2,2")
+        assertFalse(d.sugarOff)
+        assertTrue(d.copy(sugar = "22").sugarOff)
+        assertFalse(d.copy(sugar = "12").sugarOff)
+    }
 }
