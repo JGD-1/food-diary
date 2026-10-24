@@ -16,6 +16,8 @@ import nl.guido.foodtracker.feature.camera.read.Picture
 import nl.guido.foodtracker.feature.camera.read.SevenSegmentReader
 import nl.guido.foodtracker.feature.camera.read.ScaleParse
 import nl.guido.foodtracker.feature.camera.read.TextLine
+import nl.guido.foodtracker.feature.camera.read.needsTurning
+import nl.guido.foodtracker.feature.camera.read.pickLabelText
 import com.google.android.gms.tasks.Tasks
 import java.io.Closeable
 import kotlin.math.abs
@@ -139,8 +141,16 @@ internal class LabelReader : Closeable {
     @OptIn(ExperimentalGetImage::class)
     fun read(photo: ImageProxy, onDone: (List<TextLine>) -> Unit) {
         val image = photo.image ?: run { photo.close(); return onDone(emptyList()) }
-        recognizer.process(InputImage.fromMediaImage(image, photo.imageInfo.rotationDegrees))
-            .addOnSuccessListener { text -> onDone(text.toLines()) }
+        val rotation = photo.imageInfo.rotationDegrees
+        recognizer.process(InputImage.fromMediaImage(image, rotation))
+            .continueWithTask { first ->
+                val upright = first.result.toLines()
+                // A packet held upside down: read once more turned around (see needsTurning).
+                if (!needsTurning(upright)) Tasks.forResult(upright)
+                else recognizer.process(InputImage.fromMediaImage(image, (rotation + 180) % 360))
+                    .continueWith { turned -> if (turned.isSuccessful) pickLabelText(upright, turned.result.toLines()) else upright }
+            }
+            .addOnSuccessListener { lines -> onDone(lines) }
             .addOnFailureListener { onDone(emptyList()) }
             .addOnCompleteListener { photo.close() }
     }
