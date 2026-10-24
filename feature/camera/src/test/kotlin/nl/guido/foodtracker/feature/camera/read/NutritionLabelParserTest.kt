@@ -171,4 +171,48 @@ class NutritionLabelParserTest {
         assertEquals(250.0, NutritionLabelParser.parse(text("Energie (kJ/kcal) 1046/250")).kcal)
         assertEquals(250.0, NutritionLabelParser.parse(text("Energie kcal/kJ 250/1046")).kcal)
     }
+
+    @Test fun `values in one line without commas`() {
+        val v = NutritionLabelParser.parse(text("Per 100 g: Energie 1046 kJ / 250 kcal Vet 10 g Koolhydraten 30 g Eiwit 5 g Zout 1,1 g"))
+        assertEquals(LabelValues(kcal = 250.0, protein = 5.0, carbs = 30.0, fat = 10.0, salt = 1.1), v)
+    }
+
+    @Test fun `each name with its value on the next line`() {
+        val v = NutritionLabelParser.parse(text("Voedingswaarde per 100 g", "Energie", "250 kcal", "Vet", "10 g", "Koolhydraten", "30 g", "Eiwit", "5 g"))
+        assertEquals(LabelValues(kcal = 250.0, protein = 5.0, carbs = 30.0, fat = 10.0), v)
+    }
+
+    @Test fun `words broken over two lines with a hyphen`() {
+        val v = NutritionLabelParser.parse(
+            text("per 100 g: energie 1500 kJ/358 kcal, vetten 2 g, koolhy-", "draten 70 g, eiwit-", "ten 9 g, zout 0,5 g."),
+        )
+        assertEquals(LabelValues(kcal = 358.0, protein = 9.0, carbs = 70.0, fat = 2.0, salt = 0.5), v)
+    }
+
+    // AH sperziebonen: "vetten, waarvan" is the fat row itself, not a sub-row.
+    @Test fun `vetten waarvan and koolhydraten waarvan rows`() {
+        val v = NutritionLabelParser.parse(
+            table(
+                row("Voedingswaarde per" to 0f, "100 g" to 300f, "portie (200 g)" to 500f),
+                row("energie" to 0f, "106 kJ / 25 kcal" to 300f, "212 kJ / 51 kcal" to 500f),
+                row("vetten, waarvan" to 0f, "0,2 g" to 300f, "0,4 g" to 500f),
+                row("- verzadigde vetzuren" to 0f, "0,1 g" to 300f, "0,2 g" to 500f),
+                row("- onverzadigde vetzuren" to 0f, "0,1 g" to 300f, "0,2 g" to 500f),
+                row("koolhydraten, waarvan" to 0f, "1,8 g" to 300f, "3,6 g" to 500f),
+                row("- suikers" to 0f, "1,2 g" to 300f, "2,4 g" to 500f),
+                row("vezels" to 0f, "3,6 g" to 300f, "7,2 g" to 500f),
+                row("eiwitten" to 0f, "2,3 g" to 300f, "4,6 g" to 500f),
+                row("zout" to 0f, "0 g" to 300f, "0 g" to 500f),
+            ),
+        )
+        assertEquals(LabelValues(kcal = 25.0, protein = 2.3, carbs = 1.8, fat = 0.2, fibre = 3.6, sugar = 1.2, salt = 0.0), v)
+    }
+
+    @Test fun `an upside-down read that finds nothing is replaced by the turned read`() {
+        val nonsense = text("6 0 1noz 6 L'0 uelmie", "'6 L'L Sjayins ueniem")
+        val turned = text("per 100 g: energie 173 kJ / 41 kcal, vetten 0,2 g, koolhydraten 7,7 g, eiwitten 0,7 g")
+        assertTrue(needsTurning(nonsense))
+        assertEquals(turned, readLabelText(nonsense) { turned })
+        assertEquals(turned, readLabelText(turned) { error("no second read needed") })
+    }
 }

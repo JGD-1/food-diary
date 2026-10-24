@@ -33,11 +33,11 @@ object NutritionLabelParser {
 
     private enum class Nutrient { ENERGY, FAT, CARBS, PROTEIN, FIBRE, SUGAR, SALT }
 
-    // Sub-rows ("waarvan suikers", "verzadigde vetzuren") and other rows we must never read as the main value.
-    private val skipWords = listOf(
-        "waarvan", "of which", "davon", "dont", "verzadig", "saturat", "gesattigt", "satures",
-        "onverzadig", "suiker", "sugar", "zucker", "sucre", "vezel", "fibre", "fiber", "ballast",
-        "zout", "salt", "salz", "sel", "polyol", "zetmeel", "starch",
+    // Words that start a sub-row ("waarvan suikers", "verzadigde vetzuren", "zetmeel"). A nutrient named
+    // after one of them is a sub-row and never the main value, except sugars (see [nutrientOf]).
+    // "Vetten, waarvan" names fat first, so it is the fat row.
+    private val subRowWords = Regex(
+        "waarvan|of which|davon|\\bdont\\b|verzadig|saturat|gesattigt|satures|polyol|zetmeel|starch|mono|meervoudig",
     )
     private val keywords = listOf(
         Nutrient.ENERGY to listOf("energie", "energy", "energia", "kcal", "kj"),
@@ -94,15 +94,8 @@ object NutritionLabelParser {
                 pick(kcal, headerX) { it in 0.0..950.0 }?.let { found[Nutrient.ENERGY] = it }
                     ?: run { if (kjOnly == null) kjOnly = pick(kj, headerX) { it in 0.0..4000.0 } }
             }
-            val extra = extraRows.firstOrNull { (_, words) -> words.containsMatchIn(label) }?.first
-            if (extra != null && extra !in found && notExtra.none { label.contains(it) }) {
-                val grams = nums.filter { it.unit == Unit.G || it.unit == null }
-                pick(grams, headerX) { it in 0.0..100.0 }?.let { found[extra] = it }
-            }
-            if (skipWords.any { label.contains(it) }) continue
-            val nutrient = keywords.firstOrNull { (n, words) -> n != Nutrient.ENERGY && words.any { w -> label.contains(w) } }?.first
-                ?: continue
-            if (nutrient in found) continue
+            val nutrient = nutrientOf(label)
+            if (nutrient == null || nutrient == Nutrient.ENERGY || nutrient in found) continue
             val grams = nums.filter { it.unit == Unit.G || it.unit == null }
             pick(grams, headerX) { it in 0.0..100.0 }?.let { found[nutrient] = it }
         }
@@ -115,23 +108,52 @@ object NutritionLabelParser {
     /** Cuts at commas that are not decimal commas, at ; | • and at a full stop followed by a space. */
     private val pieceBreak = Regex(",(?!\\d)|(?<!\\d),|[;|•·]|\\.\\s")
 
-    /** The label's text in reading order, cut into pieces like "vetten 9,5 g" (wrapped lines joined). */
+    /**
+     * The label's text in reading order, cut into pieces like "vetten 9,5 g". Wrapped lines are joined
+     * ("koolhy-" + "draten" → "koolhydraten"), and a piece is also cut where a nutrient follows a value
+     * ("energie 250 kcal vet 10 g" → two pieces), for labels without commas.
+     */
     private fun pieces(lines: List<TextLine>): List<String> =
-        normalize(lines.joinToString(" ") { it.text }).split(pieceBreak).map { it.trim() }.filter { it.isNotEmpty() }
+        normalize(joinLines(lines)).split(pieceBreak).flatMap(::cutAtNutrients).map { it.trim() }.filter { it.isNotEmpty() }
+
+    private fun joinLines(lines: List<TextLine>): String = buildString {
+        for (line in lines) {
+            val text = line.text.trim()
+            if (isEmpty()) append(text)
+            else if (endsWith("-") && text.firstOrNull()?.isLowerCase() == true) { setLength(length - 1); append(text) }
+            else append(' ').append(text)
+        }
+    }
+
+    private val nutrientWord = Regex(
+        "\\b(energie|energy|vet|fat|koolhydra|carbohydrate|eiwit|protein|suiker|sugar|vezel|fibre|fiber|zout|salt|waarvan|of which)",
+    )
+    private val endsWithValue = Regex("\\d\\s*(g|gr|kcal|kj|mg|µg|ug|%)?\\s*\\)?\\s*$")
+
+    private fun cutAtNutrients(piece: String): List<String> {
+        val cuts = nutrientWord.findAll(piece).map { it.range.first }
+            .filter { at -> at > 0 && endsWithValue.containsMatchIn(piece.substring(0, at)) }.toList()
+        if (cuts.isEmpty()) return listOf(piece)
+        return (listOf(0) + cuts).zip(cuts + piece.length) { from, to -> piece.substring(from, to) }
+    }
 
     /** True when one line holds two or more nutrients one after another, as in running text. */
     private fun isRunningText(lines: List<TextLine>): Boolean = lines.any { line ->
         pieces(listOf(line)).count { piece -> nutrientOf(piece) != null && numbersInText(piece).isNotEmpty() } >= 2
     }
 
-    /** The nutrient a piece of text names, or null (sub-rows like "waarvan verzadigde" give null). */
+    /**
+     * The nutrient a row or piece of text names: the one named first ("vetten, waarvan" is fat).
+     * Named after a sub-row word ("waarvan verzadigde vetzuren") it is a sub-row: null, except sugars,
+     * which are always written as "waarvan suikers". Null when nothing is named.
+     */
     private fun nutrientOf(text: String): Nutrient? {
-        if (keywords.first().second.any { text.contains(it) }) return Nutrient.ENERGY
-        extraRows.firstOrNull { (_, words) -> words.containsMatchIn(text) }?.let { (n, _) ->
-            return if (notExtra.any { text.contains(it) }) null else n
-        }
-        if (skipWords.any { text.contains(it) }) return null
-        return keywords.firstOrNull { (n, words) -> n != Nutrient.ENERGY && words.any { w -> text.contains(w) } }?.first
+        if (notExtra.any { text.contains(it) }) return null
+        val hits = keywords.flatMap { (n, words) -> words.mapNotNull { w -> text.indexOf(w).takeIf { it >= 0 }?.let { it to n } } } +
+            extraRows.mapNotNull { (n, words) -> words.find(text)?.let { it.range.first to n } }
+        val (at, nutrient) = hits.minByOrNull { it.first } ?: return null
+        val subRow = subRowWords.find(text)?.range?.first
+        return if (subRow != null && subRow < at && nutrient != Nutrient.SUGAR) null else nutrient
     }
 
     /**
