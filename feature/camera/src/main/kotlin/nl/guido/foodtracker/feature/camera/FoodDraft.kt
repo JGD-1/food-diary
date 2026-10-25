@@ -6,6 +6,7 @@ import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Nutrients
 import nl.guido.foodtracker.core.model.ProductName
 import nl.guido.foodtracker.feature.camera.read.LabelValues
+import kotlin.math.abs
 
 /** The food form after a label scan, typed in by hand, or opened to edit a food: text fields. */
 data class FoodDraft(
@@ -26,6 +27,27 @@ data class FoodDraft(
     val canSave: Boolean
         get() = name.isNotBlank() && parseAmount(kcal) != null &&
             listOf(protein, carbs, fat, fibre, sugar, salt).all { it.isBlank() || parseAmount(it) != null }
+
+    /**
+     * The kcal is far from fat x 9 + carbs x 4 + protein x 4 + fibre x 2, so a number was likely misread
+     * or mistyped. Not for drinks: alcohol has calories of its own.
+     */
+    val caloriesOff: Boolean
+        get() {
+            if (isDrink) return false
+            val k = parseAmount(kcal) ?: return false
+            val (p, c, f) = listOf(protein, carbs, fat).map { parseAmount(it) ?: return false }
+            val counted = 9 * f + 4 * c + 4 * p + 2 * (parseAmount(fibre) ?: 0.0)
+            return abs(k - counted) > maxOf(25.0, 0.2 * k)
+        }
+
+    /** Sugars are part of the carbs, so more sugar than carbs means one of them is wrong. */
+    val sugarOff: Boolean
+        get() {
+            val s = parseAmount(sugar) ?: return false
+            val c = parseAmount(carbs) ?: return false
+            return s > c + 0.05
+        }
 
     private fun nutrients() = Nutrients(
         kcal = parseAmount(kcal)!!,

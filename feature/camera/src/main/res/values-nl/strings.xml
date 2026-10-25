@@ -41,6 +41,8 @@
     <string name="camera_food_unread">Het etiket kon deze keer niet gelezen worden. Probeer een andere foto, of typ de getallen van de verpakking over.</string>
     <string name="camera_food_typed">Typ de waarden van de verpakking over.</string>
     <string name="camera_food_retake">Nieuwe foto maken</string>
+    <string name="camera_food_check_kcal">Controleer even: de kcal klopt niet met het vet, de koolhydraten en de eiwitten. Een van deze getallen is misschien verkeerd gelezen.</string>
+    <string name="camera_food_check_sugar">Controleer even: suikers horen bij de koolhydraten, dus ze kunnen niet meer zijn dan de koolhydraten.</string>
     <string name="camera_food_name">Naam</string>
     <string name="camera_food_brand">Merk (optioneel)</string>
     <string name="camera_food_per100g">Per 100 g</string>
