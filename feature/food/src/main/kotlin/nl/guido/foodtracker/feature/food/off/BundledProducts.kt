@@ -18,6 +18,13 @@ import javax.inject.Inject
 
 internal const val OFF_ASSET = "off_nl.tsv.gz"
 
+/** The bundled list, or null when this build has none yet. */
+private fun openAsset(context: Context): InputStream? = try {
+    GZIPInputStream(context.assets.open(OFF_ASSET))
+} catch (e: IOException) {
+    null
+}
+
 /**
  * Dutch and Belgian shop products from Open Food Facts, bundled in the app (Round 9), so most barcodes
  * are found without internet. Made by feature/food/tools/off/make_snapshot.py; lines are
@@ -27,7 +34,7 @@ internal const val OFF_ASSET = "off_nl.tsv.gz"
  */
 internal class BundledProducts(private val open: () -> InputStream?) {
     @Inject constructor(@ApplicationContext context: Context) :
-        this({ runCatching { GZIPInputStream(context.assets.open(OFF_ASSET)) }.getOrNull() })
+        this({ openAsset(context) })
 
     /** The product, also when it is listed with or without a leading 0 (UPC-A and EAN-13 are the same code). */
     suspend fun byBarcode(barcode: String): Food? = withContext(Dispatchers.IO) {

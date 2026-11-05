@@ -77,6 +77,12 @@ def to_line(row):
         return None
     grams = [number(row, k, top=100) for k in ("proteins_100g", "carbohydrates_100g", "fat_100g")]
     fibre = number(row, "fiber_100g", top=100)
+    # Typing slips (kJ typed as kcal, a lost comma): drop products whose calories are far from what their
+    # protein, carbs, fat and fibre add up to, like the app's "please check" hint on label scans.
+    if all(g is not None for g in grams):
+        expected = 4 * grams[0] + 4 * grams[1] + 9 * grams[2] + 2 * (fibre or 0.0)
+        if abs(kcal - expected) > max(100.0, 0.5 * expected):
+            return None
     sugar = number(row, "sugars_100g", top=100)
     salt = number(row, "salt_100g", top=100)
     if salt is None:
