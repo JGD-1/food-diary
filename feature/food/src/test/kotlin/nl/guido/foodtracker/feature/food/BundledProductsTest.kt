@@ -10,8 +10,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.util.zip.GZIPOutputStream
 
 class BundledProductsTest {
     private val file = """
@@ -22,11 +20,8 @@ class BundledProductsTest {
         8710400000001|Hagelslag puur|De Ruijter|480|5|70|20||65|0.03|15|400|0
     """.trimIndent()
 
-    private fun gz(text: String): ByteArray = ByteArrayOutputStream().also { out ->
-        GZIPOutputStream(out).use { it.write(text.toByteArray()) }
-    }.toByteArray()
-
-    private val bundled = BundledProducts { ByteArrayInputStream(gz(file)) }
+    // The app unzips the bundled asset itself; tests hand over the plain text.
+    private val bundled = BundledProducts { ByteArrayInputStream(file.toByteArray()) }
 
     @Test fun findsABarcode() = runTest {
         val food = bundled.byBarcode("8710400000001")!!
