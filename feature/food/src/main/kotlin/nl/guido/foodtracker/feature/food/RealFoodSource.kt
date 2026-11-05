@@ -13,6 +13,7 @@ import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.ProductName
 import nl.guido.foodtracker.feature.food.nevo.NevoImporter
 import nl.guido.foodtracker.feature.food.nevo.NevoInfo
+import nl.guido.foodtracker.feature.food.off.BundledProducts
 import nl.guido.foodtracker.feature.food.off.OpenFoodFacts
 import nl.guido.foodtracker.feature.food.search.EverydayWords
 import nl.guido.foodtracker.feature.food.search.EverydayWordsAsset
@@ -25,7 +26,8 @@ import javax.inject.Singleton
 
 /**
  * Foods for search and barcodes. Search is local only (my foods, cached Open Food Facts, NEVO);
- * the internet is used only for a barcode we don't know yet and for the explicit "Search online".
+ * a barcode is then looked for in the bundled Dutch/Belgian Open Food Facts list, and the internet is
+ * used only for a barcode neither knows and for the explicit "Search online" (bundled list first).
  */
 @Singleton
 internal class RealFoodSource(
@@ -38,9 +40,16 @@ internal class RealFoodSource(
     private val clock: () -> Long = System::currentTimeMillis,
     /** Everyday words for NEVO foods ("havermout" → oat flakes, S2). */
     private val everydayWords: suspend () -> EverydayWords = { EverydayWords.EMPTY },
+    /** Dutch and Belgian shop products from Open Food Facts, bundled in the app (Round 9). */
+    private val bundled: BundledProducts = BundledProducts { null },
 ) : FoodSource {
-    @Inject constructor(foods: FoodRepository, off: OpenFoodFacts, nevo: NevoImporter, everyday: EverydayWordsAsset) :
-        this(foods, off, { nevo.ensureImported() }, { nevo.info() }, everydayWords = { everyday.get() }) {
+    @Inject constructor(
+        foods: FoodRepository,
+        off: OpenFoodFacts,
+        nevo: NevoImporter,
+        everyday: EverydayWordsAsset,
+        bundled: BundledProducts,
+    ) : this(foods, off, { nevo.ensureImported() }, { nevo.info() }, everydayWords = { everyday.get() }, bundled = bundled) {
         // Import NEVO in the background as soon as anything needs foods, so the first search is quick.
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { runCatching { nevo.ensureImported() } }
     }
@@ -54,6 +63,10 @@ internal class RealFoodSource(
     override suspend fun byBarcode(code: String): Food? {
         val barcode = code.trim()
         foods.byBarcode(barcode)?.let { return it }
+        bundled.byBarcode(barcode)?.let { found ->
+            foods.save(found)
+            return found
+        }
         val askedAt = synchronized(unknown) { unknown[barcode] }
         if (askedAt != null && clock() - askedAt < DAY) return null
         val lookup = try {
@@ -94,11 +107,14 @@ internal class RealFoodSource(
     }
 
     override suspend fun searchOnline(text: String): List<Food> {
-        val found = try {
+        // The bundled shop products first: no internet needed, and they cover most Dutch packs.
+        val inApp = bundled.search(text)
+        val online = try {
             off.search(text)
         } catch (e: IOException) {
-            return emptyList()
+            emptyList()
         }
+        val found = (inApp + online).distinctBy { it.id }
         // Save them, so the food can be logged by id and found offline next time.
         if (found.isNotEmpty()) foods.saveAll(found)
         return found
