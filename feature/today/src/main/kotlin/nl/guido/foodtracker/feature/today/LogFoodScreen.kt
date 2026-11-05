@@ -345,6 +345,14 @@ private fun LogFoodContent(
                         )
                     }
                 }
+                if (shown.any { it.source == FoodOrigin.OFF }) {
+                    item(key = "off") {
+                        Text(
+                            stringResource(nl.guido.foodtracker.core.ui.R.string.off_attribution),
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp),
+                        )
+                    }
+                }
             } else if (ui.recent.isEmpty()) {
                 item(key = "hint") {
                     Text(
