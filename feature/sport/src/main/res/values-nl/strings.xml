@@ -31,4 +31,30 @@
         <item quantity="one">%d keer</item>
         <item quantity="other">%d keer</item>
     </plurals>
+    <string name="sport_link_title">Andere apps</string>
+    <string name="sport_link_body">Haal sport op uit apps als Garmin Connect, via Health Connect op je telefoon. Alleen sessies en kcal worden gelezen; er wordt niets weggeschreven.</string>
+    <string name="sport_link_button">Koppel andere apps</string>
+    <string name="sport_link_install_body">Om sport uit apps als Garmin Connect te halen, heeft je telefoon eerst Health Connect nodig (gratis, van Google).</string>
+    <string name="sport_link_install">Health Connect installeren</string>
+    <string name="sport_link_linked">Gekoppeld. Nieuwe sport van de laatste 30 dagen komt binnen als je deze tab opent.</string>
+    <string name="sport_link_busy">Bezig met ophalen…</string>
+    <string name="sport_link_failed">Ophalen lukte nu niet. Probeer het later opnieuw.</string>
+    <string name="sport_link_fetch">Nu ophalen</string>
+    <plurals name="sport_link_added">
+        <item quantity="one">%d nieuwe sessie toegevoegd.</item>
+        <item quantity="other">%d nieuwe sessies toegevoegd.</item>
+    </plurals>
+    <string name="sport_type_running">Hardlopen</string>
+    <string name="sport_type_cycling">Fietsen</string>
+    <string name="sport_type_walking">Wandelen</string>
+    <string name="sport_type_swimming">Zwemmen</string>
+    <string name="sport_type_strength">Krachttraining</string>
+    <string name="sport_type_yoga">Yoga</string>
+    <string name="sport_type_hiit">Intervaltraining</string>
+    <string name="sport_type_rowing">Roeien</string>
+    <string name="sport_type_cross_trainer">Crosstrainer</string>
+    <string name="sport_type_other">Sport</string>
+    <string name="sport_privacy_title">Sport uit andere apps</string>
+    <string name="sport_privacy_body">Deze app leest je sportsessies en verbrande kcal uit Health Connect, zodat ze op de Sport-tab staan en je doel van die dag verhogen. Er wordt niets anders gelezen en niets weggeschreven. De sessies staan op deze telefoon en in je eigen privé-back-up; je huishouden ziet ze nooit.</string>
+    <string name="sport_privacy_close">Sluiten</string>
 </resources>

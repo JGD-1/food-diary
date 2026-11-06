@@ -1,5 +1,6 @@
 package nl.guido.foodtracker.feature.sport
 
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +34,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -42,6 +44,8 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import nl.guido.foodtracker.core.model.SportEntry
@@ -64,6 +68,11 @@ internal fun SportRoute(onProfile: () -> Unit, viewModel: SportViewModel = hiltV
     val scope = rememberCoroutineScope()
     val deleted = stringResource(R.string.sport_deleted)
     val undo = stringResource(R.string.sport_undo)
+    val link by viewModel.link.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val allow = rememberLauncherForActivityResult(viewModel.permissionContract) { viewModel.refreshLink() }
+    // Each time the tab shows (also after installing Health Connect), check the link and fetch new sport.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshLink() }
 
     Box(Modifier.fillMaxSize()) {
         SportScreen(
@@ -71,6 +80,10 @@ internal fun SportRoute(onProfile: () -> Unit, viewModel: SportViewModel = hiltV
             onAdd = { editing = Editing.New },
             onOpen = { editing = Editing.Existing(it) },
             onProfile = onProfile,
+            link = link,
+            onLink = { allow.launch(viewModel.permissions) },
+            onInstall = { runCatching { context.startActivity(viewModel.installIntent()) } },
+            onFetch = viewModel::fetchNow,
         )
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(bottom = 80.dp))
     }
@@ -99,7 +112,16 @@ internal fun SportRoute(onProfile: () -> Unit, viewModel: SportViewModel = hiltV
 }
 
 @Composable
-internal fun SportScreen(days: SportDays?, onAdd: () -> Unit, onOpen: (SportEntry) -> Unit, onProfile: () -> Unit) {
+internal fun SportScreen(
+    days: SportDays?,
+    onAdd: () -> Unit,
+    onOpen: (SportEntry) -> Unit,
+    onProfile: () -> Unit,
+    link: SportViewModel.Link = SportViewModel.Link(),
+    onLink: () -> Unit = {},
+    onInstall: () -> Unit = {},
+    onFetch: () -> Unit = {},
+) {
     Column(Modifier.fillMaxSize().padding(bottom = 12.dp)) {
         ScreenHeader(title = stringResource(R.string.sport_title), onBack = null, modifier = Modifier.padding(top = 4.dp))
         Column(
@@ -132,6 +154,7 @@ internal fun SportScreen(days: SportDays?, onAdd: () -> Unit, onOpen: (SportEntr
                     }
                 }
             }
+            LinkCard(link, onLink, onInstall, onFetch)
             // Sport is typed in separately, so the activity level in the profile shouldn't count it again.
             Card {
                 Note(stringResource(R.string.sport_activity_note))
@@ -142,6 +165,41 @@ internal fun SportScreen(days: SportDays?, onAdd: () -> Unit, onOpen: (SportEntr
         }
         Button(onClick = onAdd, modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(R.string.sport_add), style = MaterialTheme.typography.titleMedium)
+        }
+    }
+}
+
+/** Other apps (Garmin, …) through Health Connect: link once, then new sessions come in by themselves. */
+@Composable
+private fun LinkCard(link: SportViewModel.Link, onLink: () -> Unit, onInstall: () -> Unit, onFetch: () -> Unit) {
+    val state = link.state ?: return
+    if (state == LinkState.UNAVAILABLE) return
+    Card {
+        Title(stringResource(R.string.sport_link_title))
+        when (state) {
+            LinkState.NEEDS_INSTALL -> {
+                Note(stringResource(R.string.sport_link_install_body))
+                TextButton(onClick = onInstall, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.sport_link_install)) }
+            }
+            LinkState.NOT_LINKED -> {
+                Note(stringResource(R.string.sport_link_body))
+                TextButton(onClick = onLink, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.sport_link_button)) }
+            }
+            LinkState.LINKED -> {
+                Note(
+                    when {
+                        link.busy -> stringResource(R.string.sport_link_busy)
+                        link.failed -> stringResource(R.string.sport_link_failed)
+                        link.lastAdded != null && link.lastAdded > 0 ->
+                            pluralStringResource(R.plurals.sport_link_added, link.lastAdded, link.lastAdded)
+                        else -> stringResource(R.string.sport_link_linked)
+                    },
+                )
+                TextButton(onClick = onFetch, enabled = !link.busy, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.sport_link_fetch))
+                }
+            }
+            LinkState.UNAVAILABLE -> Unit
         }
     }
 }
