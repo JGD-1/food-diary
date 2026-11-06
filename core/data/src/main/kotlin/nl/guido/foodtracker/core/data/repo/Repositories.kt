@@ -139,6 +139,9 @@ interface SportRepository {
 
     /** Soft delete, so it syncs. */
     suspend fun delete(id: Id)
+
+    /** Health Connect record ids already imported for [userId], deleted lines too, so they are never imported again. */
+    suspend fun importedIds(userId: Id): Set<String>
 }
 
 /**

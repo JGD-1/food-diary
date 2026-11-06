@@ -26,6 +26,9 @@ data class SportEntry(
         const val MAX_KCAL = 3000
 
         /** The day's target with sport: the own target plus all sport kcal of that day; null without a target. */
+        /** The same id on every phone for one Health Connect record, so two phones never import it twice. */
+        fun importedId(externalId: String): Id = java.util.UUID.nameUUIDFromBytes("sport:$externalId".toByteArray()).toString()
+
         fun dayTarget(targetKcal: Int?, sportKcal: Int): Int? = targetKcal?.let { it + sportKcal.coerceAtLeast(0) }
     }
 }

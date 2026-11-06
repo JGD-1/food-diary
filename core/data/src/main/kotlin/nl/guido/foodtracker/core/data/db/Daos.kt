@@ -177,6 +177,10 @@ interface SportDao {
     @Upsert
     suspend fun upsert(entry: SportEntryEntity)
 
+    /** Every Health Connect record id already on this phone for [userId], deleted lines too. */
+    @Query("SELECT externalId FROM sport_entry WHERE userId = :userId AND externalId IS NOT NULL")
+    suspend fun externalIds(userId: String): List<String>
+
     @Query("UPDATE sport_entry SET deleted = 1, updatedAt = :now WHERE id = :id")
     suspend fun markDeleted(id: String, now: Long)
 }
