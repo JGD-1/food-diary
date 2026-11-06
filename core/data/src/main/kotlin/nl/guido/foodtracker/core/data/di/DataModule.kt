@@ -15,12 +15,12 @@ import nl.guido.foodtracker.core.data.db.MIGRATION_2_3
 import nl.guido.foodtracker.core.data.db.MIGRATION_3_4
 import nl.guido.foodtracker.core.data.db.MIGRATION_4_5
 import nl.guido.foodtracker.core.data.db.MIGRATION_5_6
-import nl.guido.foodtracker.core.data.repo.DayTotalRepository
+import nl.guido.foodtracker.core.data.repo.SharedDayRepository
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.data.repo.ProfileRepository
 import nl.guido.foodtracker.core.data.repo.RecipeRepository
-import nl.guido.foodtracker.core.data.repo.RoomDayTotalRepository
+import nl.guido.foodtracker.core.data.repo.RoomSharedDayRepository
 import nl.guido.foodtracker.core.data.repo.RoomDiaryRepository
 import nl.guido.foodtracker.core.data.repo.RoomFoodRepository
 import nl.guido.foodtracker.core.data.repo.RoomProfileRepository
@@ -54,7 +54,7 @@ internal abstract class RepositoryModule {
     @Binds @Singleton abstract fun food(impl: RoomFoodRepository): FoodRepository
     @Binds @Singleton abstract fun recipe(impl: RoomRecipeRepository): RecipeRepository
     @Binds @Singleton abstract fun profile(impl: RoomProfileRepository): ProfileRepository
-    @Binds @Singleton abstract fun dayTotal(impl: RoomDayTotalRepository): DayTotalRepository
+    @Binds @Singleton abstract fun sharedDay(impl: RoomSharedDayRepository): SharedDayRepository
 }
 
 @Module

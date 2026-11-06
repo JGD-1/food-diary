@@ -6,7 +6,7 @@ import nl.guido.foodtracker.core.model.ActivityLevel
 import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
-import nl.guido.foodtracker.core.model.DayTotal
+import nl.guido.foodtracker.core.model.SharedDay
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.Sex
@@ -132,11 +132,11 @@ class MappersTest {
 
     @Test
     fun dayTotalRoundTrips() {
-        val total = DayTotal("u1", LocalDate.of(2026, 11, 6), 1240, 2100)
+        val total = SharedDay("u1", LocalDate.of(2026, 11, 6), 1240, 2100)
         val row = total.toEntity(now = 7)
         assertEquals(total.id, row.id)
         assertEquals("2026-11-06", row.date)
         assertEquals(total.copy(updatedAt = 7), row.toModel())
-        assertEquals(null, DayTotal("u1", LocalDate.of(2026, 11, 6), 0, null).toEntity(1).targetKcal)
+        assertEquals(null, SharedDay("u1", LocalDate.of(2026, 11, 6), 0, null).toEntity(1).targetKcal)
     }
 }
