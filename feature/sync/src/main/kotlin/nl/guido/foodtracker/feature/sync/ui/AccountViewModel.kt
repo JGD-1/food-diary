@@ -12,6 +12,7 @@ import nl.guido.foodtracker.feature.sync.AccountState
 import nl.guido.foodtracker.feature.sync.SignInOffer
 import nl.guido.foodtracker.feature.sync.SyncManager
 import nl.guido.foodtracker.feature.sync.export.Exporter
+import nl.guido.foodtracker.feature.sync.share.DayShare
 import javax.inject.Inject
 
 enum class ExportResult { SAVED, FAILED }
@@ -21,8 +22,20 @@ class AccountViewModel @Inject constructor(
     private val manager: SyncManager,
     private val exporter: Exporter,
     private val entry: SignInOffer,
+    private val dayShare: DayShare,
 ) : ViewModel() {
     val state: StateFlow<AccountState> = manager.state
+
+    /** "Show my day to my partner" (round 10). */
+    val sharingDay: StateFlow<Boolean> = dayShare.enabled
+
+    fun shareDay(on: Boolean) {
+        val userId = state.value.account?.userId ?: return
+        viewModelScope.launch {
+            dayShare.setEnabled(userId, on)
+            manager.requestSync()
+        }
+    }
 
     private val _export = MutableStateFlow<ExportResult?>(null)
     val export: StateFlow<ExportResult?> = _export.asStateFlow()

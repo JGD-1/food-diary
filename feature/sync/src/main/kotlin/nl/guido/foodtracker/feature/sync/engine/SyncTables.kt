@@ -122,6 +122,15 @@ object SyncTables {
         listOf(text("id"), text("householdId"), text("name"), double("grams")) + stamps,
     )
 
+    /**
+     * One kcal number per person per day (round 10), only while they share their day. Own rows are pushed;
+     * the server lets household members read them, so the partner's rows arrive on pull.
+     */
+    val dayTotal = SyncTable(
+        "day_total", "day_totals", Scope.USER, "userId",
+        listOf(text("id"), text("userId"), text("date"), long("kcal"), long("targetKcal")) + stamps,
+    )
+
     /** Sport someone typed in (round 11). Private, like the diary. */
     val sportEntry = SyncTable(
         "sport_entry", "sport_entries", Scope.USER, "userId",
@@ -133,12 +142,15 @@ object SyncTables {
 
     val all = listOf(
         profile, logEntry, weighIn, food, recipe, recipeVariant, favourite, batch, batchContainer, batchPortion, pan,
-        sportEntry,
+        dayTotal, sportEntry,
     )
     val household = listOf(recipe, recipeVariant, batch, batchContainer, batchPortion, pan)
 
-    /** Fetched again from the start when the household changes: its tables, and foods (members see each other's barcode foods). */
-    val refetchOnHouseholdChange = household + food
+    /**
+     * Fetched again from the start when the household changes: its tables, foods (members see each other's
+     * barcode foods) and day totals (members see each other's shared days).
+     */
+    val refetchOnHouseholdChange = household + food + dayTotal
 }
 
 /** Phone row → JSON for Supabase. */

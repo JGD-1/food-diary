@@ -183,4 +183,6 @@
     <string name="today_weigh_left_field">Left over</string>
     <string name="today_weigh_left_eaten">You ate %1$s g · ≈ %2$s kcal</string>
     <string name="today_weigh_left_more">That\'s more than the %1$s g at the start. Is the bowl or plate on the scale too?</string>
+    <string name="today_partner_kcal">%1$s: %2$s kcal</string>
+    <string name="today_partner_kcal_no_name">Partner: %1$s kcal</string>
 </resources>

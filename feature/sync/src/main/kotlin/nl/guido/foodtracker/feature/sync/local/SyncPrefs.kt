@@ -64,6 +64,11 @@ class SyncPrefs @Inject constructor(@ApplicationContext context: Context) : Sync
         get() = account.getBoolean("signInOfferDismissed", false)
         set(value) = account.edit().putBoolean("signInOfferDismissed", value).apply()
 
+    /** "Show my day to my partner" (round 10); off until the person switches it on. */
+    var shareDay: Boolean
+        get() = account.getBoolean("shareDay", false)
+        set(value) = account.edit().putBoolean("shareDay", value).apply()
+
     var lastSyncedAt: Long
         get() = marks.getLong("lastSyncedAt", 0)
         set(value) = marks.edit().putLong("lastSyncedAt", value).apply()
