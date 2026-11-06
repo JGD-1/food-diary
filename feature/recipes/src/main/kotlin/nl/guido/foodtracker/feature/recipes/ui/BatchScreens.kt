@@ -85,7 +85,7 @@ internal fun NewBatchScreen(
     var weighPot by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(state.dishedUp) { if (state.dishedUp) onDishedUp() }
     var deleting by rememberSaveable { mutableStateOf(false) }
-    CameraGrams(savedState, vm::onWeighed)
+    CameraGrams(savedState, vm::onWeighed, onFood = vm::addScanned)
     PickedFoods(savedState) { vm.add(it) }
     NoteIngredients(savedState, vm::addFromNote)
     LaunchedEffect(state.savedBatchId) { state.savedBatchId?.let { onSaved(it, state.cookedOn) } }
@@ -157,6 +157,11 @@ internal fun NewBatchScreen(
             }
             OutlinedButton(onClick = { openFoodPick(navController, FoodPickPurpose.BATCH_INGREDIENT) }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.recipes_add_ingredient))
+            }
+            cameraScan(navController)?.let { scan ->
+                OutlinedButton(onClick = scan, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.recipes_scan_product))
+                }
             }
             OutlinedButton(onClick = { openNoteScan(navController, FoodPickPurpose.BATCH_INGREDIENT) }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.recipes_note_scan))

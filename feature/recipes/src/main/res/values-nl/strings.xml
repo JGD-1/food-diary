@@ -146,6 +146,7 @@
     <string name="recipes_draft_thrown_away">Weggegooid</string>
     <!-- Ronde 4: "Briefje scannen", handgeschreven ingrediënten lezen met de camera (H) -->
     <string name="recipes_note_scan">Briefje scannen</string>
+    <string name="recipes_scan_product">Product scannen</string>
     <string name="recipes_note_title">Briefje scannen</string>
     <string name="recipes_note_hold_still">Houd de telefoon stil boven je handgeschreven lijstje. De regels verschijnen hier zodra ze gelezen zijn.</string>
     <string name="recipes_note_keep_holding">Hoe langer je stilhoudt, hoe beter het leest. Tik op Controleren als alle regels er staan.</string>

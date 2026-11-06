@@ -63,4 +63,7 @@ internal object RecipesRoutes {
     /** The camera's scale reader (stream 2). It hands back grams under [CAMERA_GRAMS] before closing. */
     const val CAMERA_SCALE = Routes.CAMERA_SCALE
     const val CAMERA_GRAMS = CameraResult.GRAMS
+    /** The camera's barcode scanner: it hands back the scanned food under [CAMERA_FOOD_ID] and its grams. */
+    const val CAMERA_SCAN = Routes.CAMERA
+    const val CAMERA_FOOD_ID = CameraResult.FOOD_ID
 }

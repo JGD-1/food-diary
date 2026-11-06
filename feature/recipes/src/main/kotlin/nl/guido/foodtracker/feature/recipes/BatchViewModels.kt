@@ -321,6 +321,13 @@ internal class NewBatchViewModel @Inject constructor(
             _state.update { it.copy(lines = it.lines + line) }
         }
     }
+    /** A product scanned with the camera; no grams (0) leaves the amount to fill in. */
+    fun addScanned(picked: PickedFood) {
+        viewModelScope.launch {
+            val line = ingredientFoods.line(picked.foodId, picked.grams.takeIf { it > 0 }, null) ?: return@launch
+            _state.update { it.copy(lines = it.lines + line, weighing = null) }
+        }
+    }
     /** Lines checked in "Scan a note" (round 4, H), in the order they were on the note. */
     fun addFromNote(items: List<NoteIngredient>) {
         viewModelScope.launch {

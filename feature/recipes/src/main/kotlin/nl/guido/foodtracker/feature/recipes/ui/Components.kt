@@ -52,6 +52,7 @@ import nl.guido.foodtracker.core.ui.FoodPickResult
 import nl.guido.foodtracker.core.ui.Routes
 import nl.guido.foodtracker.core.ui.amountText
 import nl.guido.foodtracker.feature.recipes.PansViewModel
+import nl.guido.foodtracker.feature.recipes.logic.scannedIngredient
 import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.RecipesRoutes
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
@@ -252,11 +253,39 @@ internal fun cameraWeigh(navController: NavController, before: () -> Unit): (() 
     }
 }
 
-/** Hands a scale reading from the camera to [onGrams] once, when coming back to this screen. */
+/**
+ * Opens the camera's barcode scanner if the app has it (stream 2), else null so no Scan button shows.
+ * The scanned food and its grams come back through [CameraGrams]'s onFood.
+ */
+internal fun cameraScan(navController: NavController, before: () -> Unit = {}): (() -> Unit)? {
+    val hasCamera = navController.graph.any { it.route?.startsWith("camera?") == true }
+    if (!hasCamera) return null
+    return {
+        before()
+        navController.navigate(RecipesRoutes.CAMERA_SCAN)
+    }
+}
+
+/**
+ * Hands a scale reading from the camera to [onGrams] once, when coming back to this screen.
+ * A scanned product (the camera also sends its food) goes to [onFood] instead, with its grams.
+ */
 @Composable
-internal fun CameraGrams(savedState: SavedStateHandle, onGrams: (Double) -> Unit) {
+internal fun CameraGrams(
+    savedState: SavedStateHandle,
+    onGrams: (Double) -> Unit,
+    onFood: ((PickedFood) -> Unit)? = null,
+) {
     val grams by savedState.getStateFlow<Double?>(RecipesRoutes.CAMERA_GRAMS, null).collectAsState()
-    LaunchedEffect(grams) {
+    val foodId by savedState.getStateFlow<String?>(RecipesRoutes.CAMERA_FOOD_ID, null).collectAsState()
+    LaunchedEffect(foodId, grams) {
+        val scanned = scannedIngredient(foodId, grams)
+        if (scanned != null) {
+            savedState.remove<String>(RecipesRoutes.CAMERA_FOOD_ID)
+            savedState.remove<Double>(RecipesRoutes.CAMERA_GRAMS)
+            onFood?.invoke(scanned)
+            return@LaunchedEffect
+        }
         grams?.let {
             onGrams(it)
             savedState.remove<Double>(RecipesRoutes.CAMERA_GRAMS)
