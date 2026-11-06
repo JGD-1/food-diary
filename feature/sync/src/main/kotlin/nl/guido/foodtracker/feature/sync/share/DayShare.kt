@@ -13,6 +13,7 @@ import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.feature.sync.local.SyncPrefs
 import java.time.LocalDate
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 import kotlin.math.roundToInt
 
@@ -25,7 +26,9 @@ import kotlin.math.roundToInt
 class DayShare @Inject constructor(
     private val prefs: SyncPrefs,
     private val diary: DiaryRepository,
-    private val energy: EnergyRepository,
+    // A Provider: the energy stream reads the session, which this module provides, so a direct
+    // dependency would be a loop (SyncManager → DayShare → EnergyRepository → session → SyncManager).
+    private val energy: Provider<EnergyRepository>,
     private val totals: SharedDayRepository,
 ) {
     private val _enabled = MutableStateFlow(prefs.shareDay)
@@ -42,7 +45,7 @@ class DayShare @Inject constructor(
         if (!prefs.shareDay) return
         val from = today.minusDays(DAYS - 1L)
         val entries = diary.entriesBetween(userId, from, today).first()
-        val target = energy.target.first()?.targetKcal
+        val target = energy.get().target.first()?.targetKcal
         dayTotals(userId, entries, target, from, today).forEach { totals.saveOwn(it) }
     }
 
