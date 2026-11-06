@@ -4,7 +4,6 @@
     <string name="sync_not_configured">Online back-up is nog niet ingesteld. Alles wat je invult, staat veilig op deze telefoon.</string>
 
     <string name="sync_sign_in_body">Log in met Google om een back-up van je dagboek te maken en recepten te delen met je huishouden.</string>
-    <string name="sync_private_note">Recepten en pannen met eten worden gedeeld. Je dagboek, gewicht en voortgang blijven privé.</string>
     <string name="sync_sign_in_button">Inloggen met Google</string>
     <string name="sync_signing_in">Bezig met inloggen…</string>
     <string name="sync_sign_in_failed">Inloggen is niet gelukt. Je kunt het opnieuw proberen.</string>
@@ -34,4 +33,8 @@
     <string name="sync_export_button">Al mijn gegevens exporteren</string>
     <string name="sync_export_saved">Opgeslagen.</string>
     <string name="sync_export_failed">Het bestand kon niet worden opgeslagen. Probeer het opnieuw.</string>
+    <string name="sync_share_day_title">Je dag</string>
+    <string name="sync_share_day_switch">Laat mijn dag zien aan mijn partner</string>
+    <string name="sync_share_day_body">Staat dit aan, dan ziet je huishouden hoeveel kcal je per dag hebt gegeten, naast je eigen doel. Wat je at blijft privé. Zet je het uit, dan verdwijnt het van hun telefoon.</string>
+    <string name="sync_private_note">Recepten en pannen met eten worden gedeeld. Je dagboek, gewicht en voortgang blijven privé, tenzij je kiest om de kcal van je dag te laten zien.</string>
 </resources>

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -25,6 +26,7 @@ import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.data.repo.ProfileRepository
 import nl.guido.foodtracker.core.data.repo.RecipeRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
+import nl.guido.foodtracker.core.data.repo.SharedDayRepository
 import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.FoodNames
@@ -105,6 +107,7 @@ internal class TodayViewModel @Inject constructor(
     private val recipes: RecipeRepository,
     private val reviewPrefs: ReviewPrefs,
     private val weighAfter: WeighAfterStore,
+    private val sharedDays: SharedDayRepository,
     /** The app's readable names under NEVO names (S1), bound by feature/food. */
     private val foodNames: Optional<FoodNames>,
 ) : ViewModel() {
@@ -167,6 +170,15 @@ internal class TodayViewModel @Inject constructor(
             SharedFood(waitingPlates(waiting, batches, members), boxesInFridge(containers, batches, portions))
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SharedFood())
+
+    /** The partner's kcal for the day viewed, when they share their day (round 10). */
+    val partner: StateFlow<PartnerDay?> = combine(session.currentUser, state.filterNotNull().map { it.date }.distinctUntilChanged()) { user, day ->
+        user to day
+    }.flatMapLatest { (user, day) ->
+        combine(sharedDays.othersOn(user.householdId, user.userId, day), recipes.householdMembers(user.householdId)) { totals, members ->
+            partnerDay(totals, members)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /** Foods weighed before eating ("Weigh after" in Log food), waiting for what's left to be weighed. */
     val waitingToWeigh: StateFlow<List<WeighAfterItem>> = combine(session.currentUser, weighAfter.items) { user, items ->

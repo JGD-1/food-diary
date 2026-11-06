@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,6 +20,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -26,7 +28,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -47,6 +52,7 @@ fun AccountScreen(onClose: () -> Unit, viewModel: AccountViewModel = hiltViewMod
     val state by viewModel.state.collectAsStateWithLifecycle()
     val export by viewModel.export.collectAsStateWithLifecycle()
     val joining by viewModel.joining.collectAsStateWithLifecycle()
+    val sharingDay by viewModel.sharingDay.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
         if (uri != null) viewModel.exportTo(uri)
@@ -70,6 +76,8 @@ fun AccountScreen(onClose: () -> Unit, viewModel: AccountViewModel = hiltViewMod
             else -> SignedIn(
                 state = state,
                 joining = joining,
+                sharingDay = sharingDay,
+                onShareDay = viewModel::shareDay,
                 onSyncNow = viewModel::syncNow,
                 onSignInAgain = openSignIn,
                 onJoin = viewModel::join,
@@ -104,6 +112,8 @@ private fun SignedOut(state: AccountState, onSignIn: () -> Unit, onNotNow: () ->
 private fun SignedIn(
     state: AccountState,
     joining: Boolean,
+    sharingDay: Boolean,
+    onShareDay: (Boolean) -> Unit,
     onSyncNow: () -> Unit,
     onSignInAgain: () -> Unit,
     onJoin: (String, (Boolean) -> Unit) -> Unit,
@@ -156,6 +166,19 @@ private fun SignedIn(
         ) { Text(stringResource(R.string.sync_join_button)) }
         if (joined) Body(stringResource(R.string.sync_join_done))
         if (state.problem == Problem.CODE_NOT_FOUND) Body(stringResource(R.string.sync_join_not_found))
+    }
+
+    Section(stringResource(R.string.sync_share_day_title)) {
+        // The whole row is one switch, so the text is part of what you tap and what is read out.
+        Row(
+            Modifier.fillMaxWidth().toggleable(value = sharingDay, role = Role.Switch, onValueChange = onShareDay),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(stringResource(R.string.sync_share_day_switch), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+            Switch(checked = sharingDay, onCheckedChange = null)
+        }
+        Body(stringResource(R.string.sync_share_day_body))
     }
 }
 
