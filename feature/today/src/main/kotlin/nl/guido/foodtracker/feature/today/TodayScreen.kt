@@ -54,6 +54,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.drawscope.scale
@@ -101,6 +102,7 @@ internal fun TodayRoute(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val shared by viewModel.shared.collectAsStateWithLifecycle()
     val waitingToWeigh by viewModel.waitingToWeigh.collectAsStateWithLifecycle()
+    val partner by viewModel.partner.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val comingSoon = stringResource(R.string.today_coming_soon)
     val undo = stringResource(R.string.today_undo)
@@ -160,6 +162,7 @@ internal fun TodayRoute(
                 ui = ui,
                 shared = shared,
                 waitingToWeigh = waitingToWeigh,
+                partner = partner,
                 snackbar = snackbar,
                 onProfile = { open(Routes.PROFILE) },
                 onFridge = { open(Routes.FRIDGE) },
@@ -191,6 +194,7 @@ private fun TodayContent(
     ui: TodayUiState,
     shared: SharedFood,
     waitingToWeigh: List<WeighAfterItem>,
+    partner: PartnerDay?,
     snackbar: SnackbarHostState,
     onProfile: () -> Unit,
     onFridge: () -> Unit,
@@ -246,7 +250,7 @@ private fun TodayContent(
                         Text(stringResource(R.string.today_yesterday_empty), style = MaterialTheme.typography.titleSmall)
                     }
                 }
-                RingSection(summary, ui.proteinGoalG, onTarget, onMacros = { showMacros = true })
+                RingSection(summary, partner, ui.proteinGoalG, onTarget, onMacros = { showMacros = true })
                 ui.review?.let { ReviewCard(it, onDismiss = { onDismissReview(it) }) }
                 // Meals, the next empty meal and Drinks as rows of one card (option B, Nov 2026).
                 val rows = buildList<@Composable () -> Unit> {
@@ -544,14 +548,15 @@ private fun AddButton(spoken: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun RingSection(summary: TodaySummary, proteinGoalG: Int?, onTarget: () -> Unit, onMacros: () -> Unit) {
+private fun RingSection(summary: TodaySummary, partner: PartnerDay?, proteinGoalG: Int?, onTarget: () -> Unit, onMacros: () -> Unit) {
     Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface) {
         Column(
             Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 18.dp, bottom = 6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            KcalMeter(summary)
+            KcalMeter(summary, partner)
             Spacer(Modifier.size(4.dp))
+            if (partner != null) PartnerLine(partner)
             val target = summary.targetKcal
             val sumText = when {
                 target == null -> stringResource(R.string.today_set_target)
@@ -582,9 +587,31 @@ private fun RingSection(summary: TodaySummary, proteinGoalG: Int?, onTarget: () 
     }
 }
 
-/** The Garden half-circle meter: it fills from left to right as the day's kcal are eaten. */
+/**
+ * One small line under the meter with the partner's kcal (round 10), in the same lilac as their
+ * striped arc. Screen readers read it as a normal line.
+ */
 @Composable
-private fun KcalMeter(summary: TodaySummary) {
+private fun PartnerLine(partner: PartnerDay) {
+    val kcal = formatKcal(partner.kcal)
+    val text = if (partner.name != null) stringResource(R.string.today_partner_kcal, partner.name, kcal)
+    else stringResource(R.string.today_partner_kcal_no_name, kcal)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        val ink = FoodTheme.colors.tints.lilac.ink
+        Canvas(Modifier.size(width = 14.dp, height = 6.dp)) {
+            drawLine(ink, Offset(0f, size.height / 2), Offset(size.width, size.height / 2), strokeWidth = size.height,
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 2.dp.toPx())))
+        }
+        Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/**
+ * The Garden half-circle meter: it fills from left to right as the day's kcal are eaten.
+ * With [partner], a thin striped lilac arc on top shows how far they are towards their own target.
+ */
+@Composable
+private fun KcalMeter(summary: TodaySummary, partner: PartnerDay? = null) {
     val left = summary.kcalLeft
     val (number, label, description) = when {
         left == null -> Triple(summary.eatenKcal, R.string.today_kcal_eaten, R.string.today_ring_description_eaten)
@@ -593,6 +620,7 @@ private fun KcalMeter(summary: TodaySummary) {
     }
     val accent = MaterialTheme.colorScheme.primary
     val track = FoodTheme.colors.meterTrack
+    val partnerInk = FoodTheme.colors.tints.lilac.ink
     val spoken = stringResource(description, formatKcal(number))
     // With big text the number and label may need more room than the arc: the box then grows downwards.
     Box(Modifier.width(240.dp).heightIn(min = 128.dp).clearAndSetSemantics { contentDescription = spoken }) {
@@ -606,6 +634,16 @@ private fun KcalMeter(summary: TodaySummary) {
                 drawArc(
                     accent, 180f, 180f * summary.ringFraction, useCenter = false, topLeft = topLeft, size = arc,
                     style = Stroke(line, cap = StrokeCap.Round),
+                )
+            }
+            val partnerFraction = partner?.fraction?.coerceIn(0f, 1f)
+            if (partnerFraction != null && partnerFraction > 0f) {
+                drawArc(
+                    partnerInk.copy(alpha = 0.75f), 180f, 180f * partnerFraction, useCenter = false, topLeft = topLeft, size = arc,
+                    style = Stroke(
+                        line / 3,
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 3.dp.toPx())),
+                    ),
                 )
             }
         }
