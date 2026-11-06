@@ -4,10 +4,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import nl.guido.foodtracker.core.data.repo.DayTotalRepository
+import nl.guido.foodtracker.core.data.repo.SharedDayRepository
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.EnergyRepository
-import nl.guido.foodtracker.core.model.DayTotal
+import nl.guido.foodtracker.core.model.SharedDay
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.feature.sync.local.SyncPrefs
@@ -26,7 +26,7 @@ class DayShare @Inject constructor(
     private val prefs: SyncPrefs,
     private val diary: DiaryRepository,
     private val energy: EnergyRepository,
-    private val totals: DayTotalRepository,
+    private val totals: SharedDayRepository,
 ) {
     private val _enabled = MutableStateFlow(prefs.shareDay)
     val enabled: StateFlow<Boolean> = _enabled.asStateFlow()
@@ -53,9 +53,9 @@ class DayShare @Inject constructor(
 }
 
 /** One total for every day from [from] to [to], 0 kcal on days without entries (so a removed meal also counts). */
-internal fun dayTotals(userId: Id, entries: List<LogEntry>, targetKcal: Int?, from: LocalDate, to: LocalDate): List<DayTotal> {
+internal fun dayTotals(userId: Id, entries: List<LogEntry>, targetKcal: Int?, from: LocalDate, to: LocalDate): List<SharedDay> {
     val byDay = entries.filter { it.userId == userId }.groupBy { it.date }
     return generateSequence(from) { it.plusDays(1) }.takeWhile { !it.isAfter(to) }.map { day ->
-        DayTotal(userId, day, byDay[day].orEmpty().sumOf { it.nutrients.kcal }.roundToInt(), targetKcal)
+        SharedDay(userId, day, byDay[day].orEmpty().sumOf { it.nutrients.kcal }.roundToInt(), targetKcal)
     }.toList()
 }
