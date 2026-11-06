@@ -1,6 +1,5 @@
 package nl.guido.foodtracker.feature.today
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,19 +50,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -181,9 +178,6 @@ internal fun TodayRoute(
                 onCopyToToday = viewModel::copyToToday,
                 onDismissReview = viewModel::dismissReview,
                 onLogFood = { open(TodayRoutes.logFood(date = ui.dateArg)) },
-                onScan = { viewModel.openingCamera(forDrink = false); open(Routes.CAMERA) },
-                onScanDrink = { viewModel.openingCamera(forDrink = true); open(Routes.CAMERA_DRINK, Routes.CAMERA) },
-                onWeigh = { viewModel.openingCamera(forDrink = false); open(Routes.CAMERA_SCALE, Routes.CAMERA) },
             )
         }
     }
@@ -215,9 +209,6 @@ private fun TodayContent(
     onCopyToToday: (Meal) -> Unit,
     onDismissReview: (WeeklyReview) -> Unit,
     onLogFood: () -> Unit,
-    onScan: () -> Unit,
-    onScanDrink: () -> Unit,
-    onWeigh: () -> Unit,
 ) {
     val summary = ui.summary
     var openMeal by rememberSaveable { mutableStateOf<Meal?>(null) }
@@ -257,47 +248,54 @@ private fun TodayContent(
                 }
                 RingSection(summary, ui.proteinGoalG, onTarget, onMacros = { showMacros = true })
                 ui.review?.let { ReviewCard(it, onDismiss = { onDismissReview(it) }) }
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Meals, the next empty meal and Drinks as rows of one card (option B, Nov 2026).
+                val rows = buildList<@Composable () -> Unit> {
                     summary.filledMeals.forEach { meal ->
-                        MealCard(
-                            meal = meal.meal,
-                            title = stringResource(mealName(meal.meal)),
-                            items = entriesText(meal.entries, ui.readable),
-                            kcal = kcalText(meal.kcal, meal.hasEstimate),
-                            onClick = { openMeal = meal.meal },
-                        ) {
-                            AgainButton { onAgain(meal.meal) }
-                        }
-                    }
-                    MealCard(
-                        meal = Meal.DRINKS,
-                        title = stringResource(R.string.today_meal_drinks),
-                        items = if (summary.drinks.entries.isEmpty()) stringResource(R.string.today_drinks_none)
-                        else entriesText(summary.drinks.entries, ui.readable),
-                        kcal = kcalText(summary.drinks.kcal, summary.drinks.hasEstimate),
-                        onClick = { if (summary.drinks.entries.isEmpty()) onAddTo(Meal.DRINKS) else openMeal = Meal.DRINKS },
-                    ) {
-                        // Scan and Add as two small icon buttons on top of each other, so "Drinks" keeps its room.
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            DrinkButton(TodayIcons.Scan, R.string.today_scan_drink, onScanDrink)
-                            DrinkButton(TodayIcons.Add, R.string.today_add_drink) { onAddTo(Meal.DRINKS) }
+                        add {
+                            MealRow(
+                                meal = meal.meal,
+                                title = stringResource(mealName(meal.meal)),
+                                items = entriesText(meal.entries, ui.readable),
+                                kcal = kcalText(meal.kcal, meal.hasEstimate),
+                                onClick = { openMeal = meal.meal },
+                            ) { AgainButton { onAgain(meal.meal) } }
                         }
                     }
                     summary.nextEmptyMeal?.let { meal ->
-                        AddMealCard(
-                            meal = meal,
-                            readable = ui.readable,
-                            lastTime = summary.lastTime[meal].orEmpty(),
-                            onAdd = { onAddTo(meal) },
-                            onAgain = { onAgain(meal) },
-                        )
+                        add {
+                            val lastTime = summary.lastTime[meal].orEmpty()
+                            MealRow(
+                                meal = meal,
+                                title = stringResource(addMeal(meal)),
+                                titleColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                items = if (lastTime.isEmpty()) null
+                                else stringResource(R.string.today_last_time, entriesText(lastTime, ui.readable)),
+                                kcal = null,
+                                onClick = { onAddTo(meal) },
+                            ) {
+                                if (lastTime.isNotEmpty()) AgainButton { onAgain(meal) }
+                                else AddButton(stringResource(addMeal(meal))) { onAddTo(meal) }
+                            }
+                        }
                     }
-                    if (summary.earlierEmptyMeals.isNotEmpty()) EarlierMeals(summary.earlierEmptyMeals, onAddTo)
+                    // Drinks work like the meals: tap to see them, + opens Log food for a drink (search, recent, scan).
+                    add {
+                        val none = summary.drinks.entries.isEmpty()
+                        MealRow(
+                            meal = Meal.DRINKS,
+                            title = stringResource(R.string.today_meal_drinks),
+                            items = if (none) stringResource(R.string.today_drinks_none) else entriesText(summary.drinks.entries, ui.readable),
+                            kcal = if (none) null else kcalText(summary.drinks.kcal, summary.drinks.hasEstimate),
+                            onClick = { if (none) onAddTo(Meal.DRINKS) else openMeal = Meal.DRINKS },
+                        ) { AddButton(stringResource(R.string.today_add_drink)) { onAddTo(Meal.DRINKS) } }
+                    }
                 }
+                MealList(rows)
+                if (summary.earlierEmptyMeals.isNotEmpty()) EarlierMeals(summary.earlierEmptyMeals, onAddTo)
             }
             SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(horizontal = 8.dp))
         }
-        BottomActions(onLogFood, onScan, onWeigh)
+        BottomActions(onLogFood)
     }
 
     openMeal?.let { meal ->
@@ -537,17 +535,17 @@ private fun DayArrow(icon: ImageVector, label: String, dot: Boolean = false, onC
     }
 }
 
-/** "Scan" or "Add" on the Drinks card: icon and word, 48 dp high; [spoken] says it is for a drink. */
+/** A small round + at the end of a row; [spoken] says what it adds ("Add a drink"). */
 @Composable
-private fun DrinkButton(icon: ImageVector, @StringRes spoken: Int, onClick: () -> Unit) {
-    FilledTonalIconButton(onClick = onClick, modifier = Modifier.size(44.dp)) {
-        Icon(icon, contentDescription = stringResource(spoken), modifier = Modifier.size(20.dp))
+private fun AddButton(spoken: String, onClick: () -> Unit) {
+    FilledTonalIconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
+        Icon(TodayIcons.Add, contentDescription = spoken, modifier = Modifier.size(20.dp))
     }
 }
 
 @Composable
 private fun RingSection(summary: TodaySummary, proteinGoalG: Int?, onTarget: () -> Unit, onMacros: () -> Unit) {
-    Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface, shadowElevation = CardShadow) {
+    Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface) {
         Column(
             Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 18.dp, bottom = 6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -670,32 +668,52 @@ private fun FitText(text: String, style: TextStyle) {
 /** FitText never goes below this share of its style's size. */
 private const val MIN_FIT_SCALE = 0.5f
 
+/** The day's meals and Drinks in one white card, with a thin line between the rows. */
 @Composable
-private fun MealCard(
+private fun MealList(rows: List<@Composable () -> Unit>) {
+    val divider = FoodTheme.colors.divider
+    Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp)) {
+            rows.forEachIndexed { i, row ->
+                if (i > 0) HorizontalDivider(thickness = 1.dp, color = divider)
+                row()
+            }
+        }
+    }
+}
+
+/** One meal (or Drinks) in [MealList]: pastel tile, name, what was eaten, kcal and one button. */
+@Composable
+private fun MealRow(
     meal: Meal,
     title: String,
-    items: String,
-    kcal: String,
+    items: String?,
+    kcal: String?,
+    titleColor: Color = Color.Unspecified,
     onClick: () -> Unit,
     trailing: @Composable () -> Unit,
 ) {
-    Surface(onClick = onClick, shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surface) {
-        Row(
-            Modifier.fillMaxWidth().heightIn(min = 60.dp).padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            IconTile(mealIcon(meal), mealTint(meal))
-            Column(Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(role = Role.Button, onClick = onClick)
+            .heightIn(min = 60.dp)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        IconTile(mealIcon(meal), mealTint(meal), size = 40.dp, iconSize = 20.dp)
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, color = titleColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (items != null) {
                 Text(
                     items, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2, overflow = TextOverflow.Ellipsis,
                 )
             }
-            Text(kcal, style = MaterialTheme.typography.titleMedium, maxLines = 1, softWrap = false)
-            trailing()
         }
+        if (kcal != null) Text(kcal, style = MaterialTheme.typography.titleMedium, maxLines = 1, softWrap = false)
+        trailing()
     }
 }
 
@@ -707,59 +725,6 @@ private fun AgainButton(onClick: () -> Unit) {
         modifier = Modifier.heightIn(min = 40.dp),
     ) {
         Text(stringResource(R.string.today_again), style = MaterialTheme.typography.labelLarge)
-    }
-}
-
-/** The dashed "+ Add dinner" invitation, with Again when there is a last time to repeat. */
-@Composable
-private fun AddMealCard(
-    meal: Meal,
-    readable: Map<String, String>,
-    lastTime: List<LogEntry>,
-    onAdd: () -> Unit,
-    onAgain: () -> Unit,
-) {
-    val outline = MaterialTheme.colorScheme.outline
-    val invite = FoodTheme.colors.invite
-    val shape = MaterialTheme.shapes.medium
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .heightIn(min = 60.dp)
-            .clip(shape)
-            .background(invite)
-            .drawBehind {
-                val width = 2.dp.toPx()
-                drawRoundRect(
-                    color = outline,
-                    topLeft = Offset(width / 2, width / 2),
-                    size = Size(size.width - width, size.height - width),
-                    cornerRadius = CornerRadius(22.dp.toPx()),
-                    style = Stroke(width, pathEffect = PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(), 6.dp.toPx()))),
-                )
-            }
-            .clip(shape)
-            .clickable(role = Role.Button, onClick = onAdd)
-            .padding(start = 10.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        val colors = FoodTheme.colors
-        IconTile(mealIcon(meal), Tint(colors.accentSoft, colors.accentStrong), size = 40.dp, iconSize = 20.dp)
-        Column(Modifier.weight(1f)) {
-            Text(
-                stringResource(addMeal(meal)), style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-            if (lastTime.isNotEmpty()) {
-                Text(
-                    stringResource(R.string.today_last_time, entriesText(lastTime, readable)),
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-        if (lastTime.isNotEmpty()) AgainButton(onAgain)
     }
 }
 
@@ -825,18 +790,21 @@ private fun suggestionText(s: ReviewSuggestion): Int = when (s) {
 }
 
 /**
- * Log food plus three shortcuts in one row. With large text the shortcuts move to their own
- * row below, so no label gets cut off.
+ * The big Log food button. Scan and Weigh live inside Log food. Room is kept on the right for a
+ * second button (Sport, see plan.md "Later"): it goes next to Log food in this row.
  */
 @Composable
-private fun BottomActions(onLogFood: () -> Unit, onScan: () -> Unit, onWeigh: () -> Unit) {
-    val stacked = LocalDensity.current.fontScale >= LARGE_TEXT_SCALE
-    val logFood = @Composable { modifier: Modifier ->
+private fun BottomActions(onLogFood: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Button(
             onClick = onLogFood,
             shape = CircleShape,
             contentPadding = PaddingValues(horizontal = 12.dp),
-            modifier = modifier
+            modifier = Modifier
+                .weight(1f)
                 .shadow(6.dp, CircleShape, ambientColor = MaterialTheme.colorScheme.primary, spotColor = MaterialTheme.colorScheme.primary)
                 .heightIn(min = 52.dp),
         ) {
@@ -847,60 +815,6 @@ private fun BottomActions(onLogFood: () -> Unit, onScan: () -> Unit, onWeigh: ()
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Black),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-    val shortcuts = @Composable { modifier: Modifier ->
-        Shortcut(TodayIcons.Scan, stringResource(R.string.today_scan), onScan, modifier)
-        Shortcut(TodayIcons.Weigh, stringResource(R.string.today_weigh), onWeigh, modifier)
-    }
-    if (stacked) {
-        Column(
-            Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            logFood(Modifier.fillMaxWidth())
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                shortcuts(Modifier.weight(1f))
-            }
-        }
-    } else {
-        Row(
-            Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            logFood(Modifier.weight(1f))
-            shortcuts(Modifier)
-        }
-    }
-}
-
-/** From this text size (Android's "large" and up) the bottom buttons take two rows. */
-private const val LARGE_TEXT_SCALE = 1.3f
-
-@Composable
-private fun Shortcut(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-        modifier = modifier.sizeIn(minWidth = 64.dp, minHeight = 52.dp),
-    ) {
-        Column(
-            Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
-            Text(
-                label, style = MaterialTheme.typography.labelSmall, maxLines = 2,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
         }
     }
