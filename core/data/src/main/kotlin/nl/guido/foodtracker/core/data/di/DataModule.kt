@@ -15,6 +15,9 @@ import nl.guido.foodtracker.core.data.db.MIGRATION_2_3
 import nl.guido.foodtracker.core.data.db.MIGRATION_3_4
 import nl.guido.foodtracker.core.data.db.MIGRATION_4_5
 import nl.guido.foodtracker.core.data.db.MIGRATION_5_6
+import nl.guido.foodtracker.core.data.db.MIGRATION_6_7
+import nl.guido.foodtracker.core.data.repo.RoomSportRepository
+import nl.guido.foodtracker.core.data.repo.SportRepository
 import nl.guido.foodtracker.core.data.repo.SharedDayRepository
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.FoodRepository
@@ -37,7 +40,7 @@ internal object DatabaseModule {
     @Singleton
     fun database(@ApplicationContext context: Context): FoodDatabase =
         Room.databaseBuilder(context, FoodDatabase::class.java, "food-diary.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
             .build()
 
     @Provides fun foodDao(db: FoodDatabase) = db.foodDao()
@@ -45,6 +48,7 @@ internal object DatabaseModule {
     @Provides fun recipeDao(db: FoodDatabase) = db.recipeDao()
     @Provides fun profileDao(db: FoodDatabase) = db.profileDao()
     @Provides fun dayTotalDao(db: FoodDatabase) = db.dayTotalDao()
+    @Provides fun sportDao(db: FoodDatabase) = db.sportDao()
 }
 
 @Module
@@ -55,6 +59,7 @@ internal abstract class RepositoryModule {
     @Binds @Singleton abstract fun recipe(impl: RoomRecipeRepository): RecipeRepository
     @Binds @Singleton abstract fun profile(impl: RoomProfileRepository): ProfileRepository
     @Binds @Singleton abstract fun sharedDay(impl: RoomSharedDayRepository): SharedDayRepository
+    @Binds @Singleton abstract fun sport(impl: RoomSportRepository): SportRepository
 }
 
 @Module

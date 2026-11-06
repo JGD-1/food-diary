@@ -122,8 +122,15 @@ object SyncTables {
         listOf(text("id"), text("householdId"), text("name"), double("grams")) + stamps,
     )
 
+    /** Sport someone typed in (round 11). Private, like the diary. */
+    val sportEntry = SyncTable(
+        "sport_entry", "sport_entries", Scope.USER, "userId",
+        listOf(text("id"), text("userId"), text("date"), text("name"), long("kcal"), long("createdAt")) + stamps,
+    )
+
     val all = listOf(
         profile, logEntry, weighIn, food, recipe, recipeVariant, favourite, batch, batchContainer, batchPortion, pan,
+        sportEntry,
     )
     val household = listOf(recipe, recipeVariant, batch, batchContainer, batchPortion, pan)
 

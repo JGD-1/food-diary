@@ -30,6 +30,7 @@ object Routes {
     const val TODAY = "today"
     const val WEIGHT = "weight"
     const val STATS = "stats"
+    const val SPORT = "sport"                // round 11 (feature/sport): fourth tab
 
     const val LOG_FOOD = "log-food"          // stream 5
     const val EAT_OUT = "eat-out"            // stream 1

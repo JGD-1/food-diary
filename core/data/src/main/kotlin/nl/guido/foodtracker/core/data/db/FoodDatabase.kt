@@ -25,8 +25,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         BatchContainerEntity::class,
         HouseholdMemberEntity::class,
         DayTotalEntity::class,
+        SportEntryEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 abstract class FoodDatabase : RoomDatabase() {
@@ -35,6 +36,7 @@ abstract class FoodDatabase : RoomDatabase() {
     abstract fun recipeDao(): RecipeDao
     abstract fun profileDao(): ProfileDao
     abstract fun dayTotalDao(): DayTotalDao
+    abstract fun sportDao(): SportDao
 }
 
 /** Version 2: per-person favourite recipes. */
@@ -141,5 +143,17 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_day_total_userId_date` ON `day_total` (`userId`, `date`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_day_total_date` ON `day_total` (`date`)")
+    }
+}
+
+/** Version 7 (round 11): the sport_entry table, sport someone typed in with its kcal. Only adds things. */
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `sport_entry` (`id` TEXT NOT NULL, `userId` TEXT NOT NULL, `date` TEXT NOT NULL, " +
+                "`name` TEXT NOT NULL, `kcal` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, " +
+                "`deleted` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_sport_entry_userId_date` ON `sport_entry` (`userId`, `date`)")
     }
 }

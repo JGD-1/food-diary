@@ -98,4 +98,15 @@ class SyncTablesTest {
         assertTrue(SyncTables.refetchOnHouseholdChange.containsAll(SyncTables.household))
         assertTrue(SyncTables.food !in SyncTables.household)
     }
+
+    @Test
+    fun `sport syncs as private rows of its owner`() {
+        val t = SyncTables.sportEntry
+        assertEquals("sport_entries", t.remote)
+        assertEquals(nl.guido.foodtracker.feature.sync.engine.Scope.USER, t.scope)
+        assertEquals("user_id", t.ownerRemote)
+        assertEquals(listOf("id", "user_id", "date", "name", "kcal", "created_at", "updated_at", "deleted"), t.columns.map { it.remote })
+        assertTrue(t in SyncTables.all)
+        assertTrue(t !in SyncTables.household)
+    }
 }

@@ -47,6 +47,7 @@ import nl.guido.foodtracker.feature.food.foodScreens
 import nl.guido.foodtracker.feature.progress.progressScreens
 import nl.guido.foodtracker.feature.recipes.recipesScreens
 import nl.guido.foodtracker.feature.reminders.remindersScreens
+import nl.guido.foodtracker.feature.sport.sportScreens
 import nl.guido.foodtracker.feature.sync.syncScreens
 import nl.guido.foodtracker.feature.today.todayScreens
 
@@ -101,6 +102,7 @@ fun FoodDiaryNavHost(
             energyScreens(navController)
             syncScreens(navController)
             remindersScreens(navController)
+            sportScreens(navController)
         }
     }
 }

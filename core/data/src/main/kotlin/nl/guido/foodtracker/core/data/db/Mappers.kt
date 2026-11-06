@@ -5,6 +5,7 @@ import kotlinx.serialization.json.Json
 import nl.guido.foodtracker.core.model.ActivityLevel
 import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.SharedDay
+import nl.guido.foodtracker.core.model.SportEntry
 import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Favourite
@@ -166,4 +167,12 @@ internal fun DayTotalEntity.toModel() = SharedDay(
 
 internal fun SharedDay.toEntity(now: Long) = DayTotalEntity(
     id = id, userId = userId, date = date.toString(), kcal = kcal, targetKcal = targetKcal, updatedAt = now,
+)
+
+internal fun SportEntryEntity.toModel() = SportEntry(
+    id = id, userId = userId, date = LocalDate.parse(date), name = name, kcal = kcal, createdAt = Instant.ofEpochMilli(createdAt),
+)
+
+internal fun SportEntry.toEntity(now: Long) = SportEntryEntity(
+    id = id, userId = userId, date = date.toString(), name = name, kcal = kcal, createdAt = createdAt.toEpochMilli(), updatedAt = now,
 )
