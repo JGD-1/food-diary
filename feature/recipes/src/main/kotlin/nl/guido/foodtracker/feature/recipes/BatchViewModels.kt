@@ -274,10 +274,18 @@ internal class NewBatchViewModel @Inject constructor(
         val recipeId = savedState.get<String>(RecipesRoutes.ARG_RECIPE_ID)?.takeIf { it.isNotEmpty() }
         val viewedDay = RecipesRoutes.dateArg(savedState[RecipesRoutes.ARG_DATE], LocalDate.now())
         val recipe = recipeId?.let { recipes.get(it) }
+        val dishUp = savedState.get<Boolean>(RecipesRoutes.ARG_DISH_UP) == true && recipe != null
+        val user = session.currentUser.value
         val old = _state.value
-        _state.value = State(
+        // "Dish up for everyone" needs the household now, so the partner's plate is there from the start.
+        val members = if (dishUp) {
+            runCatching { recipes.householdMembers(user.householdId).first() }.getOrDefault(old.members)
+        } else {
+            old.members
+        }
+        val opened = State(
             loading = false,
-            members = old.members,
+            members = members,
             myUserId = old.myUserId,
             recipe = recipe,
             cookedOn = viewedDay,
@@ -285,6 +293,12 @@ internal class NewBatchViewModel @Inject constructor(
             lines = ingredientFoods.enrich(recipe?.ingredients.orEmpty().map { EditableIngredient.of(it) }),
             piecesText = recipe?.pieces?.toString().orEmpty(),
         )
+        // Round 11: straight to Dish up with the recipe's amounts; "Back" there still shows the ingredients.
+        _state.value = if (dishUp && opened.canDishUp) {
+            opened.copy(dishingUp = true, dishRows = startingRows(user.userId, members))
+        } else {
+            opened
+        }
         loadedDraft = _state.value.toDraft()
     }
 

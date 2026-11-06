@@ -52,6 +52,7 @@ internal fun LogRecipeScreen(
     savedState: SavedStateHandle,
     onEdit: (String) -> Unit,
     onCookBatch: (String, LocalDate) -> Unit,
+    onDishUp: (String, LocalDate) -> Unit,
     onDone: () -> Unit,
     vm: LogRecipeViewModel = hiltViewModel(),
 ) {
@@ -148,6 +149,10 @@ internal fun LogRecipeScreen(
             Button(onClick = vm::log, enabled = state.canLog, modifier = Modifier.fillMaxWidth().height(56.dp)) {
                 Text(stringResource(R.string.recipes_log_it))
             }
+            OutlinedButton(onClick = { onDishUp(recipe.id, state.date) }, modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                Text(stringResource(R.string.recipes_dish_up_everyone))
+            }
+            Hint(stringResource(R.string.recipes_dish_up_everyone_hint))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = vm::togglePin) {
                     Text(stringResource(if (state.pinned != null) R.string.recipes_unpin else R.string.recipes_pin))

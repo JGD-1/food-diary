@@ -180,6 +180,8 @@
     <string name="recipes_dish_step">2. Opscheppen</string>
     <string name="recipes_dish_step_hint">De hete pan hoeft niet op de weegschaal: weeg elk bord en bakje terwijl je het vult.</string>
     <string name="recipes_dish_up">Opscheppen</string>
+    <string name="recipes_dish_up_everyone">Opscheppen voor iedereen</string>
+    <string name="recipes_dish_up_everyone_hint">Gebruikt de hoeveelheden uit het recept. Je weegt alleen de borden en bakjes; het bord van je partner staat klaar op hun Vandaag.</string>
     <string name="recipes_dish_weigh_pot_instead">Toch de pan wegen</string>
     <string name="recipes_dish_hide_pot">Opscheppen in plaats van de pan wegen</string>
     <string name="recipes_dish_went_in">Er ging %1$d kcal in</string>

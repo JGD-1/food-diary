@@ -180,6 +180,8 @@
     <string name="recipes_dish_step">2. Dish up</string>
     <string name="recipes_dish_step_hint">No need to weigh the hot pot: weigh each plate and box as you fill it.</string>
     <string name="recipes_dish_up">Dish up</string>
+    <string name="recipes_dish_up_everyone">Dish up for everyone</string>
+    <string name="recipes_dish_up_everyone_hint">Uses the amounts in the recipe. You only weigh the plates and boxes; your partner\'s plate waits on their Today.</string>
     <string name="recipes_dish_weigh_pot_instead">Weigh the pot instead</string>
     <string name="recipes_dish_hide_pot">Dish up instead of weighing the pot</string>
     <string name="recipes_dish_went_in">%1$d kcal went in</string>
