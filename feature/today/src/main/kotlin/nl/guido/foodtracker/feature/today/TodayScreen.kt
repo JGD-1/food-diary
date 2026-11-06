@@ -560,6 +560,10 @@ private fun RingSection(summary: TodaySummary, partner: PartnerDay?, proteinGoal
             val target = summary.targetKcal
             val sumText = when {
                 target == null -> stringResource(R.string.today_set_target)
+                summary.sportKcal > 0 -> stringResource(
+                    if (summary.hasEstimate) R.string.today_sum_sport_estimate else R.string.today_sum_sport,
+                    formatKcal(summary.baseTargetKcal ?: target), formatKcal(summary.sportKcal), formatKcal(summary.eatenKcal),
+                )
                 summary.hasEstimate -> stringResource(R.string.today_sum_estimate, formatKcal(target), formatKcal(summary.eatenKcal))
                 else -> stringResource(R.string.today_sum, formatKcal(target), formatKcal(summary.eatenKcal))
             }
@@ -621,6 +625,7 @@ private fun KcalMeter(summary: TodaySummary, partner: PartnerDay? = null) {
     val accent = MaterialTheme.colorScheme.primary
     val track = FoodTheme.colors.meterTrack
     val partnerInk = FoodTheme.colors.tints.lilac.ink
+    val sportColour = FoodTheme.colors.sportBonus
     val spoken = stringResource(description, formatKcal(number))
     // With big text the number and label may need more room than the arc: the box then grows downwards.
     Box(Modifier.width(240.dp).heightIn(min = 128.dp).clearAndSetSemantics { contentDescription = spoken }) {
@@ -630,6 +635,13 @@ private fun KcalMeter(summary: TodaySummary, partner: PartnerDay? = null) {
             val topLeft = Offset(size.width / 2 - radius, 116.dp.toPx() - radius)
             val arc = Size(radius * 2, radius * 2)
             drawArc(track, 180f, 180f, useCenter = false, topLeft = topLeft, size = arc, style = Stroke(line, cap = StrokeCap.Round))
+            // The part of the day's target that sport added (round 11), at the end of the track.
+            summary.sportStart?.let { start ->
+                drawArc(
+                    sportColour, 180f + 180f * start, 180f * (1f - start), useCenter = false, topLeft = topLeft, size = arc,
+                    style = Stroke(line, cap = StrokeCap.Round),
+                )
+            }
             if (summary.ringFraction > 0f) {
                 drawArc(
                     accent, 180f, 180f * summary.ringFraction, useCenter = false, topLeft = topLeft, size = arc,

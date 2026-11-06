@@ -5,9 +5,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import nl.guido.foodtracker.core.data.repo.SharedDayRepository
+import nl.guido.foodtracker.core.data.repo.SportRepository
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.EnergyRepository
 import nl.guido.foodtracker.core.model.SharedDay
+import nl.guido.foodtracker.core.model.SportEntry
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.feature.sync.local.SyncPrefs
@@ -30,6 +32,7 @@ class DayShare @Inject constructor(
     // dependency would be a loop (SyncManager → DayShare → EnergyRepository → session → SyncManager).
     private val energy: Provider<EnergyRepository>,
     private val totals: SharedDayRepository,
+    private val sport: SportRepository,
 ) {
     private val _enabled = MutableStateFlow(prefs.shareDay)
     val enabled: StateFlow<Boolean> = _enabled.asStateFlow()
@@ -46,7 +49,10 @@ class DayShare @Inject constructor(
         val from = today.minusDays(DAYS - 1L)
         val entries = diary.entriesBetween(userId, from, today).first()
         val target = energy.get().target.first()?.targetKcal
-        dayTotals(userId, entries, target, from, today).forEach { totals.saveOwn(it) }
+        // The target shared is the day's raised target (own target + that day's sport, round 11).
+        val sportByDay = generateSequence(from) { it.plusDays(1) }.takeWhile { !it.isAfter(today) }
+            .associateWith { sport.kcalOn(userId, it).first() }
+        dayTotals(userId, entries, target, from, today, sportByDay).forEach { totals.saveOwn(it) }
     }
 
     companion object {
@@ -56,9 +62,16 @@ class DayShare @Inject constructor(
 }
 
 /** One total for every day from [from] to [to], 0 kcal on days without entries (so a removed meal also counts). */
-internal fun dayTotals(userId: Id, entries: List<LogEntry>, targetKcal: Int?, from: LocalDate, to: LocalDate): List<SharedDay> {
+internal fun dayTotals(
+    userId: Id,
+    entries: List<LogEntry>,
+    targetKcal: Int?,
+    from: LocalDate,
+    to: LocalDate,
+    sportKcal: Map<LocalDate, Int> = emptyMap(),
+): List<SharedDay> {
     val byDay = entries.filter { it.userId == userId }.groupBy { it.date }
     return generateSequence(from) { it.plusDays(1) }.takeWhile { !it.isAfter(to) }.map { day ->
-        SharedDay(userId, day, byDay[day].orEmpty().sumOf { it.nutrients.kcal }.roundToInt(), targetKcal)
+        SharedDay(userId, day, byDay[day].orEmpty().sumOf { it.nutrients.kcal }.roundToInt(), SportEntry.dayTarget(targetKcal, sportKcal[day] ?: 0))
     }.toList()
 }
