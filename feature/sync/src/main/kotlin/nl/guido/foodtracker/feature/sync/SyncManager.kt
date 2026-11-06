@@ -39,6 +39,7 @@ import nl.guido.foodtracker.feature.sync.remote.Pkce
 import nl.guido.foodtracker.feature.sync.remote.SignedOutException
 import nl.guido.foodtracker.feature.sync.remote.SupabaseApi
 import nl.guido.foodtracker.feature.sync.remote.SupabaseConfig
+import nl.guido.foodtracker.feature.sync.share.DayShare
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -76,6 +77,7 @@ class SyncManager @Inject constructor(
     private val prefs: SyncPrefs,
     private val local: RoomLocalStore,
     private val database: FoodDatabase,
+    private val dayShare: DayShare,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val mutex = Mutex()
@@ -188,8 +190,8 @@ class SyncManager @Inject constructor(
             if (info.movedFrom != null) local.moveHousehold(account.householdId, info.householdId)
             prefs.forgetPulls(SyncTables.refetchOnHouseholdChange)
         } else if (info.memberCount != account.memberCount) {
-            // Someone joined: fetch foods again, so the barcodes they scanned before joining arrive too.
-            prefs.forgetPulls(listOf(SyncTables.food))
+            // Someone joined: fetch foods and day totals again, so what they saved before joining arrives too.
+            prefs.forgetPulls(listOf(SyncTables.food, SyncTables.dayTotal))
         }
         val updated = account.copy(householdId = info.householdId, inviteCode = info.inviteCode, memberCount = info.memberCount)
         prefs.saveAccount(updated)
@@ -213,6 +215,8 @@ class SyncManager @Inject constructor(
                 val current = prefs.loadAccount() ?: return@withLock
                 // Names for "<name>'s plate" (round 6). Never stops the sync: an older server simply has no names yet.
                 runCatching { refreshMembers(current) }
+                // "Show my day to my partner": bring the shared kcal per day up to date before pushing.
+                runCatching { dayShare.refresh(current.userId) }
                 engineFor(current).sync(SyncOwner(current.userId, current.householdId))
                 val now = System.currentTimeMillis()
                 prefs.lastSyncedAt = now

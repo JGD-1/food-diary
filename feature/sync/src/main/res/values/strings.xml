@@ -4,7 +4,6 @@
     <string name="sync_not_configured">Online backup isn\'t set up yet. Everything you log is saved on this phone.</string>
 
     <string name="sync_sign_in_body">Sign in with Google to back up your diary and share recipes with your household.</string>
-    <string name="sync_private_note">Recipes and batch meals are shared. Your diary, weight and progress stay private.</string>
     <string name="sync_sign_in_button">Sign in with Google</string>
     <string name="sync_signing_in">Signing in…</string>
     <string name="sync_sign_in_failed">Sign-in didn\'t finish. You can try again.</string>
@@ -34,4 +33,8 @@
     <string name="sync_export_button">Export all my data</string>
     <string name="sync_export_saved">Saved.</string>
     <string name="sync_export_failed">Couldn\'t save the file. Try again.</string>
+    <string name="sync_share_day_title">Your day</string>
+    <string name="sync_share_day_switch">Show my day to my partner</string>
+    <string name="sync_share_day_body">When on, your household sees how many kcal you\'ve eaten each day, next to your own target. What you ate stays private. Switch it off and it disappears from their phone.</string>
+    <string name="sync_private_note">Recipes and batch meals are shared. Your diary, weight and progress stay private, unless you choose to show your day\'s kcal.</string>
 </resources>
