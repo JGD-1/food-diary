@@ -19,7 +19,7 @@ mlkitText = "16.0.1"
 androidxTestRunner = "1.6.2"
 androidxTestExtJunit = "1.2.1"
 work = "2.10.0"
-healthConnect = "1.1.0"
+healthConnect = "1.1.0-alpha10" # newest that builds with AGP 8.7 + compileSdk 35; 1.1.0 needs AGP 8.9.1 + SDK 36
 litert = "1.0.1"
 
 [libraries]
