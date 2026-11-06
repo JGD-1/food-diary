@@ -24,8 +24,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PanEntity::class,
         BatchContainerEntity::class,
         HouseholdMemberEntity::class,
+        DayTotalEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 abstract class FoodDatabase : RoomDatabase() {
@@ -33,6 +34,7 @@ abstract class FoodDatabase : RoomDatabase() {
     abstract fun logEntryDao(): LogEntryDao
     abstract fun recipeDao(): RecipeDao
     abstract fun profileDao(): ProfileDao
+    abstract fun dayTotalDao(): DayTotalDao
 }
 
 /** Version 2: per-person favourite recipes. */
@@ -126,5 +128,18 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
                 "`displayName` TEXT NOT NULL, PRIMARY KEY(`userId`))",
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_household_member_householdId` ON `household_member` (`householdId`)")
+    }
+}
+
+/** Version 6 (round 10): the day_total table, one kcal number per person per day when they share it. Only adds things. */
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `day_total` (`id` TEXT NOT NULL, `userId` TEXT NOT NULL, `date` TEXT NOT NULL, " +
+                "`kcal` INTEGER NOT NULL, `targetKcal` INTEGER, `updatedAt` INTEGER NOT NULL, `deleted` INTEGER NOT NULL, " +
+                "PRIMARY KEY(`id`))",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_day_total_userId_date` ON `day_total` (`userId`, `date`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_day_total_date` ON `day_total` (`date`)")
     }
 }

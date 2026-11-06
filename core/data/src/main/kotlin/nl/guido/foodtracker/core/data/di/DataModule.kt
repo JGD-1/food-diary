@@ -14,10 +14,13 @@ import nl.guido.foodtracker.core.data.db.MIGRATION_1_2
 import nl.guido.foodtracker.core.data.db.MIGRATION_2_3
 import nl.guido.foodtracker.core.data.db.MIGRATION_3_4
 import nl.guido.foodtracker.core.data.db.MIGRATION_4_5
+import nl.guido.foodtracker.core.data.db.MIGRATION_5_6
+import nl.guido.foodtracker.core.data.repo.DayTotalRepository
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.FoodRepository
 import nl.guido.foodtracker.core.data.repo.ProfileRepository
 import nl.guido.foodtracker.core.data.repo.RecipeRepository
+import nl.guido.foodtracker.core.data.repo.RoomDayTotalRepository
 import nl.guido.foodtracker.core.data.repo.RoomDiaryRepository
 import nl.guido.foodtracker.core.data.repo.RoomFoodRepository
 import nl.guido.foodtracker.core.data.repo.RoomProfileRepository
@@ -34,13 +37,14 @@ internal object DatabaseModule {
     @Singleton
     fun database(@ApplicationContext context: Context): FoodDatabase =
         Room.databaseBuilder(context, FoodDatabase::class.java, "food-diary.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
             .build()
 
     @Provides fun foodDao(db: FoodDatabase) = db.foodDao()
     @Provides fun logEntryDao(db: FoodDatabase) = db.logEntryDao()
     @Provides fun recipeDao(db: FoodDatabase) = db.recipeDao()
     @Provides fun profileDao(db: FoodDatabase) = db.profileDao()
+    @Provides fun dayTotalDao(db: FoodDatabase) = db.dayTotalDao()
 }
 
 @Module
@@ -50,6 +54,7 @@ internal abstract class RepositoryModule {
     @Binds @Singleton abstract fun food(impl: RoomFoodRepository): FoodRepository
     @Binds @Singleton abstract fun recipe(impl: RoomRecipeRepository): RecipeRepository
     @Binds @Singleton abstract fun profile(impl: RoomProfileRepository): ProfileRepository
+    @Binds @Singleton abstract fun dayTotal(impl: RoomDayTotalRepository): DayTotalRepository
 }
 
 @Module

@@ -145,3 +145,23 @@ interface ProfileDao {
     @Query("UPDATE weigh_in SET deleted = 1, updatedAt = :now WHERE id = :id")
     suspend fun markWeighInDeleted(id: String, now: Long)
 }
+
+@Dao
+interface DayTotalDao {
+    /** Shared totals on [date] of everyone else in [householdId] (by the household member list). */
+    @Query(
+        "SELECT d.* FROM day_total d JOIN household_member m ON m.userId = d.userId " +
+            "WHERE m.householdId = :householdId AND d.userId != :userId AND d.date = :date AND d.deleted = 0 " +
+            "ORDER BY m.displayName",
+    )
+    fun others(householdId: String, userId: String, date: String): Flow<List<DayTotalEntity>>
+
+    @Query("SELECT * FROM day_total WHERE id = :id")
+    suspend fun get(id: String): DayTotalEntity?
+
+    @Upsert
+    suspend fun upsert(total: DayTotalEntity)
+
+    @Query("UPDATE day_total SET deleted = 1, updatedAt = :now WHERE userId = :userId AND deleted = 0")
+    suspend fun markAllDeleted(userId: String, now: Long)
+}

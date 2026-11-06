@@ -4,6 +4,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import nl.guido.foodtracker.core.model.ActivityLevel
 import nl.guido.foodtracker.core.model.Batch
+import nl.guido.foodtracker.core.model.DayTotal
 import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.Favourite
@@ -158,3 +159,11 @@ internal fun BatchContainer.toEntity(now: Long) = BatchContainerEntity(
 )
 
 internal fun HouseholdMemberEntity.toModel() = HouseholdMember(userId = userId, displayName = displayName)
+
+internal fun DayTotalEntity.toModel() = DayTotal(
+    userId = userId, date = LocalDate.parse(date), kcal = kcal, targetKcal = targetKcal, updatedAt = updatedAt,
+)
+
+internal fun DayTotal.toEntity(now: Long) = DayTotalEntity(
+    id = id, userId = userId, date = date.toString(), kcal = kcal, targetKcal = targetKcal, updatedAt = now,
+)

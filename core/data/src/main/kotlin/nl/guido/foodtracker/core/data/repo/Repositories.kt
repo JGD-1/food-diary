@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.StateFlow
 import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
+import nl.guido.foodtracker.core.model.DayTotal
 import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.HouseholdMember
@@ -102,6 +103,21 @@ interface ProfileRepository {
     fun weighIns(userId: Id): Flow<List<WeighIn>>
     suspend fun saveWeighIn(weighIn: WeighIn)
     suspend fun deleteWeighIn(id: Id)
+}
+
+/**
+ * Day totals (round 10): one kcal number per person per day, shared in the household only while
+ * that person shares their day. What they ate is never shared.
+ */
+interface DayTotalRepository {
+    /** Totals on [date] of the other household members who share their day; empty when nobody does. */
+    fun othersOn(householdId: Id, userId: Id, date: LocalDate): Flow<List<DayTotal>>
+
+    /** Saves the signed-in person's own total. Does nothing when the same numbers are already stored, so sync doesn't resend. */
+    suspend fun saveOwn(total: DayTotal)
+
+    /** Stops sharing: every own row is deleted (soft, so it syncs and disappears from the other phones). */
+    suspend fun deleteAllOwn(userId: Id)
 }
 
 /**
