@@ -57,6 +57,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -133,6 +134,8 @@ internal fun LogFoodRoute(
                 onQuery = viewModel::setQuery,
                 onSearchOnline = viewModel::searchOnline,
                 onScan = { open(if (ui.meal == Meal.DRINKS) Routes.CAMERA_DRINK else Routes.CAMERA, Routes.CAMERA) },
+                // Weigh first, then pick the food: the grams wait for the next food chosen.
+                onWeigh = { open(Routes.CAMERA_SCALE, Routes.CAMERA) },
                 onChooseEntry = viewModel::choose,
                 onQuickAdd = viewModel::quickAdd,
                 onChooseFood = viewModel::choose,
@@ -171,6 +174,7 @@ private fun LogFoodContent(
     onQuery: (String) -> Unit,
     onSearchOnline: () -> Unit,
     onScan: () -> Unit,
+    onWeigh: () -> Unit,
     onChooseEntry: (LogEntry) -> Unit,
     onQuickAdd: (LogEntry) -> Unit,
     onChooseFood: (Food) -> Unit,
@@ -234,15 +238,14 @@ private fun LogFoodContent(
                 keyboardActions = KeyboardActions(onSearch = { onSearchOnline() }),
                 modifier = Modifier.weight(1f).shadow(CardShadow, CircleShape),
             )
-            FilledTonalButton(
-                onClick = onScan,
-                contentPadding = PaddingValues(horizontal = 14.dp),
-                modifier = Modifier.heightIn(min = 56.dp),
-            ) {
-                Icon(TodayIcons.Scan, contentDescription = null, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.today_scan))
-            }
+        }
+        // Scan and Weigh live here since Today has only the Log food button (Nov 2026).
+        Row(
+            Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            CameraButton(TodayIcons.Scan, stringResource(R.string.today_scan), onScan, Modifier.weight(1f))
+            CameraButton(TodayIcons.Weigh, stringResource(R.string.today_weigh), onWeigh, Modifier.weight(1f))
         }
         LazyColumn(
             Modifier.weight(1f).fillMaxWidth(),
@@ -570,3 +573,13 @@ private fun AmountSheet(
 
 private fun quickAmounts(isDrink: Boolean): List<Double> =
     if (isDrink) listOf(150.0, 200.0, 250.0, 330.0, 500.0) else listOf(25.0, 50.0, 100.0, 150.0, 200.0, 250.0)
+
+/** "Scan" or "Weigh" under the search field: icon and word, 48 dp high. */
+@Composable
+private fun CameraButton(icon: ImageVector, label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    FilledTonalButton(onClick = onClick, contentPadding = PaddingValues(horizontal = 14.dp), modifier = modifier.heightIn(min = 48.dp)) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
