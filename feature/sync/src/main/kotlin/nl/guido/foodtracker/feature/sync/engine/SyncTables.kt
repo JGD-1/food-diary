@@ -125,7 +125,10 @@ object SyncTables {
     /** Sport someone typed in (round 11). Private, like the diary. */
     val sportEntry = SyncTable(
         "sport_entry", "sport_entries", Scope.USER, "userId",
-        listOf(text("id"), text("userId"), text("date"), text("name"), long("kcal"), long("createdAt")) + stamps,
+        listOf(
+            text("id"), text("userId"), text("date"), text("name"), long("kcal"), long("createdAt"),
+            long("minutes"), text("externalId"),
+        ) + stamps,
     )
 
     val all = listOf(

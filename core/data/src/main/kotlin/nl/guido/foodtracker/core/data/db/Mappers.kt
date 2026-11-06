@@ -171,8 +171,10 @@ internal fun SharedDay.toEntity(now: Long) = DayTotalEntity(
 
 internal fun SportEntryEntity.toModel() = SportEntry(
     id = id, userId = userId, date = LocalDate.parse(date), name = name, kcal = kcal, createdAt = Instant.ofEpochMilli(createdAt),
+    minutes = minutes, externalId = externalId,
 )
 
 internal fun SportEntry.toEntity(now: Long) = SportEntryEntity(
     id = id, userId = userId, date = date.toString(), name = name, kcal = kcal, createdAt = createdAt.toEpochMilli(), updatedAt = now,
+    minutes = minutes, externalId = externalId,
 )

@@ -207,4 +207,6 @@ data class SportEntryEntity(
     val createdAt: Long,
     val updatedAt: Long,
     val deleted: Boolean = false,
+    val minutes: Int? = null,
+    val externalId: String? = null,
 )

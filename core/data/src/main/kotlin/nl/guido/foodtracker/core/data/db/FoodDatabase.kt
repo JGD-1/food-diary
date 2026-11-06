@@ -152,7 +152,7 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
         db.execSQL(
             "CREATE TABLE IF NOT EXISTS `sport_entry` (`id` TEXT NOT NULL, `userId` TEXT NOT NULL, `date` TEXT NOT NULL, " +
                 "`name` TEXT NOT NULL, `kcal` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, " +
-                "`deleted` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+                "`deleted` INTEGER NOT NULL, `minutes` INTEGER, `externalId` TEXT, PRIMARY KEY(`id`))",
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_sport_entry_userId_date` ON `sport_entry` (`userId`, `date`)")
     }

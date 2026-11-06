@@ -143,11 +143,12 @@ class MappersTest {
 
     @Test
     fun sportEntryRoundTrips() {
-        val sport = SportEntry("s1", "u1", LocalDate.of(2026, 11, 6), "Hardlopen", 300, java.time.Instant.ofEpochMilli(1234))
+        val sport = SportEntry("s1", "u1", LocalDate.of(2026, 11, 6), "Hardlopen", 300, java.time.Instant.ofEpochMilli(1234), minutes = 35, externalId = "hc-1")
         val row = sport.toEntity(now = 9)
         assertEquals("2026-11-06", row.date)
         assertEquals(1234L, row.createdAt)
         assertEquals(9L, row.updatedAt)
         assertEquals(sport, row.toModel())
+        assertEquals(null, sport.copy(minutes = null).toEntity(1).minutes)
     }
 }

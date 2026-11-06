@@ -1,5 +1,6 @@
 -- Round 11: simple sport (phone database version 7). Only adds things.
---   * sport_entries: what someone did and the kcal it burned, typed in by hand.
+--   * sport_entries: what someone did, the kcal it burned and optionally the minutes; typed in, or
+--     later read from another app through Health Connect (external_id = its record id).
 --   * Private, like the diary: each person reads and writes only their own rows.
 
 create table if not exists public.sport_entries (
@@ -9,6 +10,8 @@ create table if not exists public.sport_entries (
   name text not null,
   kcal int not null,
   created_at bigint not null,
+  minutes int,
+  external_id text,
   updated_at bigint not null,
   deleted boolean not null default false,
   server_updated_at timestamptz not null default clock_timestamp()
