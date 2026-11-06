@@ -789,10 +789,7 @@ private fun suggestionText(s: ReviewSuggestion): Int = when (s) {
     ReviewSuggestion.KEEP_GOING -> R.string.today_review_keep_going
 }
 
-/**
- * The big Log food button. Scan and Weigh live inside Log food. Room is kept on the right for a
- * second button (Sport, see plan.md "Later"): it goes next to Log food in this row.
- */
+/** The big Log food button. Scan and Weigh live inside Log food. */
 @Composable
 private fun BottomActions(onLogFood: () -> Unit) {
     Row(
