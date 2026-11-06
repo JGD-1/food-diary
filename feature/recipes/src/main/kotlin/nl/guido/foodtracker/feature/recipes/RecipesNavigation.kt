@@ -36,6 +36,11 @@ fun NavGraphBuilder.recipesScreens(navController: NavController) {
         defaultValue = null
     }
 
+    val optionalDishUp = navArgument(RecipesRoutes.ARG_DISH_UP) {
+        type = NavType.BoolType
+        defaultValue = false
+    }
+
     composable(RecipesRoutes.LIST) {
         RecipesScreen(
             onBack = { navController.popBackStack() },
@@ -73,10 +78,13 @@ fun NavGraphBuilder.recipesScreens(navController: NavController) {
             onCookBatch = { recipeId, date ->
                 navController.navigate(RecipesRoutes.newBatch(recipeId, date.takeIf { it != LocalDate.now() }))
             },
+            onDishUp = { recipeId, date ->
+                navController.navigate(RecipesRoutes.newBatch(recipeId, date.takeIf { it != LocalDate.now() }, dishUp = true))
+            },
             onDone = { navController.popBackStack() },
         )
     }
-    composable(RecipesRoutes.NEW_BATCH, arguments = optionalRecipeId + optionalDate) { entry ->
+    composable(RecipesRoutes.NEW_BATCH, arguments = optionalRecipeId + optionalDate + optionalDishUp) { entry ->
         NewBatchScreen(
             navController = navController,
             savedState = entry.savedStateHandle,
