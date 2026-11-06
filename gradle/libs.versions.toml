@@ -19,6 +19,7 @@ mlkitText = "16.0.1"
 androidxTestRunner = "1.6.2"
 androidxTestExtJunit = "1.2.1"
 work = "2.10.0"
+healthConnect = "1.1.0-alpha10" # newest that builds with AGP 8.7 + compileSdk 35; 1.1.0 needs AGP 8.9.1 + SDK 36
 litert = "1.0.1"
 
 [libraries]
@@ -55,6 +56,7 @@ mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition"
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 # Reminders (feature/reminders): a daily notification at a chosen time
+androidx-health-connect = { group = "androidx.health.connect", name = "connect-client", version.ref = "healthConnect" }
 androidx-work-runtime = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
 # On-phone model runner (LiteRT, formerly TensorFlow Lite; Apache 2.0)
 litert = { group = "com.google.ai.edge.litert", name = "litert", version.ref = "litert" }

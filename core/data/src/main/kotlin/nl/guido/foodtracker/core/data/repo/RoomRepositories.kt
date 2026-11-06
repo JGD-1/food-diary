@@ -7,12 +7,14 @@ import nl.guido.foodtracker.core.data.db.FoodDao
 import nl.guido.foodtracker.core.data.db.LogEntryDao
 import nl.guido.foodtracker.core.data.db.ProfileDao
 import nl.guido.foodtracker.core.data.db.RecipeDao
+import nl.guido.foodtracker.core.data.db.SportDao
 import nl.guido.foodtracker.core.data.db.toEntity
 import nl.guido.foodtracker.core.data.db.toModel
 import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.SharedDay
+import nl.guido.foodtracker.core.model.SportEntry
 import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.HouseholdMember
@@ -111,4 +113,18 @@ internal class RoomSharedDayRepository @Inject constructor(private val dao: DayT
     }
 
     override suspend fun deleteAllOwn(userId: Id) = dao.markAllDeleted(userId, now())
+}
+
+internal class RoomSportRepository @Inject constructor(private val dao: SportDao) : SportRepository {
+    override fun on(userId: Id, date: LocalDate): Flow<List<SportEntry>> =
+        dao.on(userId, date.toString()).map { rows -> rows.map { it.toModel() } }
+
+    override fun kcalOn(userId: Id, date: LocalDate): Flow<Int> = on(userId, date).map { list -> list.sumOf { it.kcal } }
+
+    override fun between(userId: Id, from: LocalDate, to: LocalDate): Flow<List<SportEntry>> =
+        dao.between(userId, from.toString(), to.toString()).map { rows -> rows.map { it.toModel() } }
+
+    override suspend fun save(entry: SportEntry) = dao.upsert(entry.toEntity(now()))
+    override suspend fun delete(id: Id) = dao.markDeleted(id, now())
+    override suspend fun importedIds(userId: Id): Set<String> = dao.externalIds(userId).toSet()
 }

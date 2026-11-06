@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sport_title">Sport</string>
+    <string name="sport_intro">Type what you did and the kcal it burned. That day\'s target goes up by the same amount.</string>
+    <string name="sport_week_title">This week</string>
+    <string name="sport_week_empty">No sport yet this week</string>
+    <string name="sport_today_title">Today</string>
+    <string name="sport_today_empty">Nothing yet today.</string>
+    <string name="sport_today_note">Today\'s target goes up by %1$s kcal.</string>
+    <string name="sport_earlier_title">Earlier</string>
+    <string name="sport_activity_note">Because you add sport here, pick a low activity level in your profile, so sport isn\'t counted twice.</string>
+    <string name="sport_activity_button">Open profile</string>
+    <string name="sport_add">Add sport</string>
+    <string name="sport_change">Change</string>
+    <string name="sport_change_title">Change sport</string>
+    <string name="sport_field_name">What did you do?</string>
+    <string name="sport_field_name_hint">e.g. Running</string>
+    <string name="sport_field_minutes">Minutes (optional)</string>
+    <string name="sport_field_kcal">kcal burned</string>
+    <string name="sport_field_kcal_range">A whole number from 1 to %1$d</string>
+    <string name="sport_save">Save</string>
+    <string name="sport_cancel">Cancel</string>
+    <string name="sport_delete">Delete</string>
+    <string name="sport_deleted">Sport deleted</string>
+    <string name="sport_undo">Undo</string>
+    <string name="sport_kcal">%1$s kcal</string>
+    <string name="sport_minutes">%1$d min</string>
+    <string name="sport_hours">%1$d h</string>
+    <string name="sport_hours_minutes">%1$d h %2$d min</string>
+    <plurals name="sport_times">
+        <item quantity="one">%d time</item>
+        <item quantity="other">%d times</item>
+    </plurals>
+    <string name="sport_link_title">Other apps</string>
+    <string name="sport_link_body">Read sport from apps like Garmin Connect, through Health Connect on your phone. Only sessions and calories are read; nothing is written.</string>
+    <string name="sport_link_button">Link other apps</string>
+    <string name="sport_link_install_body">To read sport from apps like Garmin Connect, your phone first needs Health Connect (free, from Google).</string>
+    <string name="sport_link_install">Get Health Connect</string>
+    <string name="sport_link_linked">Linked. New sport from the last 30 days comes in when you open this tab.</string>
+    <string name="sport_link_busy">Fetching…</string>
+    <string name="sport_link_failed">Couldn\'t fetch just now. Try again later.</string>
+    <string name="sport_link_fetch">Fetch now</string>
+    <plurals name="sport_link_added">
+        <item quantity="one">%d new session added.</item>
+        <item quantity="other">%d new sessions added.</item>
+    </plurals>
+    <string name="sport_type_running">Running</string>
+    <string name="sport_type_cycling">Cycling</string>
+    <string name="sport_type_walking">Walking</string>
+    <string name="sport_type_swimming">Swimming</string>
+    <string name="sport_type_strength">Strength training</string>
+    <string name="sport_type_yoga">Yoga</string>
+    <string name="sport_type_hiit">Interval training</string>
+    <string name="sport_type_rowing">Rowing</string>
+    <string name="sport_type_cross_trainer">Cross trainer</string>
+    <string name="sport_type_other">Sport</string>
+    <string name="sport_privacy_title">Sport from other apps</string>
+    <string name="sport_privacy_body">This app reads your exercise sessions and calories burned from Health Connect, so they appear on the Sport tab and raise that day\'s target. It reads nothing else and writes nothing. The sessions are stored on this phone and in your own private backup; your household never sees them.</string>
+    <string name="sport_privacy_close">Close</string>
+</resources>

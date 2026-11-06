@@ -195,3 +195,18 @@ data class HouseholdMemberEntity(
     val householdId: String,
     val displayName: String,
 )
+
+/** One bit of sport someone typed in (round 11): what they did and the kcal burned. Private, like the diary. */
+@Entity(tableName = "sport_entry", indices = [Index("userId", "date")])
+data class SportEntryEntity(
+    @PrimaryKey val id: String,
+    val userId: String,
+    val date: String,
+    val name: String,
+    val kcal: Int,
+    val createdAt: Long,
+    val updatedAt: Long,
+    val deleted: Boolean = false,
+    val minutes: Int? = null,
+    val externalId: String? = null,
+)

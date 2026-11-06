@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sport_title">Sport</string>
+    <string name="sport_intro">Typ wat je deed en hoeveel kcal je verbrandde. Je doel van die dag gaat evenveel omhoog.</string>
+    <string name="sport_week_title">Deze week</string>
+    <string name="sport_week_empty">Nog geen sport deze week</string>
+    <string name="sport_today_title">Vandaag</string>
+    <string name="sport_today_empty">Nog niets vandaag.</string>
+    <string name="sport_today_note">Je doel van vandaag gaat %1$s kcal omhoog.</string>
+    <string name="sport_earlier_title">Eerder</string>
+    <string name="sport_activity_note">Omdat je sport hier invult, kies je in je profiel het best een laag activiteitsniveau, zodat sport niet dubbel telt.</string>
+    <string name="sport_activity_button">Profiel openen</string>
+    <string name="sport_add">Sport toevoegen</string>
+    <string name="sport_change">Wijzigen</string>
+    <string name="sport_change_title">Sport wijzigen</string>
+    <string name="sport_field_name">Wat deed je?</string>
+    <string name="sport_field_name_hint">bijv. Hardlopen</string>
+    <string name="sport_field_minutes">Minuten (mag leeg)</string>
+    <string name="sport_field_kcal">Verbrande kcal</string>
+    <string name="sport_field_kcal_range">Een heel getal van 1 tot %1$d</string>
+    <string name="sport_save">Opslaan</string>
+    <string name="sport_cancel">Annuleren</string>
+    <string name="sport_delete">Verwijderen</string>
+    <string name="sport_deleted">Sport verwijderd</string>
+    <string name="sport_undo">Ongedaan maken</string>
+    <string name="sport_kcal">%1$s kcal</string>
+    <string name="sport_minutes">%1$d min</string>
+    <string name="sport_hours">%1$d u</string>
+    <string name="sport_hours_minutes">%1$d u %2$d min</string>
+    <plurals name="sport_times">
+        <item quantity="one">%d keer</item>
+        <item quantity="other">%d keer</item>
+    </plurals>
+    <string name="sport_link_title">Andere apps</string>
+    <string name="sport_link_body">Haal sport op uit apps als Garmin Connect, via Health Connect op je telefoon. Alleen sessies en kcal worden gelezen; er wordt niets weggeschreven.</string>
+    <string name="sport_link_button">Koppel andere apps</string>
+    <string name="sport_link_install_body">Om sport uit apps als Garmin Connect te halen, heeft je telefoon eerst Health Connect nodig (gratis, van Google).</string>
+    <string name="sport_link_install">Health Connect installeren</string>
+    <string name="sport_link_linked">Gekoppeld. Nieuwe sport van de laatste 30 dagen komt binnen als je deze tab opent.</string>
+    <string name="sport_link_busy">Bezig met ophalen…</string>
+    <string name="sport_link_failed">Ophalen lukte nu niet. Probeer het later opnieuw.</string>
+    <string name="sport_link_fetch">Nu ophalen</string>
+    <plurals name="sport_link_added">
+        <item quantity="one">%d nieuwe sessie toegevoegd.</item>
+        <item quantity="other">%d nieuwe sessies toegevoegd.</item>
+    </plurals>
+    <string name="sport_type_running">Hardlopen</string>
+    <string name="sport_type_cycling">Fietsen</string>
+    <string name="sport_type_walking">Wandelen</string>
+    <string name="sport_type_swimming">Zwemmen</string>
+    <string name="sport_type_strength">Krachttraining</string>
+    <string name="sport_type_yoga">Yoga</string>
+    <string name="sport_type_hiit">Intervaltraining</string>
+    <string name="sport_type_rowing">Roeien</string>
+    <string name="sport_type_cross_trainer">Crosstrainer</string>
+    <string name="sport_type_other">Sport</string>
+    <string name="sport_privacy_title">Sport uit andere apps</string>
+    <string name="sport_privacy_body">Deze app leest je sportsessies en verbrande kcal uit Health Connect, zodat ze op de Sport-tab staan en je doel van die dag verhogen. Er wordt niets anders gelezen en niets weggeschreven. De sessies staan op deze telefoon en in je eigen privé-back-up; je huishouden ziet ze nooit.</string>
+    <string name="sport_privacy_close">Sluiten</string>
+</resources>

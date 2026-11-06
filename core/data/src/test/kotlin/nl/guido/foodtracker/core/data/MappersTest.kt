@@ -7,6 +7,7 @@ import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.SharedDay
+import nl.guido.foodtracker.core.model.SportEntry
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.Sex
@@ -138,5 +139,16 @@ class MappersTest {
         assertEquals("2026-11-06", row.date)
         assertEquals(total.copy(updatedAt = 7), row.toModel())
         assertEquals(null, SharedDay("u1", LocalDate.of(2026, 11, 6), 0, null).toEntity(1).targetKcal)
+    }
+
+    @Test
+    fun sportEntryRoundTrips() {
+        val sport = SportEntry("s1", "u1", LocalDate.of(2026, 11, 6), "Hardlopen", 300, java.time.Instant.ofEpochMilli(1234), minutes = 35, externalId = "hc-1")
+        val row = sport.toEntity(now = 9)
+        assertEquals("2026-11-06", row.date)
+        assertEquals(1234L, row.createdAt)
+        assertEquals(9L, row.updatedAt)
+        assertEquals(sport, row.toModel())
+        assertEquals(null, sport.copy(minutes = null).toEntity(1).minutes)
     }
 }

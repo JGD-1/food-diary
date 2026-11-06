@@ -39,6 +39,7 @@ object FoodColors {
     val Banner = Color(0xFFDCEBDF)         // the green "Point your camera" card
     val Invite = Color(0xFFFBF8F0)         // inside the dashed "Add dinner" card
     val Divider = Color(0xFFEEEAE0)        // lines between rows on a card
+    val SportBonus = Color(0xFFF2C88F)     // the part of Today's meter that sport added (round 11)
     val Background = Color(0xFFF5F1E6)     // warm cream
     val Surface = Color(0xFFFFFFFF)        // cards
     val Text = Color(0xFF1E2A22)
@@ -90,6 +91,8 @@ data class FoodPalette(
     val banner: Color,
     val invite: Color,
     val divider: Color,
+    /** The part of Today's meter that sport added to the day's target (round 11). Soft, never red. */
+    val sportBonus: Color,
     val tints: FoodTints,
 )
 
@@ -108,6 +111,7 @@ val LightFoodPalette = FoodPalette(
     banner = FoodColors.Banner,
     invite = FoodColors.Invite,
     divider = FoodColors.Divider,
+    sportBonus = FoodColors.SportBonus,
     tints = LightTints,
 )
 
@@ -127,6 +131,7 @@ val DarkFoodPalette = FoodPalette(
     banner = Color(0xFF1C3226),
     invite = Color(0xFF141E18),
     divider = Color(0xFF26302A),
+    sportBonus = Color(0xFF7A5A2E),
     tints = DarkTints,
 )
 

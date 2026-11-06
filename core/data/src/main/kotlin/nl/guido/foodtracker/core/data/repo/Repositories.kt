@@ -6,6 +6,7 @@ import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.SharedDay
+import nl.guido.foodtracker.core.model.SportEntry
 import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.HouseholdMember
@@ -118,6 +119,29 @@ interface SharedDayRepository {
 
     /** Stops sharing: every own row is deleted (soft, so it syncs and disappears from the other phones). */
     suspend fun deleteAllOwn(userId: Id)
+}
+
+/**
+ * Sport someone typed in (round 11): what they did and the kcal burned. Private to each person;
+ * that day's target goes up by the day's sport kcal (see [SportEntry.dayTarget]).
+ */
+interface SportRepository {
+    /** [userId]'s sport on [date], oldest first, not deleted. */
+    fun on(userId: Id, date: LocalDate): Flow<List<SportEntry>>
+
+    /** [userId]'s sport kcal on [date] added up; 0 without sport. */
+    fun kcalOn(userId: Id, date: LocalDate): Flow<Int>
+
+    /** [userId]'s sport from [from] to [to] (both included), for export and later stats. */
+    fun between(userId: Id, from: LocalDate, to: LocalDate): Flow<List<SportEntry>>
+
+    suspend fun save(entry: SportEntry)
+
+    /** Soft delete, so it syncs. */
+    suspend fun delete(id: Id)
+
+    /** Health Connect record ids already imported for [userId], deleted lines too, so they are never imported again. */
+    suspend fun importedIds(userId: Id): Set<String>
 }
 
 /**

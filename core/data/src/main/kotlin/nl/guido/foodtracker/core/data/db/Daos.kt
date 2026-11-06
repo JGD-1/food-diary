@@ -165,3 +165,22 @@ interface DayTotalDao {
     @Query("UPDATE day_total SET deleted = 1, updatedAt = :now WHERE userId = :userId AND deleted = 0")
     suspend fun markAllDeleted(userId: String, now: Long)
 }
+
+@Dao
+interface SportDao {
+    @Query("SELECT * FROM sport_entry WHERE userId = :userId AND date = :date AND deleted = 0 ORDER BY createdAt")
+    fun on(userId: String, date: String): Flow<List<SportEntryEntity>>
+
+    @Query("SELECT * FROM sport_entry WHERE userId = :userId AND date BETWEEN :from AND :to AND deleted = 0 ORDER BY date, createdAt")
+    fun between(userId: String, from: String, to: String): Flow<List<SportEntryEntity>>
+
+    @Upsert
+    suspend fun upsert(entry: SportEntryEntity)
+
+    /** Every Health Connect record id already on this phone for [userId], deleted lines too. */
+    @Query("SELECT externalId FROM sport_entry WHERE userId = :userId AND externalId IS NOT NULL")
+    suspend fun externalIds(userId: String): List<String>
+
+    @Query("UPDATE sport_entry SET deleted = 1, updatedAt = :now WHERE id = :id")
+    suspend fun markDeleted(id: String, now: Long)
+}

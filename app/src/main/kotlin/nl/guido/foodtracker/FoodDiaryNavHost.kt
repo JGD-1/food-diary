@@ -16,6 +16,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
@@ -47,6 +48,7 @@ import nl.guido.foodtracker.feature.food.foodScreens
 import nl.guido.foodtracker.feature.progress.progressScreens
 import nl.guido.foodtracker.feature.recipes.recipesScreens
 import nl.guido.foodtracker.feature.reminders.remindersScreens
+import nl.guido.foodtracker.feature.sport.sportScreens
 import nl.guido.foodtracker.feature.sync.syncScreens
 import nl.guido.foodtracker.feature.today.todayScreens
 
@@ -57,6 +59,7 @@ private val tabs = listOf(
     Tab(Routes.TODAY, R.string.tab_today, Icons.Filled.Home),
     Tab(Routes.WEIGHT, R.string.tab_weight, Icons.Filled.DateRange),
     Tab(Routes.STATS, R.string.tab_stats, Icons.Filled.Info),
+    Tab(Routes.SPORT, R.string.tab_sport, Icons.Filled.Favorite),
 )
 
 @Composable
@@ -101,6 +104,7 @@ fun FoodDiaryNavHost(
             energyScreens(navController)
             syncScreens(navController)
             remindersScreens(navController)
+            sportScreens(navController)
         }
     }
 }
