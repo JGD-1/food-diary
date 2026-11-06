@@ -38,7 +38,6 @@ internal class RoomDiaryRepository @Inject constructor(private val dao: LogEntry
         dao.recent(userId, limit).map { rows -> rows.map { it.toModel() } }
     override suspend fun save(entry: LogEntry) = dao.upsert(entry.toEntity(now()))
     override suspend fun delete(id: Id) = dao.markDeleted(id, now())
-    override suspend fun importedIds(userId: Id): Set<String> = dao.externalIds(userId).toSet()
 }
 
 internal class RoomFoodRepository @Inject constructor(private val dao: FoodDao) : FoodRepository {
@@ -127,4 +126,5 @@ internal class RoomSportRepository @Inject constructor(private val dao: SportDao
 
     override suspend fun save(entry: SportEntry) = dao.upsert(entry.toEntity(now()))
     override suspend fun delete(id: Id) = dao.markDeleted(id, now())
+    override suspend fun importedIds(userId: Id): Set<String> = dao.externalIds(userId).toSet()
 }
