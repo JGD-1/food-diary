@@ -146,6 +146,7 @@
     <string name="recipes_draft_thrown_away">Thrown away</string>
     <!-- Round 4: "Scan a note", handwritten ingredients read with the camera (H) -->
     <string name="recipes_note_scan">Scan a note</string>
+    <string name="recipes_scan_product">Scan a product</string>
     <string name="recipes_note_title">Scan a note</string>
     <string name="recipes_note_hold_still">Hold the phone still above your handwritten list. Lines appear here as they are read.</string>
     <string name="recipes_note_keep_holding">The longer you hold still, the better it reads. Tap Check when every line is here.</string>
