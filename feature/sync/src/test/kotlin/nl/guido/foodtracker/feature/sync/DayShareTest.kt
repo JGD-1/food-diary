@@ -36,6 +36,13 @@ class DayShareTest {
     }
 
     @Test
+    fun `sport raises that day's shared target only`() {
+        val totals = dayTotals("me", emptyList(), 2000, mon, mon.plusDays(1), mapOf(mon to 300))
+        assertEquals(listOf(2300, 2000), totals.map { it.targetKcal })
+        assertEquals(null, dayTotals("me", emptyList(), null, mon, mon, mapOf(mon to 300)).single().targetKcal)
+    }
+
+    @Test
     fun `someone else's entries never count`() {
         val totals = dayTotals("me", listOf(entry("a", mon, 300.0, user = "partner")), null, mon, mon)
         assertEquals(0, totals.single().kcal)

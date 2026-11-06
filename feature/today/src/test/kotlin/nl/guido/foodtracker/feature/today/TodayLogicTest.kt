@@ -237,4 +237,15 @@ class TodayLogicTest {
         assertEquals("Apple, with skin, average", entry.shown(mapOf("apple" to "Apple, with skin, average")).title)
         assertEquals(nevo, entry.shown(emptyMap()).title)
     }
+
+    @Test
+    fun `sport raises the target and marks where its part starts`() {
+        val s = todaySummary(listOf(line("Pasta", 800.0)), emptyList(), targetKcal = 2100, currentMeal = Meal.DINNER, sportKcal = 300)
+        assertEquals(2400, s.targetKcal)
+        assertEquals(2100, s.baseTargetKcal)
+        assertEquals(1600, s.kcalLeft)
+        assertEquals(2100f / 2400f, s.sportStart!!, 0.0001f)
+        assertNull(todaySummary(emptyList(), emptyList(), 2100, Meal.DINNER).sportStart)
+        assertNull(todaySummary(emptyList(), emptyList(), null, Meal.DINNER, sportKcal = 300).targetKcal)
+    }
 }
