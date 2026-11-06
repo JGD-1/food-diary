@@ -6,6 +6,7 @@ import nl.guido.foodtracker.core.model.ActivityLevel
 import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
+import nl.guido.foodtracker.core.model.SharedDay
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.Sex
@@ -127,5 +128,15 @@ class MappersTest {
         val box = BatchContainer("c1", "b1", "h1", 450.0, StoragePlace.FREEZER, number = 2)
         assertEquals(box, box.toEntity(now = 5).toModel())
         assertEquals("FREEZER", box.toEntity(now = 5).place)
+    }
+
+    @Test
+    fun dayTotalRoundTrips() {
+        val total = SharedDay("u1", LocalDate.of(2026, 11, 6), 1240, 2100)
+        val row = total.toEntity(now = 7)
+        assertEquals(total.id, row.id)
+        assertEquals("2026-11-06", row.date)
+        assertEquals(total.copy(updatedAt = 7), row.toModel())
+        assertEquals(null, SharedDay("u1", LocalDate.of(2026, 11, 6), 0, null).toEntity(1).targetKcal)
     }
 }

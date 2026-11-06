@@ -2,6 +2,7 @@ package nl.guido.foodtracker.core.data.repo
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import nl.guido.foodtracker.core.data.db.DayTotalDao
 import nl.guido.foodtracker.core.data.db.FoodDao
 import nl.guido.foodtracker.core.data.db.LogEntryDao
 import nl.guido.foodtracker.core.data.db.ProfileDao
@@ -11,6 +12,7 @@ import nl.guido.foodtracker.core.data.db.toModel
 import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
+import nl.guido.foodtracker.core.model.SharedDay
 import nl.guido.foodtracker.core.model.Favourite
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.HouseholdMember
@@ -96,4 +98,17 @@ internal class RoomProfileRepository @Inject constructor(private val dao: Profil
         dao.weighIns(userId).map { rows -> rows.map { it.toModel() } }
     override suspend fun saveWeighIn(weighIn: WeighIn) = dao.upsertWeighIn(weighIn.toEntity(now()))
     override suspend fun deleteWeighIn(id: Id) = dao.markWeighInDeleted(id, now())
+}
+
+internal class RoomSharedDayRepository @Inject constructor(private val dao: DayTotalDao) : SharedDayRepository {
+    override fun othersOn(householdId: Id, userId: Id, date: LocalDate): Flow<List<SharedDay>> =
+        dao.others(householdId, userId, date.toString()).map { rows -> rows.map { it.toModel() } }
+
+    override suspend fun saveOwn(total: SharedDay) {
+        val stored = dao.get(total.id)
+        if (stored != null && !stored.deleted && stored.kcal == total.kcal && stored.targetKcal == total.targetKcal) return
+        dao.upsert(total.toEntity(now()))
+    }
+
+    override suspend fun deleteAllOwn(userId: Id) = dao.markAllDeleted(userId, now())
 }

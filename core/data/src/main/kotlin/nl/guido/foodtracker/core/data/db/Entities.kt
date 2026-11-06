@@ -171,6 +171,21 @@ data class BatchContainerEntity(
 )
 
 /**
+ * One person's kcal for one day (round 10), only while they share their day with the household.
+ * Own rows come from the diary; household members' rows arrive through sync and are read-only here.
+ */
+@Entity(tableName = "day_total", indices = [Index("userId", "date"), Index("date")])
+data class DayTotalEntity(
+    @PrimaryKey val id: String,
+    val userId: String,
+    val date: String,
+    val kcal: Int,
+    val targetKcal: Int?,
+    val updatedAt: Long,
+    val deleted: Boolean = false,
+)
+
+/**
  * The household's members and their names (round 6). A copy of the server's list that sync
  * replaces as a whole; it never syncs back, so it has no updatedAt or deleted.
  */
