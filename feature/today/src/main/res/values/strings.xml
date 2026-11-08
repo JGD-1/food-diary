@@ -185,4 +185,6 @@
     <string name="today_weigh_left_more">That\'s more than the %1$s g at the start. Is the bowl or plate on the scale too?</string>
     <string name="today_partner_kcal">%1$s: %2$s kcal</string>
     <string name="today_partner_kcal_no_name">Partner: %1$s kcal</string>
+    <string name="today_sum_sport">%1$s target + %2$s sport − %3$s eaten</string>
+    <string name="today_sum_sport_estimate">%1$s target + %2$s sport − ≈ %3$s eaten</string>
 </resources>

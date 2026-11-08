@@ -181,4 +181,6 @@
     <string name="today_weigh_left_more">Dat is meer dan de %1$s g aan het begin. Staat de kom of het bord ook op de weegschaal?</string>
     <string name="today_partner_kcal">%1$s: %2$s kcal</string>
     <string name="today_partner_kcal_no_name">Partner: %1$s kcal</string>
+    <string name="today_sum_sport">%1$s doel + %2$s sport − %3$s gegeten</string>
+    <string name="today_sum_sport_estimate">%1$s doel + %2$s sport − ≈ %3$s gegeten</string>
 </resources>

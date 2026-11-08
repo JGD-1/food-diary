@@ -7,6 +7,7 @@ import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
+import nl.guido.foodtracker.core.model.SportEntry
 import nl.guido.foodtracker.core.model.newId
 import nl.guido.foodtracker.core.model.sum
 import java.time.Instant
@@ -36,7 +37,7 @@ internal data class MealSummary(val meal: Meal, val entries: List<LogEntry>) {
 
 /** Everything the Today screen shows, worked out from the diary. */
 internal data class TodaySummary(
-    /** Null until a profile exists, so there is no target yet. */
+    /** Null until a profile exists, so there is no target yet. Includes the day's sport kcal ([sportKcal]). */
     val targetKcal: Int?,
     val eaten: Nutrients,
     val hasEstimate: Boolean,
@@ -49,7 +50,21 @@ internal data class TodaySummary(
     val earlierEmptyMeals: List<Meal>,
     /** What was eaten the last time for each meal, so "Again" works on an empty meal too. */
     val lastTime: Map<Meal, List<LogEntry>>,
+    /** Sport kcal logged that day (round 11); they raise [targetKcal]. */
+    val sportKcal: Int = 0,
 ) {
+    /** The target without sport; null without a target. */
+    val baseTargetKcal: Int? get() = targetKcal?.let { it - sportKcal }
+
+    /** Where on the meter the sport part starts (0..1); null when there is no sport or no target. */
+    val sportStart: Float?
+        get() {
+            val target = targetKcal ?: return null
+            val base = baseTargetKcal ?: return null
+            if (sportKcal <= 0 || target <= 0) return null
+            return (base.toFloat() / target).coerceIn(0f, 1f)
+        }
+
     val eatenKcal: Int get() = eaten.kcal.roundToInt()
     /** Negative when over target; the screen shows that as "over target", never as a warning. */
     val kcalLeft: Int? get() = targetKcal?.let { it - eatenKcal }
@@ -64,13 +79,16 @@ internal fun todaySummary(
     history: List<LogEntry>,
     targetKcal: Int?,
     currentMeal: Meal?,
+    sportKcal: Int = 0,
 ): TodaySummary {
     val byMeal = todayEntries.groupBy { it.meal }
     val filled = FOOD_MEALS.filter { byMeal[it].orEmpty().isNotEmpty() }.map { MealSummary(it, byMeal.getValue(it)) }
     val now = if (currentMeal == null) FOOD_MEALS.size else FOOD_MEALS.indexOf(currentMeal).coerceAtLeast(0)
     val fromNow = FOOD_MEALS.drop(now)
+    val sport = if (targetKcal == null) 0 else sportKcal.coerceAtLeast(0)
     return TodaySummary(
-        targetKcal = targetKcal,
+        targetKcal = SportEntry.dayTarget(targetKcal, sport),
+        sportKcal = sport,
         eaten = todayEntries.map { it.nutrients }.sum(),
         hasEstimate = todayEntries.any { it.isEstimate },
         filledMeals = filled,
