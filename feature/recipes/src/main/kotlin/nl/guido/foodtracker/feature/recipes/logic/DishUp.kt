@@ -37,6 +37,12 @@ enum class DishKind {
     FREEZER,
 }
 
+/**
+ * Round 12 (G1): Cook a batch opens straight on Dish up only when "Opscheppen voor iedereen" asked for it
+ * and it was opened from a saved recipe (so there are amounts to dish up).
+ */
+fun opensOnDishUp(dishUpArg: Boolean?, fromRecipe: Boolean): Boolean = dishUpArg == true && fromRecipe
+
 /** The rows to start with: my plate, then a plate for everyone else in the household. */
 fun startingRows(myUserId: Id, members: List<HouseholdMember>): List<DishRow> =
     listOf(DishRow(kind = DishKind.PLATE)) +

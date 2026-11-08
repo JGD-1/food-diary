@@ -40,6 +40,7 @@ import nl.guido.foodtracker.feature.recipes.logic.DraftLine
 import nl.guido.foodtracker.feature.recipes.logic.dishOutcome
 import nl.guido.foodtracker.feature.recipes.logic.dishedTotal
 import nl.guido.foodtracker.feature.recipes.logic.startingRows
+import nl.guido.foodtracker.feature.recipes.logic.opensOnDishUp
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
 import nl.guido.foodtracker.feature.recipes.logic.NoteIngredient
 import nl.guido.foodtracker.feature.recipes.logic.ingredientFromPot
@@ -286,6 +287,15 @@ internal class NewBatchViewModel @Inject constructor(
             piecesText = recipe?.pieces?.toString().orEmpty(),
         )
         loadedDraft = _state.value.toDraft()
+        // Round 12 (G1): "Opscheppen voor iedereen" on a saved recipe opens straight on Dish up,
+        // with my plate and one for everyone in the household.
+        if (opensOnDishUp(savedState.get<Boolean>(RecipesRoutes.ARG_DISH_UP), recipe != null)) {
+            if (_state.value.members.isEmpty()) {
+                val members = runCatching { recipes.householdMembers(session.currentUser.value.householdId).first() }.getOrDefault(emptyList())
+                _state.update { it.copy(members = members) }
+            }
+            startDishUp()
+        }
     }
 
     private fun loadForEdit(batchId: Id) {

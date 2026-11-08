@@ -22,7 +22,9 @@ internal object RecipesRoutes {
     const val LIST = Routes.RECIPES
     const val EDIT = "recipes/edit?$ARG_RECIPE_ID={$ARG_RECIPE_ID}"
     const val LOG = "${Routes.RECIPE_LOG}?$ARG_MEAL={$ARG_MEAL}&$ARG_DATE={$ARG_DATE}"
-    const val NEW_BATCH = "recipes/batch?$ARG_RECIPE_ID={$ARG_RECIPE_ID}&$ARG_DATE={$ARG_DATE}"
+    /** Optional on NEW_BATCH (round 12, G1): open straight on Dish up with the recipe's amounts. */
+    const val ARG_DISH_UP = "dishUp"
+    const val NEW_BATCH = "recipes/batch?$ARG_RECIPE_ID={$ARG_RECIPE_ID}&$ARG_DATE={$ARG_DATE}&$ARG_DISH_UP={$ARG_DISH_UP}"
     /** Optional on BATCH_PORTION: the fridge or freezer box the portion comes from (round 6, D3). */
     const val ARG_BOX = "box"
     const val BATCH_PORTION = "${Routes.BATCH_PORTION}?$ARG_MEAL={$ARG_MEAL}&$ARG_DATE={$ARG_DATE}&$ARG_BOX={$ARG_BOX}"
@@ -30,8 +32,12 @@ internal object RecipesRoutes {
     fun edit(recipeId: Id? = null) = if (recipeId == null) "recipes/edit" else "recipes/edit?$ARG_RECIPE_ID=$recipeId"
     fun log(recipeId: Id) = Routes.recipeLog(recipeId)
     /** Cook a batch, from a recipe or not; [date] is the day being viewed (the cook date to start with). */
-    fun newBatch(recipeId: Id? = null, date: LocalDate? = null): String {
-        val args = listOfNotNull(recipeId?.let { "$ARG_RECIPE_ID=$it" }, date?.let { "$ARG_DATE=$it" })
+    fun newBatch(recipeId: Id? = null, date: LocalDate? = null, dishUp: Boolean = false): String {
+        val args = listOfNotNull(
+            recipeId?.let { "$ARG_RECIPE_ID=$it" },
+            date?.let { "$ARG_DATE=$it" },
+            "$ARG_DISH_UP=true".takeIf { dishUp && recipeId != null },
+        )
         return if (args.isEmpty()) "recipes/batch" else "recipes/batch?" + args.joinToString("&")
     }
     fun batchPortion(batchId: Id) = Routes.batchPortion(batchId)

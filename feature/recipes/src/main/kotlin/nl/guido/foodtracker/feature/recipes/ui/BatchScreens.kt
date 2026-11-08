@@ -41,6 +41,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
+import androidx.activity.compose.BackHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import nl.guido.foodtracker.core.ui.FoodPickPurpose
@@ -91,12 +92,14 @@ internal fun NewBatchScreen(
     LaunchedEffect(state.savedBatchId) { state.savedBatchId?.let { onSaved(it, state.cookedOn) } }
     LaunchedEffect(state.closed) { if (state.closed) onClosed(deleting) }
     val editing = state.editing != null
+    // Round 12 (G1): Back while dishing up shows the ingredients (the plates weighed so far stay).
+    BackHandler(enabled = state.dishingUp) { vm.backToCooking() }
 
     Scaffold(
         topBar = {
             RecipesTopBar(
                 stringResource(if (editing) R.string.recipes_batch_change else R.string.recipes_cook_batch),
-                onBack = { navController.popBackStack() },
+                onBack = { if (state.dishingUp) vm.backToCooking() else navController.popBackStack() },
             )
         },
         containerColor = MaterialTheme.colorScheme.background,

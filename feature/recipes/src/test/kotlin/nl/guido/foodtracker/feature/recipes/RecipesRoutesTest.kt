@@ -47,7 +47,7 @@ class RecipesRoutesTest {
 
     @Test
     fun `cook a batch takes an optional recipe and day`() {
-        assertEquals("recipes/batch?recipeId={recipeId}&date={date}", RecipesRoutes.NEW_BATCH)
+        assertEquals("recipes/batch?recipeId={recipeId}&date={date}&dishUp={dishUp}", RecipesRoutes.NEW_BATCH)
         assertEquals("recipes/batch", RecipesRoutes.newBatch())
         assertEquals("recipes/batch?recipeId=r1", RecipesRoutes.newBatch("r1"))
         assertEquals("recipes/batch?date=2026-10-08", RecipesRoutes.newBatch(date = LocalDate.of(2026, 10, 8)))
