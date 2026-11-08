@@ -3,6 +3,7 @@ package nl.guido.foodtracker
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -51,6 +52,9 @@ import nl.guido.foodtracker.feature.reminders.remindersScreens
 import nl.guido.foodtracker.feature.sport.sportScreens
 import nl.guido.foodtracker.feature.sync.syncScreens
 import nl.guido.foodtracker.feature.today.todayScreens
+import nl.guido.foodtracker.feature.update.UpdateCard
+import nl.guido.foodtracker.feature.update.updateAndStart
+import nl.guido.foodtracker.feature.update.updateScreens
 
 private data class Tab(val route: String, @StringRes val label: Int, val icon: ImageVector)
 
@@ -95,16 +99,26 @@ fun FoodDiaryNavHost(
             }
         },
     ) { padding ->
-        NavHost(navController, startDestination = Routes.TODAY, modifier = Modifier.padding(padding)) {
-            todayScreens(navController)
-            progressScreens(navController)
-            foodScreens(navController)
-            cameraScreens(navController)
-            recipesScreens(navController)
-            energyScreens(navController)
-            syncScreens(navController)
-            remindersScreens(navController)
-            sportScreens(navController)
+        Box(Modifier.padding(padding)) {
+            NavHost(navController, startDestination = Routes.TODAY) {
+                todayScreens(navController)
+                progressScreens(navController)
+                foodScreens(navController)
+                cameraScreens(navController)
+                recipesScreens(navController)
+                energyScreens(navController)
+                syncScreens(navController)
+                remindersScreens(navController)
+                sportScreens(navController)
+                updateScreens(navController)
+            }
+            // Round 13: a calm card when the home computer has a newer version (checked at most once a day).
+            if (currentRoute != null && !currentRoute.startsWith(Routes.UPDATE)) {
+                UpdateCard(
+                    onUpdate = { navController.navigate(updateAndStart()) },
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
+                )
+            }
         }
     }
 }

@@ -83,6 +83,7 @@ internal fun ProfileScreen(
     onOpenTarget: () -> Unit,
     onAccount: () -> Unit,
     onReminders: () -> Unit,
+    onUpdates: () -> Unit,
     viewModel: EnergyViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -98,6 +99,10 @@ internal fun ProfileScreen(
         }
         OutlinedButton(onClick = onAccount, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
             Text(stringResource(R.string.energy_account_sync))
+        }
+        // Round 13: Updates (feature/update), "Zoek naar update"
+        OutlinedButton(onClick = onUpdates, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+            Text(stringResource(R.string.energy_updates))
         }
         SectionTitle(R.string.energy_data_sources)
         Text(

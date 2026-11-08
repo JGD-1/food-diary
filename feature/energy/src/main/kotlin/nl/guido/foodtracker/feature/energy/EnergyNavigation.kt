@@ -21,6 +21,7 @@ fun NavGraphBuilder.energyScreens(navController: NavController) {
             onOpenTarget = { navController.navigate(Routes.ENERGY_TARGET) },
             onAccount = { navController.navigate(Routes.SIGN_IN) },
             onReminders = { navController.navigate(Routes.REMINDERS) },
+            onUpdates = { navController.navigate(Routes.UPDATE) },
         )
     }
     // "weigh-in" logs a new one; "weigh-in?id=<id>" (tapped on the Weight tab) changes or deletes that one.

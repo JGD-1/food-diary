@@ -48,6 +48,7 @@ dependencies {
     implementation(project(":feature:sync"))
     implementation(project(":feature:reminders"))
     implementation(project(":feature:sport"))
+    implementation(project(":feature:update"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

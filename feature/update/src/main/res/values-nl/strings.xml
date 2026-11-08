@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_title">Updates</string>
+    <string name="update_installed">Deze telefoon heeft versie %1$s</string>
+    <string name="update_check">Zoek naar update</string>
+    <string name="update_checking">Zoeken op de computer thuis…</string>
+    <string name="update_up_to_date">Je hebt de nieuwste versie.</string>
+    <string name="update_available">Er is een nieuwe versie (%1$s)</string>
+    <string name="update_update">Bijwerken</string>
+    <string name="update_later">Later</string>
+    <string name="update_downloading">Downloaden… %1$d%%</string>
+    <string name="update_ready">Versie %1$s is gedownload en gecontroleerd. Je gegevens blijven bewaard.</string>
+    <string name="update_install">Installeren</string>
+    <string name="update_allow_explain">Android vraagt één keer of Food diary zijn eigen updates mag installeren. Zet \"Toestaan van deze bron\" aan en kom dan terug.</string>
+    <string name="update_allow">Open de instelling</string>
+    <string name="update_try_again">Opnieuw proberen</string>
+    <string name="update_bad_download">De download klopte niet met de nieuwe versie en is weggegooid. Er is niets geïnstalleerd.</string>
+    <string name="update_problem_not_reachable">De computer thuis is niet bereikbaar. Zit de telefoon op de wifi thuis, en draait de updateserver op de computer?</string>
+    <string name="update_problem_not_home">Dat adres hoort niet bij het thuisnetwerk. Updates komen alleen van de computer thuis.</string>
+    <string name="update_problem_server">De computer thuis antwoordt, maar heeft nog geen update klaarstaan.</string>
+    <string name="update_server_label">Adres van de computer thuis</string>
+    <string name="update_server_hint">Bijvoorbeeld 192.168.178.67</string>
+    <string name="update_server_invalid">Dat lijkt geen adres. Bijvoorbeeld 192.168.178.67</string>
+    <string name="update_server_save">Opslaan</string>
+    <string name="update_how_it_works">Nieuwe versies komen van de computer thuis, via je eigen wifi. Er gaat niets over internet.</string>
+</resources>

@@ -67,6 +67,7 @@
     <string name="energy_form_saved">Saved. Your target is up to date.</string>
     <string name="energy_form_save">Save</string>
     <string name="energy_reminders">Reminders</string>
+    <string name="energy_updates">Updates</string>
     <string name="energy_account_sync">Account and sync</string>
     <string name="energy_data_sources">Data sources</string>
     <string name="energy_plain_names_note">The readable food names are the app\'s own addition; the original NEVO name is shown under each one.</string>

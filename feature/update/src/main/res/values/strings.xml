@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_title">Updates</string>
+    <string name="update_installed">This phone has version %1$s</string>
+    <string name="update_check">Check for update</string>
+    <string name="update_checking">Looking on the home computer…</string>
+    <string name="update_up_to_date">You have the newest version.</string>
+    <string name="update_available">There\'s a new version (%1$s)</string>
+    <string name="update_update">Update</string>
+    <string name="update_later">Later</string>
+    <string name="update_downloading">Downloading… %1$d%%</string>
+    <string name="update_ready">Version %1$s is downloaded and checked. Your data stays.</string>
+    <string name="update_install">Install</string>
+    <string name="update_allow_explain">Android asks once whether Food diary may install its own updates. Turn on \"Allow from this source\", then come back.</string>
+    <string name="update_allow">Open the setting</string>
+    <string name="update_try_again">Try again</string>
+    <string name="update_bad_download">The download didn\'t match the new version, so it was thrown away. Nothing was installed.</string>
+    <string name="update_problem_not_reachable">The home computer can\'t be reached. Is the phone on the home Wi-Fi, and is the update server running on the computer?</string>
+    <string name="update_problem_not_home">That address isn\'t on the home network. Updates only come from the computer at home.</string>
+    <string name="update_problem_server">The home computer answered, but has no update file yet.</string>
+    <string name="update_server_label">Home computer address</string>
+    <string name="update_server_hint">For example 192.168.178.67</string>
+    <string name="update_server_invalid">That doesn\'t look like an address. For example 192.168.178.67</string>
+    <string name="update_server_save">Save</string>
+    <string name="update_how_it_works">New versions come from the computer at home, over your own Wi-Fi. Nothing goes over the internet.</string>
+</resources>
