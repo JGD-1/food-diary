@@ -114,6 +114,11 @@ internal class CameraViewModel @Inject constructor(
     private val _outcome = MutableStateFlow<CameraOutcome?>(null)
     val outcome: StateFlow<CameraOutcome?> = _outcome.asStateFlow()
 
+    /** Loose fruit or vegetables the camera sees while scanning for a barcode, best first (Round 15). */
+    private val _produce = MutableStateFlow<List<Food>>(emptyList())
+    val produce: StateFlow<List<Food>> = _produce.asStateFlow()
+    private var produceJob: Job? = null
+
     private val _naming = MutableStateFlow(Naming())
     val naming: StateFlow<Naming> = _naming.asStateFlow()
 
@@ -174,6 +179,33 @@ internal class CameraViewModel @Inject constructor(
         barcodeSteady.offer(code)?.let { lookUp(it) }
     }
 
+    /** Whether the camera should look at the food itself: only while scanning for a barcode. */
+    fun wantsProduce(): Boolean = _step.value == CameraStep.ScanBarcode
+
+    /** One look at what is in front of the camera: fruit or vegetables it knows, or ones named on this phone. */
+    fun onScanPicture(picture: Picture) {
+        if (!wantsProduce() || produceJob?.isActive == true) return
+        produceJob = viewModelScope.launch {
+            val found = runCatching { guesser.guess(emptyList(), emptySet(), picture) }.getOrDefault(emptyList())
+            if (found.isNotEmpty()) {
+                lastPicture = picture
+                _produce.value = found
+            }
+        }
+    }
+
+    /** A suggestion was tapped: remember what it looked like, then ask how much. */
+    fun pickProduce(food: Food) {
+        if (_step.value != CameraStep.ScanBarcode) return
+        val picture = lastPicture
+        viewModelScope.launch {
+            if (foods.get(food.id) == null) foods.save(food)
+            picture?.kinds?.firstOrNull()?.let { packMemory.learn(setOf(Produce.token(it)), food.id) }
+            if (picture != null) packMemory.learnPicture(food.id, picture.vector)
+            go(CameraStep.HowMuch(food))
+        }
+    }
+
     fun typeBarcode() = go(CameraStep.TypeBarcode())
 
     fun onTypedBarcode(text: String) {
@@ -211,6 +243,7 @@ internal class CameraViewModel @Inject constructor(
 
     fun scanAgain() {
         barcodeSteady.reset()
+        _produce.value = emptyList()
         go(CameraStep.ScanBarcode)
     }
 

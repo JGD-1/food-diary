@@ -25,8 +25,18 @@ import kotlin.math.abs
 
 // All reading happens on the phone (Google ML Kit's built-in models, and our own scale reader). Nothing is uploaded.
 
-/** Looks for shop barcodes in each camera frame. */
-internal class BarcodeReader(private val onCode: (String) -> Unit) : ImageAnalysis.Analyzer, Closeable {
+/**
+ * Looks for shop barcodes in each camera frame, and a few times a second, while [looking] says so, at
+ * the food itself through [pictures] (loose fruit and vegetables have no barcode; Round 15).
+ */
+internal class BarcodeReader(
+    private val onCode: (String) -> Unit,
+    private val onPicture: (Picture) -> Unit = {},
+    private val looking: () -> Boolean = { false },
+    private val pictures: Lazy<PictureReader?> = lazyOf(null),
+) : ImageAnalysis.Analyzer, Closeable {
+    private var lastLook = 0L
+
     private val scanner = BarcodeScanning.getClient(
         BarcodeScannerOptions.Builder()
             .setBarcodeFormats(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8, Barcode.FORMAT_UPC_A, Barcode.FORMAT_UPC_E)
@@ -36,12 +46,24 @@ internal class BarcodeReader(private val onCode: (String) -> Unit) : ImageAnalys
     @OptIn(ExperimentalGetImage::class)
     override fun analyze(frame: ImageProxy) {
         val image = frame.image ?: return frame.close()
+        val now = System.currentTimeMillis()
+        if (looking() && now - lastLook >= LOOK_EVERY_MS) {
+            lastLook = now
+            pictures.value?.let { reader -> runCatching { reader.read(frame) }.getOrNull() }?.let(onPicture)
+        }
         scanner.process(InputImage.fromMediaImage(image, frame.imageInfo.rotationDegrees))
             .addOnSuccessListener { codes -> codes.firstNotNullOfOrNull { it.rawValue }?.let(onCode) }
             .addOnCompleteListener { frame.close() }
     }
 
-    override fun close() = scanner.close()
+    override fun close() {
+        scanner.close()
+        if (pictures.isInitialized()) pictures.value?.close()
+    }
+
+    private companion object {
+        const val LOOK_EVERY_MS = 700L
+    }
 }
 
 /**

@@ -60,6 +60,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
+import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.ui.FoodRow
 import nl.guido.foodtracker.core.ui.ScreenHeader
 import nl.guido.foodtracker.core.ui.foodDetail
@@ -96,6 +97,7 @@ internal fun CameraScreen(
     val scale by vm.scale.collectAsStateWithLifecycle()
     val outcome by vm.outcome.collectAsStateWithLifecycle()
     val naming by vm.naming.collectAsStateWithLifecycle()
+    val produce by vm.produce.collectAsStateWithLifecycle()
     LaunchedEffect(outcome) { outcome?.let(onFinished) }
     BackHandler { if (!vm.back()) onLeave() }
 
@@ -120,7 +122,10 @@ internal fun CameraScreen(
         }
     }
     val analysisThread = remember { Executors.newSingleThreadExecutor() }
-    val barcodeReader = remember { BarcodeReader(vm::onBarcodeSeen) }
+    val barcodeReader = remember {
+        // Round 15: loose fruit and vegetables are recognised while scanning too (models load on first use).
+        BarcodeReader(vm::onBarcodeSeen, vm::onScanPicture, vm::wantsProduce, lazy { runCatching { PictureReader(context) }.getOrNull() })
+    }
     val scaleReader = remember {
         // The picture models load on first use, only when weighing something to name.
         val pictures = lazy { runCatching { PictureReader(context) }.getOrNull() }
@@ -215,7 +220,7 @@ internal fun CameraScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 when (val s = step) {
-                    CameraStep.ScanBarcode -> BarcodePanel(vm, onSearchByName)
+                    CameraStep.ScanBarcode -> BarcodePanel(vm, produce, onSearchByName)
                     is CameraStep.TypeBarcode -> TypeBarcodePanel(s, vm)
                     is CameraStep.LookingUp -> LookingUpPanel(s.code)
                     is CameraStep.NotFound -> NotFoundPanel(s, vm, onSearchByName)
@@ -257,12 +262,22 @@ private fun PermissionPanel(onAllow: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun BarcodePanel(vm: CameraViewModel, onSearchByName: () -> Unit) {
+private fun BarcodePanel(vm: CameraViewModel, produce: List<Food>, onSearchByName: () -> Unit) {
     var showHint by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { delay(10_000); showHint = true }
     Title(stringResource(R.string.camera_barcode_title))
     Body(stringResource(if (showHint) R.string.camera_barcode_hint else R.string.camera_barcode_body))
+    // Round 15: fruit and vegetables without a barcode, as the camera sees them.
+    if (produce.isNotEmpty()) {
+        Body(stringResource(R.string.camera_name_looks_like))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            produce.forEach { food ->
+                FilterChip(selected = false, onClick = { vm.pickProduce(food) }, label = { Text(vm.title(food)) })
+            }
+        }
+    }
     OtherButton(stringResource(R.string.camera_barcode_type), vm::typeBarcode)
     OtherButton(stringResource(R.string.camera_alt_search), onSearchByName)
     OtherButton(stringResource(R.string.camera_alt_label), vm::scanLabel)

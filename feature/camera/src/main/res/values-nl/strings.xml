@@ -12,7 +12,7 @@
 
     <!-- Barcode -->
     <string name="camera_barcode_title">Barcode scannen</string>
-    <string name="camera_barcode_body">Richt de camera op de barcode van het pak of de fles.</string>
+    <string name="camera_barcode_body">Richt de camera op de barcode van het pak of de fles, of op losse groente of fruit.</string>
     <string name="camera_barcode_hint">Houd de barcode recht en dichtbij, zodat hij het beeld vult. Meer licht kan helpen.</string>
     <string name="camera_barcode_type">Barcode intypen</string>
     <string name="camera_barcode_type_field">Barcodenummer</string>

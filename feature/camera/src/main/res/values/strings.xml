@@ -12,7 +12,7 @@
 
     <!-- Barcode -->
     <string name="camera_barcode_title">Scan a barcode</string>
-    <string name="camera_barcode_body">Point the camera at the barcode on the packet or bottle.</string>
+    <string name="camera_barcode_body">Point the camera at the barcode on the packet or bottle, or at loose fruit or vegetables.</string>
     <string name="camera_barcode_hint">Hold the barcode flat and close, so it fills the frame. More light can help.</string>
     <string name="camera_barcode_type">Type the barcode</string>
     <string name="camera_barcode_type_field">Barcode number</string>

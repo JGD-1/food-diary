@@ -28,6 +28,7 @@ import nl.guido.foodtracker.feature.camera.read.ScaleParse
 import nl.guido.foodtracker.feature.camera.read.TextLine
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -361,5 +362,23 @@ class CameraViewModelTest {
         vm.choose(onion)
         vm.useGrams(120.0)
         assertEquals(listOf("nevo-onion"), memory.words.lookup(setOf("#apple")))
+    }
+
+    @Test fun `loose vegetables are suggested while scanning, and a pick asks how much and is remembered`() {
+        val vm = vm(FakeSource(null, found = mapOf("sweet pepper" to listOf(pepper))))
+        val picture = look(floatArrayOf(1f, 0f), mapOf(945 to 0.8f))
+        vm.onScanPicture(picture)
+        assertEquals(listOf(pepper), vm.produce.value)
+        vm.pickProduce(pepper)
+        assertEquals(CameraStep.HowMuch(pepper), vm.step.value)
+        assertEquals(listOf("nevo-pepper"), memory.pictures.nearest(picture.vector))
+    }
+
+    @Test fun `no vegetable suggestions once a barcode is being looked up`() {
+        val vm = vm(FakeSource(cola, found = mapOf("sweet pepper" to listOf(pepper))))
+        vm.see("5449000000996")
+        assertFalse(vm.wantsProduce())
+        vm.onScanPicture(look(floatArrayOf(1f, 0f), mapOf(945 to 0.8f)))
+        assertTrue(vm.produce.value.isEmpty())
     }
 }
