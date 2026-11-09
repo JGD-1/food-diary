@@ -18,7 +18,7 @@ class UsdaTest {
 
     @Test fun bundledVegetablesReadWithCarbsWithoutFibre() {
         val all = usda.bufferedReader().use { UsdaParser.parse(it, dutch = true) }
-        assertTrue(all.size >= 7)
+        assertTrue(all.size >= 8)
         assertTrue(all.all { it.source == FoodOrigin.USDA && it.ownerId == null })
         val shiitake = all.first { it.id == usdaId("169242") }
         assertEquals("Shiitake rauw", shiitake.name)
@@ -50,5 +50,6 @@ class UsdaTest {
         assertEquals("Sjalot rauw", top("sjalot"))
         assertEquals("Edamame diepvries bereid", top("edamame"))
         assertEquals("Waterkers rauw", top("watercress"))
+        assertEquals("Koriander vers", top("koriander"))
     }
 }
