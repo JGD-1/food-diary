@@ -19,8 +19,8 @@ class Picture(
 )
 
 /**
- * The head start: a small layer trained on about 2,300 openly licensed photos (Open Images,
- * CC BY 2.0) of 38 fruits and vegetables sold in Dutch supermarkets, plus pictures with no food.
+ * The head start: a small layer trained on about 8,000 openly licensed photos (Open Images and
+ * Wikimedia Commons) of 55 fruits and vegetables sold in Dutch supermarkets, plus pictures with no food.
  * It reads a picture's fingerprint and says which kinds it probably is. Made by
  * tools/produce-head-start (see MODELS.md); only the numbers are in the app, no photos.
  */
