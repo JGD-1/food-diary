@@ -11,11 +11,13 @@ import java.text.Normalizer
  * spelling; "maïs" is "mais"). [keepAccents] for keys that were stored with accents before (eat-out dishes).
  */
 internal fun searchWords(text: String, keepAccents: Boolean = false): List<String> {
-    val plain = if (keepAccents) text else Normalizer.normalize(text, Normalizer.Form.NFD).replace(ACCENTS, "")
+    // An apostrophe joins: "paprika's" is "paprikas", a plural of paprika.
+    val plain = if (keepAccents) text else Normalizer.normalize(text, Normalizer.Form.NFD).replace(ACCENTS, "").replace(APOSTROPHES, "")
     return plain.lowercase().split(Regex("[^\\p{L}\\p{N}]+")).filter { it.isNotEmpty() }
 }
 
 private val ACCENTS = Regex("\\p{Mn}+")
+private val APOSTROPHES = Regex("['’`]")
 
 /**
  * The words of a food name, plus the Dutch compound NEVO writes back to front: "Kool bloem- rauw" is

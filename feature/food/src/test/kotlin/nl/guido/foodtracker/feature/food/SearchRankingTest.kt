@@ -76,5 +76,6 @@ class SearchRankingTest {
         assertEquals("Tomaat kers- rauw", topNl("cherrytomaatjes", 1).single())
         assertEquals("Spinazie rauw", topNl("spinazie", 1).single())
         assertTrue(topNl("paprika", 1).single().startsWith("Paprika"))
+        assertTrue(topNl("paprika's", 1).single().startsWith("Paprika"))
     }
 }
