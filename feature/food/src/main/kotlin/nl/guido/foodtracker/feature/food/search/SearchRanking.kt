@@ -4,10 +4,34 @@ import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.feature.food.nevo.NevoInfo
+import java.text.Normalizer
 
-/** Splits what was typed into words, ignoring case and punctuation. */
-internal fun searchWords(text: String): List<String> =
-    text.lowercase().split(Regex("[^\\p{L}\\p{N}]+")).filter { it.isNotEmpty() }
+/**
+ * Splits what was typed into words, ignoring case, punctuation and accents ("taugé" is "tauge", NEVO's
+ * spelling; "maïs" is "mais"). [keepAccents] for keys that were stored with accents before (eat-out dishes).
+ */
+internal fun searchWords(text: String, keepAccents: Boolean = false): List<String> {
+    val plain = if (keepAccents) text else Normalizer.normalize(text, Normalizer.Form.NFD).replace(ACCENTS, "")
+    return plain.lowercase().split(Regex("[^\\p{L}\\p{N}]+")).filter { it.isNotEmpty() }
+}
+
+private val ACCENTS = Regex("\\p{Mn}+")
+
+/**
+ * The words of a food name, plus the Dutch compound NEVO writes back to front: "Kool bloem- rauw" is
+ * also "bloemkool rauw", "Selderij bleek-" "bleekselderij", "Ui sla-" "slaui", "Bonen sperzie-"
+ * "sperziebonen". Each form is a list of words; the compound forms come first.
+ */
+internal fun nameForms(name: String): List<List<String>> {
+    val words = searchWords(name)
+    if (words.size < 2) return listOf(words)
+    val head = words[0]
+    val compounds = name.trim().split(Regex("\\s+")).drop(1)
+        .filter { it.length > 2 && it.endsWith("-") && it.dropLast(1).all(Char::isLetter) }
+        .mapNotNull { part -> searchWords(part.dropLast(1)).singleOrNull() }
+        .map { prefix -> listOf(prefix + head) + words.drop(1).filter { it != prefix } }
+    return compounds + listOf(words)
+}
 
 /**
  * Keeps foods where every typed word starts a word of the name, brand or other-language NEVO name
@@ -36,7 +60,7 @@ internal fun rankFoods(
     return candidates
         .mapNotNull { food ->
             val info = nevo[food.id]
-            val names = listOfNotNull(food.name, info?.english, info?.dutch).distinct().map(::searchWords)
+            val names = listOfNotNull(food.name, info?.english, info?.dutch).distinct().flatMap(::nameForms)
             val all = names.flatten() + searchWords(food.brand ?: "")
             val everydayAt = everyday.indexOf(food.id).let { if (it < 0) everyday.size else it }
             if (everydayAt == everyday.size && !words.all { word -> all.any { fits(word, it) != null } }) return@mapNotNull null
@@ -69,7 +93,7 @@ internal fun rankFoods(
 
 /** True when every typed word fits one of [names]' words; used to pick NEVO foods by their other-language name. */
 internal fun matchesWords(words: List<String>, names: List<String>): Boolean {
-    val all = names.flatMap(::searchWords)
+    val all = names.flatMap(::nameForms).flatten()
     return words.all { word -> all.any { fits(word, it) != null } }
 }
 
@@ -93,14 +117,15 @@ private fun fits(typed: String, word: String, index: Int = 1): Int? = when {
 
 private const val QUALITY_BRAND = 5
 
-/** Same word, allowing English and Dutch plurals ("apples", "appels", "eieren"). */
+/** Same word, allowing English and Dutch plurals ("apples", "appels", "eieren") and little forms ("bietjes"). */
 internal fun same(a: String, b: String): Boolean {
     if (a == b) return true
     val (short, long) = if (a.length <= b.length) a to b else b to a
     return long.startsWith(short) && long.removePrefix(short) in PLURAL_ENDINGS
 }
 
-private val PLURAL_ENDINGS = setOf("s", "es", "en", "n", "eren")
+/** Plurals, and Dutch little forms ("bietjes", "uitjes", "worteltjes"). */
+private val PLURAL_ENDINGS = setOf("s", "es", "en", "n", "eren", "je", "jes", "tje", "tjes")
 
 private fun kind(food: Food, group: String?): Int = when {
     food.source == FoodOrigin.LABEL || food.source == FoodOrigin.MANUAL -> -1

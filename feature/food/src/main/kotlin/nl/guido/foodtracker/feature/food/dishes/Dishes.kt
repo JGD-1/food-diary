@@ -22,7 +22,7 @@ internal const val DISH_ASSET = "restaurant_dishes.csv"
 data class Dish(val name: String, val otherNames: List<String>, val estimate: Estimate, val own: Boolean = false)
 
 /** Lower case, words only, single spaces, so "Pizza, Margherita!" and "pizza margherita" are the same dish. */
-internal fun dishKey(text: String): String = searchWords(text).joinToString(" ")
+internal fun dishKey(text: String): String = searchWords(text, keepAccents = true).joinToString(" ")
 
 /** Reads the bundled list. Lines: name|other names (;)|low|typical|high; # starts a comment. */
 internal object DishListParser {
@@ -47,7 +47,7 @@ internal object DishListParser {
  * the person's own dishes before the list, then shorter names.
  */
 internal fun matchDishes(text: String, dishes: List<Dish>, limit: Int = 8): List<Dish> {
-    val words = searchWords(text)
+    val words = searchWords(text, keepAccents = true)
     if (words.isEmpty()) return emptyList()
     val phrase = words.joinToString(" ")
     return dishes
