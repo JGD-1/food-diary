@@ -46,7 +46,7 @@ class SyncTablesTest {
 
     @Test
     fun `NEVO foods never sync`() {
-        assertEquals("source != 'NEVO'", SyncTables.food.localFilter)
+        assertEquals("source NOT IN ('NEVO', 'USDA')", SyncTables.food.localFilter)
     }
 
     @Test

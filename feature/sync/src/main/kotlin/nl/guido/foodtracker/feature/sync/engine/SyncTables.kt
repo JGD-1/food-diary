@@ -82,7 +82,7 @@ object SyncTables {
             double("protein"), double("carbs"), double("fat"), text("source"), bool("isDrink"),
             double("fibre"), double("sugar"), double("salt"), double("servingG"), double("packageG"),
         ) + stamps,
-        localFilter = "source != 'NEVO'",
+        localFilter = "source NOT IN ('NEVO', 'USDA')",
     )
     val recipe = SyncTable(
         "recipe", "recipes", Scope.HOUSEHOLD, "householdId",

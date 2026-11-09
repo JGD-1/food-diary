@@ -7,8 +7,11 @@
     <string name="nevo_attribution">Based on data from NEVO online version 2025/9.0, RIVM, Bilthoven</string>
     <!-- Open Food Facts licence (ODbL): credit the source wherever its products are shown (Round 9) -->
     <string name="off_attribution">Product data from Open Food Facts (openfoodfacts.org), ODbL licence</string>
+    <!-- USDA FoodData Central is public domain; credited as USDA asks (Round 15) -->
+    <string name="usda_attribution">A few vegetables from USDA FoodData Central (fdc.nal.usda.gov), public domain</string>
     <string name="core_back">Back</string>
     <string name="core_source_nevo">NEVO</string>
+    <string name="core_source_usda">USDA</string>
     <string name="core_source_off">Open Food Facts</string>
     <string name="core_source_own">My food</string>
     <string name="core_per_100g">%1$s kcal per 100 g</string>

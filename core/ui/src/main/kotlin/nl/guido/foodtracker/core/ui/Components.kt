@@ -153,6 +153,7 @@ fun mealTint(meal: Meal): Tint {
 fun foodDetail(food: Food): String {
     val source = when (food.source) {
         FoodOrigin.NEVO -> stringResource(R.string.core_source_nevo)
+        FoodOrigin.USDA -> stringResource(R.string.core_source_usda)
         FoodOrigin.OFF -> food.brand ?: stringResource(R.string.core_source_off)
         FoodOrigin.LABEL, FoodOrigin.MANUAL -> stringResource(R.string.core_source_own)
     }

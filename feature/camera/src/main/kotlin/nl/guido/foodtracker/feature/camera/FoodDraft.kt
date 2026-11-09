@@ -132,7 +132,7 @@ data class FoodDraft(
 }
 
 /** NEVO foods stay unchanged (licence); everything else (own, label-scanned, Open Food Facts) can be edited. */
-fun Food.canEdit(): Boolean = source != FoodOrigin.NEVO
+fun Food.canEdit(): Boolean = source != FoodOrigin.NEVO && source != FoodOrigin.USDA
 
 /** Reads a typed amount; accepts a Dutch decimal comma ("12,5"). Null when it is not a number of 0 or more. */
 fun parseAmount(text: String): Double? =

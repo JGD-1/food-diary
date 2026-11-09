@@ -6,8 +6,10 @@
     <!-- NEVO-licentie: deze regel moet letterlijk in de app staan (op Profiel) -->
     <string name="nevo_attribution">Gebaseerd op gegevens uit NEVO-online versie 2025/9.0, RIVM, Bilthoven</string>
     <string name="off_attribution">Productgegevens van Open Food Facts (openfoodfacts.org), ODbL-licentie</string>
+    <string name="usda_attribution">Een paar groenten uit USDA FoodData Central (fdc.nal.usda.gov), publiek domein</string>
     <string name="core_back">Terug</string>
     <string name="core_source_nevo">NEVO</string>
+    <string name="core_source_usda">USDA</string>
     <string name="core_source_off">Open Food Facts</string>
     <string name="core_source_own">Mijn product</string>
     <string name="core_per_100g">%1$s kcal per 100 g</string>

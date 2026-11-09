@@ -3,7 +3,8 @@ package nl.guido.foodtracker.core.model
 import kotlinx.serialization.Serializable
 
 /** Where a food's numbers come from. Shown to the user, and NEVO rows must stay unchanged (licence). */
-enum class FoodOrigin { NEVO, OFF, LABEL, MANUAL }
+/** USDA: the few vegetables NEVO lacks, bundled from USDA FoodData Central (Round 15); like NEVO, never synced or edited. */
+enum class FoodOrigin { NEVO, OFF, LABEL, MANUAL, USDA }
 
 /** A food or drink. Drinks are foods with [isDrink] = true, logged in [Meal.DRINKS]. */
 data class Food(

@@ -12,6 +12,8 @@ import nl.guido.foodtracker.core.model.FoodOrigin
 import nl.guido.foodtracker.core.model.Id
 import nl.guido.foodtracker.core.model.Nutrients
 import nl.guido.foodtracker.feature.food.nevoId
+import nl.guido.foodtracker.feature.food.usda.USDA_ASSET
+import nl.guido.foodtracker.feature.food.usda.UsdaParser
 import java.io.Reader
 import java.util.Locale
 import javax.inject.Inject
@@ -21,7 +23,7 @@ import javax.inject.Singleton
 internal const val NEVO_VERSION = "2025/9.0"
 internal const val NEVO_ASSET = "nevo2025_9.0.csv"
 /** Bumped when the bundled file gains columns, so phones import the foods again (same ids, rows replaced). */
-private const val IMPORT_KEY = "$NEVO_VERSION+fibre-sugar-sodium"
+private const val IMPORT_KEY = "$NEVO_VERSION+fibre-sugar-sodium+usda1"
 
 /** Both names of a NEVO food and its NEVO food group (English), for search and its ordering. */
 internal data class NevoInfo(val english: String, val dutch: String, val group: String)
@@ -75,6 +77,7 @@ internal object NevoParser {
  * Puts the bundled NEVO foods into the phone's food table once per NEVO version and phone language:
  * on a phone set to Dutch the foods carry their Dutch NEVO names ("Appel m schil gem"), else the English
  * ones. Switching the language imports them again under the same ids, so the diary keeps working.
+ * The few vegetables NEVO lacks (USDA, Round 15) come along the same way and count as NEVO foods in [info].
  */
 @Singleton
 internal class NevoImporter @Inject constructor(
@@ -90,7 +93,8 @@ internal class NevoImporter @Inject constructor(
             val dutch = Locale.getDefault().language == "nl"
             val key = IMPORT_KEY + if (dutch) "+nl" else "+en"
             if (prefs.getString("version", null) == key) return@withContext
-            val list = context.assets.open(NEVO_ASSET).bufferedReader().use { NevoParser.parse(it, dutch) }
+            val list = context.assets.open(NEVO_ASSET).bufferedReader().use { NevoParser.parse(it, dutch) } +
+                context.assets.open(USDA_ASSET).bufferedReader().use { UsdaParser.parse(it, dutch) }
             list.chunked(500).forEach { foods.saveAll(it) }
             prefs.edit().putString("version", key).apply()
         }
@@ -99,7 +103,8 @@ internal class NevoImporter @Inject constructor(
     /** Both names and the group of every NEVO food, read once from the bundled file. */
     suspend fun info(): Map<Id, NevoInfo> = mutex.withLock {
         info ?: withContext(Dispatchers.IO) {
-            context.assets.open(NEVO_ASSET).bufferedReader().use { NevoParser.info(it) }
+            context.assets.open(NEVO_ASSET).bufferedReader().use { NevoParser.info(it) } +
+                context.assets.open(USDA_ASSET).bufferedReader().use { UsdaParser.info(it) }
         }.also { info = it }
     }
 }
