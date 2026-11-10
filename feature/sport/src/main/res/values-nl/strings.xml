@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="sport_title">Sport</string>
-    <string name="sport_intro">Typ wat je deed en hoeveel kcal je verbrandde. Je doel van die dag gaat evenveel omhoog.</string>
+    <string name="sport_intro">Vul in wat je deed. Je doel van die dag gaat evenveel omhoog.</string>
     <string name="sport_week_title">Deze week</string>
     <string name="sport_week_empty">Nog geen sport deze week</string>
     <string name="sport_today_title">Vandaag</string>
     <string name="sport_today_empty">Nog niets vandaag.</string>
     <string name="sport_today_note">Je doel van vandaag gaat %1$s kcal omhoog.</string>
     <string name="sport_earlier_title">Eerder</string>
-    <string name="sport_activity_note">Omdat je sport hier invult, kies je in je profiel het best een laag activiteitsniveau, zodat sport niet dubbel telt.</string>
+    <string name="sport_activity_note">Telt je profiel al sport mee? Kies daar dan een laag activiteitsniveau, anders telt sport dubbel.</string>
     <string name="sport_activity_button">Profiel openen</string>
     <string name="sport_add">Sport toevoegen</string>
     <string name="sport_change">Wijzigen</string>
     <string name="sport_change_title">Sport wijzigen</string>
     <string name="sport_field_name">Wat deed je?</string>
     <string name="sport_field_name_hint">bijv. Hardlopen</string>
-    <string name="sport_field_minutes">Minuten (mag leeg)</string>
+    <string name="sport_field_minutes">Minuten</string>
     <string name="sport_field_kcal">Verbrande kcal</string>
     <string name="sport_field_kcal_range">Een heel getal van 1 tot %1$d</string>
     <string name="sport_save">Opslaan</string>
@@ -57,4 +57,7 @@
     <string name="sport_privacy_title">Sport uit andere apps</string>
     <string name="sport_privacy_body">Deze app leest je sportsessies en verbrande kcal uit Health Connect, zodat ze op de Sport-tab staan en je doel van die dag verhogen. Er wordt niets anders gelezen en niets weggeschreven. De sessies staan op deze telefoon en in je eigen privé-back-up; je huishouden ziet ze nooit.</string>
     <string name="sport_privacy_close">Sluiten</string>
+    <string name="sport_field_name_missing">Vul in wat je deed</string>
+    <string name="sport_field_kcal_missing">Vul de verbrande kcal in</string>
+    <string name="sport_field_kcal_estimated">Geschat. Weet je het precies? Pas het aan.</string>
 </resources>

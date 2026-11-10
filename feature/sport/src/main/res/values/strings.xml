@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="sport_title">Sport</string>
-    <string name="sport_intro">Type what you did and the kcal it burned. That day\'s target goes up by the same amount.</string>
+    <string name="sport_intro">Fill in what you did. That day\'s target goes up by the same amount.</string>
     <string name="sport_week_title">This week</string>
     <string name="sport_week_empty">No sport yet this week</string>
     <string name="sport_today_title">Today</string>
     <string name="sport_today_empty">Nothing yet today.</string>
     <string name="sport_today_note">Today\'s target goes up by %1$s kcal.</string>
     <string name="sport_earlier_title">Earlier</string>
-    <string name="sport_activity_note">Because you add sport here, pick a low activity level in your profile, so sport isn\'t counted twice.</string>
+    <string name="sport_activity_note">Does your profile already count sport? Then choose a low activity level there, or sport counts twice.</string>
     <string name="sport_activity_button">Open profile</string>
     <string name="sport_add">Add sport</string>
     <string name="sport_change">Change</string>
     <string name="sport_change_title">Change sport</string>
     <string name="sport_field_name">What did you do?</string>
     <string name="sport_field_name_hint">e.g. Running</string>
-    <string name="sport_field_minutes">Minutes (optional)</string>
+    <string name="sport_field_minutes">Minutes</string>
     <string name="sport_field_kcal">kcal burned</string>
     <string name="sport_field_kcal_range">A whole number from 1 to %1$d</string>
     <string name="sport_save">Save</string>
@@ -57,4 +57,7 @@
     <string name="sport_privacy_title">Sport from other apps</string>
     <string name="sport_privacy_body">This app reads your exercise sessions and calories burned from Health Connect, so they appear on the Sport tab and raise that day\'s target. It reads nothing else and writes nothing. The sessions are stored on this phone and in your own private backup; your household never sees them.</string>
     <string name="sport_privacy_close">Close</string>
+    <string name="sport_field_name_missing">Fill in what you did</string>
+    <string name="sport_field_kcal_missing">Fill in the kcal burned</string>
+    <string name="sport_field_kcal_estimated">Estimated. Know it exactly? Change it.</string>
 </resources>
