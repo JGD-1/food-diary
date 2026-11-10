@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
 import nl.guido.foodtracker.core.model.Meal
+import nl.guido.foodtracker.core.model.mealForTime
 import nl.guido.foodtracker.core.ui.Routes
 import nl.guido.foodtracker.feature.food.dishes.Dish
 import nl.guido.foodtracker.feature.food.dishes.DishRepository
@@ -25,7 +26,7 @@ import javax.inject.Inject
 
 data class EatOutState(
     val dish: String = "",
-    val meal: Meal = mealAt(LocalTime.now()),
+    val meal: Meal = mealForTime(LocalTime.now()),
     /** Dishes from the list that match what was typed. */
     val suggestions: List<Dish> = emptyList(),
     /** The dish picked from the list; cleared when the text changes. */

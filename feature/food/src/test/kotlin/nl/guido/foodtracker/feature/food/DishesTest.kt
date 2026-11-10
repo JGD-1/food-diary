@@ -3,13 +3,13 @@ package nl.guido.foodtracker.feature.food
 import nl.guido.foodtracker.core.model.Estimate
 import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
+import nl.guido.foodtracker.core.model.mealForTime
 import nl.guido.foodtracker.feature.food.dishes.DISH_ASSET
 import nl.guido.foodtracker.feature.food.dishes.Dish
 import nl.guido.foodtracker.feature.food.dishes.DishListParser
 import nl.guido.foodtracker.feature.food.dishes.dishKey
 import nl.guido.foodtracker.feature.food.dishes.findDish
 import nl.guido.foodtracker.feature.food.dishes.matchDishes
-import nl.guido.foodtracker.feature.food.eatout.mealAt
 import nl.guido.foodtracker.feature.food.eatout.restaurantEntry
 import nl.guido.foodtracker.feature.food.eatout.typedKcal
 import org.junit.Assert.assertEquals
@@ -55,10 +55,10 @@ class DishesTest {
     }
 
     @Test fun mealFollowsTheClock() {
-        assertEquals(Meal.BREAKFAST, mealAt(LocalTime.of(8, 0)))
-        assertEquals(Meal.LUNCH, mealAt(LocalTime.of(12, 30)))
-        assertEquals(Meal.DINNER, mealAt(LocalTime.of(19, 0)))
-        assertEquals(Meal.SNACKS, mealAt(LocalTime.of(23, 0)))
+        assertEquals(Meal.BREAKFAST, mealForTime(LocalTime.of(8, 0)))
+        assertEquals(Meal.LUNCH, mealForTime(LocalTime.of(12, 30)))
+        assertEquals(Meal.DINNER, mealForTime(LocalTime.of(19, 0)))
+        assertEquals(Meal.SNACKS, mealForTime(LocalTime.of(23, 0)))
     }
 
     @Test fun typedKcalMustBeSensible() {

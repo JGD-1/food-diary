@@ -18,10 +18,10 @@ import nl.guido.foodtracker.core.model.Batch
 import nl.guido.foodtracker.core.model.BatchContainer
 import nl.guido.foodtracker.core.model.BatchPortion
 import nl.guido.foodtracker.core.model.StoragePlace
+import nl.guido.foodtracker.core.model.mealForTime
 import nl.guido.foodtracker.core.model.newId
 import nl.guido.foodtracker.feature.recipes.logic.StoredBox
 import nl.guido.foodtracker.feature.recipes.logic.logEntry
-import nl.guido.foodtracker.feature.recipes.logic.mealAt
 import nl.guido.foodtracker.feature.recipes.logic.storedBoxes
 import java.time.Instant
 import java.time.LocalDate
@@ -97,7 +97,7 @@ internal class WaitingPlatesViewModel @Inject constructor(
     fun add(plate: Plate) {
         val user = session.currentUser.value
         viewModelScope.launch {
-            val entry = plate.batch.logEntry(user.userId, LocalDate.now(), mealAt(LocalTime.now()), plate.portion.grams, Instant.now())
+            val entry = plate.batch.logEntry(user.userId, LocalDate.now(), mealForTime(LocalTime.now()), plate.portion.grams, Instant.now())
             diary.save(entry)
             recipes.savePortion(plate.portion.copy(logEntryId = entry.id))
         }

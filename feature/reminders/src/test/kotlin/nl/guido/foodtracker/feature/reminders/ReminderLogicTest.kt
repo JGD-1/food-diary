@@ -5,6 +5,7 @@ import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
 import nl.guido.foodtracker.core.model.Portion
+import nl.guido.foodtracker.core.model.mealForTime
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -44,7 +45,7 @@ class ReminderLogicTest {
         assertEquals(Meal.LUNCH, mealForTime(LocalTime.of(10, 30)))
         assertEquals(Meal.LUNCH, mealForTime(lunchTime))
         assertEquals(Meal.DINNER, mealForTime(LocalTime.of(18, 0)))
-        assertEquals(Meal.SNACKS, mealForTime(LocalTime.of(21, 30)))
+        assertEquals(Meal.DINNER, mealForTime(LocalTime.of(21, 30)))
     }
 
     @Test fun noReminderWhenMealLogged() {

@@ -8,6 +8,7 @@ import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Nutrients
 import nl.guido.foodtracker.core.model.SportEntry
+import nl.guido.foodtracker.core.model.mealForTime
 import nl.guido.foodtracker.core.model.newId
 import nl.guido.foodtracker.core.model.sum
 import java.time.Instant
@@ -17,14 +18,6 @@ import kotlin.math.roundToInt
 
 /** The four food meals, in the order they appear on Today. Drinks have their own card. */
 internal val FOOD_MEALS = listOf(Meal.BREAKFAST, Meal.LUNCH, Meal.DINNER, Meal.SNACKS)
-
-/** The meal that fits the time of day: the default when logging and for "+ Add dinner". */
-internal fun mealForTime(time: LocalTime): Meal = when {
-    time < LocalTime.of(10, 30) -> Meal.BREAKFAST
-    time < LocalTime.of(15, 0) -> Meal.LUNCH
-    time < LocalTime.of(21, 0) -> Meal.DINNER
-    else -> Meal.SNACKS
-}
 
 /** Where a camera result goes: Drinks for a drink or a scan started from Drinks, else the meal for the time. */
 internal fun mealForCameraResult(isDrink: Boolean, fromDrinks: Boolean, time: LocalTime): Meal =

@@ -13,14 +13,6 @@ import java.time.LocalDate
 import java.time.LocalTime
 import kotlin.math.roundToInt
 
-/** The meal you're most likely eating out at this time of day. Drinks are logged elsewhere. */
-internal fun mealAt(time: LocalTime): Meal = when {
-    time < LocalTime.of(10, 30) -> Meal.BREAKFAST
-    time < LocalTime.of(15, 0) -> Meal.LUNCH
-    time < LocalTime.of(21, 30) -> Meal.DINNER
-    else -> Meal.SNACKS
-}
-
 /** Kcal typed by hand for a dish that isn't in the list, read as a whole positive number. */
 internal fun typedKcal(text: String): Int? = text.trim().toIntOrNull()?.takeIf { it in 1..5000 }
 

@@ -47,6 +47,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.guido.foodtracker.core.model.Meal
+import nl.guido.foodtracker.core.model.mealForTime
 import nl.guido.foodtracker.core.ui.ScreenHeader
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter

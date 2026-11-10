@@ -31,6 +31,7 @@ import nl.guido.foodtracker.core.model.Pan
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.gramsLeft
+import nl.guido.foodtracker.core.model.mealForTime
 import nl.guido.foodtracker.core.model.newId
 import nl.guido.foodtracker.core.model.sum
 import nl.guido.foodtracker.feature.recipes.logic.BatchDraft
@@ -60,7 +61,6 @@ import nl.guido.foodtracker.feature.recipes.logic.scaledPieces
 import nl.guido.foodtracker.feature.recipes.logic.filledIn
 import nl.guido.foodtracker.feature.recipes.logic.formatGrams
 import nl.guido.foodtracker.feature.recipes.logic.logEntry
-import nl.guido.foodtracker.feature.recipes.logic.mealAt
 import nl.guido.foodtracker.feature.recipes.logic.parseGrams
 import nl.guido.foodtracker.feature.recipes.logic.portionFor
 import nl.guido.foodtracker.feature.recipes.logic.rescaled
@@ -147,7 +147,7 @@ internal class NewBatchViewModel @Inject constructor(
         val members: List<HouseholdMember> = emptyList(),
         val myUserId: Id = "",
         /** The meal my plate lands in. */
-        val meal: Meal = mealAt(LocalTime.now()),
+        val meal: Meal = mealForTime(LocalTime.now()),
         /** Set once "That's everything" has saved it all: the screen shows the Done step (Round 16). */
         val dishedUp: Boolean = false,
         /** The household's recipes, for "Uit een recept" under Toevoegen (Round 16). */
@@ -595,7 +595,7 @@ internal class BatchPortionViewModel @Inject constructor(
     private val boxId: String? = savedState.get<String>(RecipesRoutes.ARG_BOX)?.takeIf { it.isNotEmpty() }
     private val _state = MutableStateFlow(
         State(
-            meal = RecipesRoutes.mealArg(savedState[RecipesRoutes.ARG_MEAL]) ?: mealAt(LocalTime.now()),
+            meal = RecipesRoutes.mealArg(savedState[RecipesRoutes.ARG_MEAL]) ?: mealForTime(LocalTime.now()),
             date = RecipesRoutes.dateArg(savedState[RecipesRoutes.ARG_DATE], LocalDate.now()),
         ),
     )
