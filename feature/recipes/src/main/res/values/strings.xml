@@ -4,7 +4,7 @@
     <string name="recipes_recipes_title">Recipes</string>
     <string name="recipes_back">Back</string>
     <string name="recipes_new_recipe">New recipe</string>
-    <string name="recipes_cook_batch">Cook a batch</string>
+    <string name="recipes_cook_batch">Cook</string>
     <string name="recipes_batches_section">In the pot</string>
     <string name="recipes_batch_cooked_left">Cooked %1$s · about %2$s g left</string>
     <string name="recipes_batch_finished">Finished</string>
@@ -66,7 +66,7 @@
     <string name="recipes_log_it">Log it</string>
     <string name="recipes_pin">Pin to my favourites</string>
     <string name="recipes_unpin">Unpin</string>
-    <string name="recipes_cook_batch_of_this">Cook a batch of this</string>
+    <string name="recipes_cook_batch_of_this">Cook this</string>
     <string name="recipes_dish_up_everyone">Dish up for everyone</string>
 
     <!-- Batch meals -->
@@ -176,7 +176,7 @@
     <!-- Round 4, Guido 12 Oct: share of the pot, a batch of your own -->
     <string name="recipes_batch_share">That\'s %1$d%% of the pot (%2$s g): %3$d kcal</string>
     <string name="recipes_batch_name">Name of the meal</string>
-    <string name="recipes_cook_batch_hint">Name it yourself and add any ingredients. No recipe needed.</string>
+    <string name="recipes_cook_batch_hint">One screen: what goes in, plates for each of you, boxes for the fridge.</string>
     <!-- Round 6, Guido 17 Oct: dish up for everyone, the fridge -->
     <string name="recipes_dish_step">2. Dish up</string>
     <string name="recipes_dish_step_hint">No need to weigh the hot pot: weigh each plate and box as you fill it.</string>
@@ -193,7 +193,7 @@
     <string name="recipes_dish_total">Dished out: %1$s g</string>
     <string name="recipes_dish_total_hint">Everything you weigh here is the whole pot. Each plate or box gets its share of the %1$d kcal by weight.</string>
     <string name="recipes_dish_my_meal">Your plate goes in</string>
-    <string name="recipes_dish_done">That\'s everything</string>
+    <string name="recipes_dish_done">Done dishing up</string>
     <string name="recipes_dish_back">Back to the ingredients</string>
     <string name="recipes_dish_my_plate">Your plate</string>
     <string name="recipes_dish_their_plate">%1$s\'s plate</string>
@@ -225,4 +225,30 @@
     <string name="recipes_waiting_detail">%1$s g · ≈ %2$d kcal</string>
     <string name="recipes_waiting_add">Add to my diary</string>
     <string name="recipes_waiting_not_mine">Not mine</string>
+    <!-- Round 16: cooking in one screen -->
+    <string name="recipes_step_in">1 In</string>
+    <string name="recipes_step_dish_up">2 Dish up</string>
+    <string name="recipes_step_done">3 Done</string>
+    <string name="recipes_add">+ Add</string>
+    <string name="recipes_add_scan">Scan</string>
+    <string name="recipes_add_scan_hint">A barcode, or fruit and vegetables</string>
+    <string name="recipes_add_search">Search</string>
+    <string name="recipes_add_search_hint">Type what it is</string>
+    <string name="recipes_add_note_hint">A list you wrote down while cooking</string>
+    <string name="recipes_add_recipe">From a recipe</string>
+    <string name="recipes_add_recipe_hint">Everything from a saved recipe</string>
+    <string name="recipes_add_recipe_none">No recipes saved yet.</string>
+    <string name="recipes_add_grams_hint">After scanning, type the grams or read the scale with the camera.</string>
+    <string name="recipes_dish_not_yet">Give it a name and fill in the grams for every ingredient, then dish up.</string>
+    <string name="recipes_dish_up_next">Next: dish up</string>
+    <string name="recipes_dish_add_more">Another plate or box?</string>
+    <string name="recipes_done_title">%1$s is dished up</string>
+    <string name="recipes_done_mine">My plate · in my diary (%1$s)</string>
+    <string name="recipes_done_theirs">Plate for %1$s · waiting on Today</string>
+    <string name="recipes_done_fridge">Box %1$d · in the fridge</string>
+    <string name="recipes_done_freezer">Box %1$d · in the freezer</string>
+    <string name="recipes_done_amount">%1$s g · %2$d kcal</string>
+    <string name="recipes_done_save_recipe">Save as recipe</string>
+    <string name="recipes_done_saved_recipe">Saved as a recipe.</string>
+    <string name="recipes_done_close">Done</string>
 </resources>

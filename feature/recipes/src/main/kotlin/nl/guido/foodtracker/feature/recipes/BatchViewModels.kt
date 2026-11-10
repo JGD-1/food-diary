@@ -39,7 +39,13 @@ import nl.guido.foodtracker.feature.recipes.logic.DishRow
 import nl.guido.foodtracker.feature.recipes.logic.DraftLine
 import nl.guido.foodtracker.feature.recipes.logic.dishOutcome
 import nl.guido.foodtracker.feature.recipes.logic.dishedTotal
-import nl.guido.foodtracker.feature.recipes.logic.startingRows
+import nl.guido.foodtracker.feature.recipes.logic.CookStep
+import nl.guido.foodtracker.feature.recipes.logic.DoneLine
+import nl.guido.foodtracker.feature.recipes.logic.cookStep
+import nl.guido.foodtracker.feature.recipes.logic.cookingStartRows
+import nl.guido.foodtracker.feature.recipes.logic.doneLines
+import nl.guido.foodtracker.feature.recipes.logic.recipeFromCook
+import nl.guido.foodtracker.feature.recipes.logic.withRecipeLines
 import nl.guido.foodtracker.feature.recipes.logic.opensOnDishUp
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
 import nl.guido.foodtracker.feature.recipes.logic.NoteIngredient
@@ -142,9 +148,19 @@ internal class NewBatchViewModel @Inject constructor(
         val myUserId: Id = "",
         /** The meal my plate lands in. */
         val meal: Meal = mealAt(LocalTime.now()),
-        /** Set once "That's everything" has saved it all: the screen closes. */
+        /** Set once "That's everything" has saved it all: the screen shows the Done step (Round 16). */
         val dishedUp: Boolean = false,
+        /** The household's recipes, for "Uit een recept" under Toevoegen (Round 16). */
+        val allRecipes: List<Recipe> = emptyList(),
+        /** "Bewaar als recept" on the Done step was tapped and the recipe is saved. */
+        val savedAsRecipe: Boolean = false,
     ) {
+        /** Round 16: which of the three steps (in, dish up, done) the screen shows. */
+        val step: CookStep get() = cookStep(dishingUp, dishedUp)
+        /** The Done step's list: my plate, other plates, boxes, each with its kcal. */
+        val done: List<DoneLine> get() = doneLines(myUserId, dishRows, restText, rawTotal)
+        /** Offer "Bewaar als recept" on the Done step only when this cook didn't start from a recipe. */
+        val canSaveAsRecipe: Boolean get() = dishedUp && recipe == null && !savedAsRecipe
         val recipeId: Id? get() = recipe?.id
         /** Offer "Save these amounts to the recipe" only when they differ from it. */
         val canSaveToRecipe: Boolean
@@ -187,6 +203,11 @@ internal class NewBatchViewModel @Inject constructor(
             val user = session.currentUser.value
             _state.update { it.copy(myUserId = user.userId) }
             recipes.householdMembers(user.householdId).collect { list -> _state.update { it.copy(members = list) } }
+        }
+        viewModelScope.launch {
+            recipes.recipes(session.currentUser.value.householdId).collect { list ->
+                _state.update { it.copy(allRecipes = list.sortedBy { r -> r.name.lowercase() }) }
+            }
         }
         val batchId = savedState.get<String>(RecipesRoutes.ARG_BATCH_ID)?.takeIf { it.isNotEmpty() }
         if (batchId != null) {
@@ -244,6 +265,7 @@ internal class NewBatchViewModel @Inject constructor(
             loading = false,
             members = old.members,
             myUserId = old.myUserId,
+            allRecipes = old.allRecipes,
             dishingUp = draft.dishingUp,
             dishRows = draft.dishRows,
             restText = draft.restText,
@@ -280,6 +302,7 @@ internal class NewBatchViewModel @Inject constructor(
             loading = false,
             members = old.members,
             myUserId = old.myUserId,
+            allRecipes = old.allRecipes,
             recipe = recipe,
             cookedOn = viewedDay,
             name = recipe?.name.orEmpty(),
@@ -336,6 +359,15 @@ internal class NewBatchViewModel @Inject constructor(
         viewModelScope.launch {
             val line = ingredientFoods.line(picked.foodId, picked.grams.takeIf { it > 0 }, null) ?: return@launch
             _state.update { it.copy(lines = it.lines + line, weighing = null) }
+        }
+    }
+    /** "Uit een recept" (Round 16): all of a saved recipe's ingredients go in the pot; an unnamed cook takes its name. */
+    fun addRecipe(recipe: Recipe) {
+        viewModelScope.launch {
+            val lines = ingredientFoods.enrich(withRecipeLines(emptyList(), recipe))
+            _state.update { s ->
+                s.copy(lines = s.lines + lines, name = s.name.ifBlank { recipe.name })
+            }
         }
     }
     /** Lines checked in "Scan a note" (round 4, H), in the order they were on the note. */
@@ -433,7 +465,7 @@ internal class NewBatchViewModel @Inject constructor(
     /** "Dish up" (D1): starts with my plate and a plate for everyone else in the household. */
     fun startDishUp() = _state.update { s ->
         if (!s.canDishUp) return@update s
-        val rows = s.dishRows.ifEmpty { startingRows(session.currentUser.value.userId, s.members) }
+        val rows = s.dishRows.ifEmpty { cookingStartRows(session.currentUser.value.userId, s.members) }
         s.copy(dishingUp = true, dishRows = rows)
     }
 
@@ -488,6 +520,18 @@ internal class NewBatchViewModel @Inject constructor(
             val amounts = s.recipeAmounts
             if (s.saveToRecipe && s.canSaveToRecipe && amounts != null) s.recipe?.let { recipes.save(it.copy(ingredients = amounts)) }
             _state.update { it.copy(dishedUp = true) }
+        }
+    }
+
+    /** "Bewaar als recept" on the Done step (Round 16): what went in becomes a recipe for next time. */
+    fun saveAsRecipe() {
+        val s = _state.value
+        if (!s.canSaveAsRecipe) return
+        val user = session.currentUser.value
+        val recipe = recipeFromCook(newId(), user.householdId, s.name, s.lines.toIngredients() ?: return, s.pieces) ?: return
+        viewModelScope.launch {
+            recipes.save(recipe)
+            _state.update { it.copy(savedAsRecipe = true) }
         }
     }
 

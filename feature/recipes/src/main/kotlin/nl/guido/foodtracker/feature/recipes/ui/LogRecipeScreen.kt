@@ -52,7 +52,6 @@ internal fun LogRecipeScreen(
     savedState: SavedStateHandle,
     onEdit: (String) -> Unit,
     onCookBatch: (String, LocalDate) -> Unit,
-    onDishUp: (String, LocalDate) -> Unit,
     onDone: () -> Unit,
     vm: LogRecipeViewModel = hiltViewModel(),
 ) {
@@ -155,12 +154,11 @@ internal fun LogRecipeScreen(
                 }
                 TextButton(onClick = { onEdit(recipe.id) }) { Text(stringResource(R.string.recipes_edit_recipe)) }
             }
-            // Round 12 (G1): cook it once, dish up a plate for everyone and boxes for the fridge.
+            // Round 16: one "Kook dit" opens Koken with the recipe's amounts (was two buttons, G1).
             OutlinedButton(
-                onClick = { onDishUp(recipe.id, state.date) },
+                onClick = { onCookBatch(recipe.id, state.date) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-            ) { Text(stringResource(R.string.recipes_dish_up_everyone)) }
-            TextButton(onClick = { onCookBatch(recipe.id, state.date) }) { Text(stringResource(R.string.recipes_cook_batch_of_this)) }
+            ) { Text(stringResource(R.string.recipes_cook_batch_of_this)) }
         }
     }
 

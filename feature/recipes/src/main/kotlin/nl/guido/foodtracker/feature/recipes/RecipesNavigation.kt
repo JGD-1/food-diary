@@ -73,10 +73,6 @@ fun NavGraphBuilder.recipesScreens(navController: NavController) {
             onCookBatch = { recipeId, date ->
                 navController.navigate(RecipesRoutes.newBatch(recipeId, date.takeIf { it != LocalDate.now() }))
             },
-            // Round 12 (G1): "Opscheppen voor iedereen" opens Cook a batch straight on Dish up.
-            onDishUp = { recipeId, date ->
-                navController.navigate(RecipesRoutes.newBatch(recipeId, date.takeIf { it != LocalDate.now() }, dishUp = true))
-            },
             onDone = { navController.popBackStack() },
         )
     }
