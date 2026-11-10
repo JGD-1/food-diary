@@ -65,8 +65,7 @@
     <string name="camera_amount_grams">Gram</string>
     <string name="camera_amount_ml">Milliliter</string>
     <string name="camera_amount_total">Dat is %1$d kcal</string>
-    <string name="camera_amount_read_scale">Weegschaal aflezen</string>
-    <string name="camera_amount_done">Klaar</string>
+    <string name="camera_amount_read_scale">Wegen</string>
     <string name="camera_chip_serving">1 portie</string>
     <string name="camera_chip_pack">Hele verpakking</string>
 
@@ -83,7 +82,7 @@
     <string name="camera_edit_delete_no">Bewaren</string>
 
     <!-- Weegschaal -->
-    <string name="camera_scale_title">Weegschaal aflezen</string>
+    <string name="camera_scale_title">Wegen</string>
     <string name="camera_scale_body">Richt de camera op het schermpje van je weegschaal.</string>
     <string name="camera_scale_reading">%1$s g</string>
     <string name="camera_scale_reading_minus">−%1$s g</string>
@@ -102,4 +101,13 @@
     <string name="camera_name_field">Naam van het eten</string>
     <string name="camera_name_nothing">Niets gevonden. Probeer een ander woord.</string>
     <string name="camera_name_log">%1$s g %2$s noteren</string>
+    <string name="camera_amount_add">Toevoegen</string>
+    <string name="camera_amount_add_to">Toevoegen aan %1$s</string>
+    <string name="camera_title_label">Etiket</string>
+    <string name="camera_title_weigh">Wegen</string>
+    <string name="camera_meal_breakfast">ontbijt</string>
+    <string name="camera_meal_lunch">lunch</string>
+    <string name="camera_meal_dinner">avondeten</string>
+    <string name="camera_meal_snacks">tussendoortjes</string>
+    <string name="camera_meal_drinks">drinken</string>
 </resources>

@@ -19,9 +19,11 @@ import nl.guido.foodtracker.core.model.CommonPortions
 import nl.guido.foodtracker.core.model.Food
 import nl.guido.foodtracker.core.model.FoodNames
 import nl.guido.foodtracker.core.model.FoodSource
+import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.ProductName
 import nl.guido.foodtracker.core.model.WeightSource
+import nl.guido.foodtracker.core.model.mealForTime
 import nl.guido.foodtracker.core.model.newId
 import nl.guido.foodtracker.core.ui.Routes
 import nl.guido.foodtracker.feature.camera.read.Barcodes
@@ -34,6 +36,7 @@ import nl.guido.foodtracker.feature.camera.read.ScaleParse
 import nl.guido.foodtracker.feature.camera.read.Stabilizer
 import nl.guido.foodtracker.feature.camera.read.TextLine
 import java.net.URLEncoder
+import java.time.LocalTime
 import java.util.Optional
 import javax.inject.Inject
 import kotlin.math.abs
@@ -95,12 +98,20 @@ internal class CameraViewModel @Inject constructor(
 ) : ViewModel() {
     private val guesser = FoodGuesser(foods, foodSource, packMemory)
 
-    private val mode = when (savedStateHandle.get<String>(ARG_MODE)) {
+    private val startMode = when (savedStateHandle.get<String>(ARG_MODE)) {
         "label" -> CameraMode.LABEL
         "scale" -> CameraMode.SCALE
         else -> CameraMode.BARCODE
     }
     private val drinkHint = savedStateHandle.get<Boolean>(ARG_DRINK) ?: false
+    /** Where the opener will add the food (round 17, P5); null when the opener didn't say. */
+    private val openerMeal: Meal? = savedStateHandle.get<String>(Routes.ARG_MEAL)?.let { name -> Meal.entries.firstOrNull { it.name == name } }
+
+    /** The meal "How much?" names on its button: Drinks for a drink, else the opener's meal or the one for the time. */
+    fun mealFor(food: Food): Meal = targetMeal(food.isDrink, openerMeal, LocalTime.now())
+
+    /** The screen title follows the task (N6): Scannen, Etiket or Wegen. */
+    val mode: CameraMode get() = startMode
     /** "Scan the label again" from Edit food: the label's values replace this food's (same id, barcode, packs). */
     private val replaceId = savedStateHandle.get<String>(ARG_REPLACE)
     private var replacing: Food? = null
@@ -481,3 +492,10 @@ internal class CameraViewModel @Inject constructor(
 
 internal fun formatGrams(grams: Double): String =
     if (grams == Math.floor(grams)) grams.toLong().toString() else grams.toString()
+
+/** Where a food from "How much?" goes (round 17, P5): Drinks for a drink, else the opener's meal, else the meal for [now]. */
+internal fun targetMeal(isDrink: Boolean, openerMeal: Meal?, now: LocalTime): Meal = when {
+    isDrink -> Meal.DRINKS
+    openerMeal != null -> openerMeal
+    else -> mealForTime(now)
+}

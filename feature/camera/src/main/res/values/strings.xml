@@ -67,8 +67,7 @@
     <string name="camera_amount_grams">Grams</string>
     <string name="camera_amount_ml">Millilitres</string>
     <string name="camera_amount_total">That\'s %1$d kcal</string>
-    <string name="camera_amount_read_scale">Read the scale</string>
-    <string name="camera_amount_done">Done</string>
+    <string name="camera_amount_read_scale">Weigh</string>
     <string name="camera_chip_serving">1 serving</string>
     <string name="camera_chip_pack">Whole pack</string>
 
@@ -85,7 +84,7 @@
     <string name="camera_edit_delete_no">Keep it</string>
 
     <!-- Scale -->
-    <string name="camera_scale_title">Read the scale</string>
+    <string name="camera_scale_title">Weigh</string>
     <string name="camera_scale_body">Point the camera at your scale\'s display.</string>
     <string name="camera_scale_reading">%1$s g</string>
     <string name="camera_scale_reading_minus">−%1$s g</string>
@@ -104,4 +103,13 @@
     <string name="camera_name_field">Food name</string>
     <string name="camera_name_nothing">Nothing found. Try another word.</string>
     <string name="camera_name_log">Log %1$s g %2$s</string>
+    <string name="camera_amount_add">Add</string>
+    <string name="camera_amount_add_to">Add to %1$s</string>
+    <string name="camera_title_label">Label</string>
+    <string name="camera_title_weigh">Weigh</string>
+    <string name="camera_meal_breakfast">breakfast</string>
+    <string name="camera_meal_lunch">lunch</string>
+    <string name="camera_meal_dinner">dinner</string>
+    <string name="camera_meal_snacks">snacks</string>
+    <string name="camera_meal_drinks">drinks</string>
 </resources>
