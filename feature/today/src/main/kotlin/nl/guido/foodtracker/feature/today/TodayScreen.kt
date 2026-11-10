@@ -381,34 +381,34 @@ private fun Header(ui: TodayUiState, boxesInFridge: Int, onDay: (LocalDate) -> U
     }
 }
 
-/** One button with a gear, the word "Settings" and the person's letter: opens Profile and settings. */
+/** The person's letter with a small "Instellingen" under it, as one plain button: opens Profile and settings (Nov 2026, Guido). */
 @Composable
 private fun SettingsButton(displayName: String, onClick: () -> Unit) {
     val label = stringResource(R.string.today_profile)
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(50),
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = CardShadow,
-        modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = label },
+    Column(
+        Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .clearAndSetSemantics { contentDescription = label }
+            .heightIn(min = 48.dp)
+            .padding(horizontal = 4.dp, vertical = 2.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(
-            Modifier.padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        Box(
+            Modifier.size(36.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center,
         ) {
-            Icon(TodayIcons.Settings, contentDescription = null, modifier = Modifier.size(20.dp))
-            Text(stringResource(R.string.today_settings), style = MaterialTheme.typography.labelLarge, maxLines = 1)
-            Box(
-                Modifier.size(36.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    displayName.take(1).uppercase(), style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
+            Text(
+                displayName.take(1).uppercase(), style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
         }
+        Text(
+            stringResource(R.string.today_settings),
+            style = capped(MaterialTheme.typography.labelSmall),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1, softWrap = false,
+        )
     }
 }
 
