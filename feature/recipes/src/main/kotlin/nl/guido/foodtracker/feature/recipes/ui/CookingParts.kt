@@ -87,9 +87,12 @@ private fun StepPill(label: String, current: CookStep, mine: CookStep, enabled: 
     ) {
         Text(
             label,
-            style = MaterialTheme.typography.labelLarge,
+            // Round 17 check: the step names stop growing at very large font, so the bar stays one line.
+            style = capped(MaterialTheme.typography.labelLarge),
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
+            maxLines = 1,
+            softWrap = false,
             modifier = Modifier.padding(vertical = 8.dp),
         )
     }

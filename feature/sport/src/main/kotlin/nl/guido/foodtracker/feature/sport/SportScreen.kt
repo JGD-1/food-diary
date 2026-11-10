@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -99,7 +100,8 @@ internal fun SportRoute(onProfile: () -> Unit, viewModel: SportViewModel = hiltV
             weightKg = weightKg,
             // The activity-level question once, in the first new sport (P11), instead of a card that never goes.
             onProfile = if (entry == null && askActivity) ({ editing = null; viewModel.activityAsked(); onProfile() }) else null,
-            onDismiss = { editing = null },
+            // Round 17 check: cancelling also counts as "seen", so the note really shows only once.
+            onDismiss = { if (entry == null && askActivity) viewModel.activityAsked(); editing = null },
             onSave = { form ->
                 viewModel.save(form, entry)
                 editing = null
@@ -336,6 +338,8 @@ private fun SportDialog(
                     isError = kcalMissing || (form.kcalTyped && form.kcalValue == null),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                    // Round 17 check: the keyboard can cover Opslaan, so its own Done key saves too.
+                    keyboardActions = KeyboardActions(onDone = { if (form.canSave) onSave(form) else tried = true }),
                     modifier = Modifier.fillMaxWidth(),
                 )
                 if (onProfile != null) {

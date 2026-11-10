@@ -253,7 +253,6 @@ private fun TodayContent(
                     }
                 }
                 RingSection(summary, partner, ui.proteinGoalG, onTarget, onMacros = { showMacros = true })
-                ui.review?.let { ReviewCard(it, onDismiss = { onDismissReview(it) }) }
                 // Meals, the next empty meal and Drinks as rows of one card (option B, Nov 2026).
                 val rows = buildList<@Composable () -> Unit> {
                     summary.filledMeals.forEach { meal ->
@@ -264,7 +263,7 @@ private fun TodayContent(
                                 items = entriesText(meal.entries, ui.readable),
                                 kcal = kcalText(meal.kcal, meal.hasEstimate),
                                 onClick = { openMeal = meal.meal },
-                            ) { AgainButton(entriesText(meal.entries, ui.readable)) { onAgain(meal.meal) } }
+                            ) { AgainButton(againLabel(againSource(summary, meal.meal))) { onAgain(meal.meal) } }
                         }
                     }
                     summary.nextEmptyMeal?.let { meal ->
@@ -279,7 +278,7 @@ private fun TodayContent(
                                 kcal = null,
                                 onClick = { onAddTo(meal) },
                             ) {
-                                if (lastTime.isNotEmpty()) AgainButton(entriesText(lastTime, ui.readable)) { onAgain(meal) }
+                                if (lastTime.isNotEmpty()) AgainButton(againLabel(againSource(summary, meal))) { onAgain(meal) }
                                 else AddButton(stringResource(addMeal(meal))) { onAddTo(meal) }
                             }
                         }
@@ -299,6 +298,8 @@ private fun TodayContent(
                 }
                 MealList(rows)
                 if (summary.earlierEmptyMeals.isNotEmpty()) EarlierMeals(summary.earlierEmptyMeals, onAddTo)
+                // The weekly review sits under the meals, so it never pushes today's meals down (N5).
+                ui.review?.let { ReviewCard(it, onDismiss = { onDismissReview(it) }) }
             }
             SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(horizontal = 8.dp))
         }
@@ -352,18 +353,14 @@ private fun Header(ui: TodayUiState, boxesInFridge: Int, onDay: (LocalDate) -> U
                 ) { onDay(date.minusDays(1)) }
                 Text(
                     small,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = capped(MaterialTheme.typography.titleSmall),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis,
+                    maxLines = 1, softWrap = false,
                     modifier = Modifier.weight(1f, fill = false),
                 )
                 if (ui.canGoForward) {
                     DayArrow(TodayIcons.Forward, stringResource(R.string.today_next_day)) { nextDay(date, ui.today)?.let(onDay) }
                 }
-            }
-            if (boxesInFridge > 0) {
-                FridgeButton(boxesInFridge, onFridge)
-                Spacer(Modifier.width(8.dp))
             }
             SettingsButton(ui.displayName, onProfile)
         }
@@ -371,13 +368,15 @@ private fun Header(ui: TodayUiState, boxesInFridge: Int, onDay: (LocalDate) -> U
             Text(
                 title,
                 style = if (ui.isToday) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.weight(1f, fill = false).semantics { heading() },
+                modifier = Modifier.weight(1f).semantics { heading() },
             )
             if (!ui.isToday) {
                 TextButton(onClick = { onDay(ui.today) }, modifier = Modifier.heightIn(min = 48.dp)) {
                     Text(stringResource(R.string.today_back_to_today))
                 }
             }
+            // The fridge sits next to the title, so the date line above keeps its room.
+            if (boxesInFridge > 0) FridgeButton(boxesInFridge, onFridge)
         }
     }
 }
@@ -737,8 +736,8 @@ private fun MealRow(
     ) {
         IconTile(mealIcon(meal), mealTint(meal), size = 40.dp, iconSize = 20.dp)
         Column(Modifier.weight(1f)) {
-            // N3: two lines at large font, so "Avondeten" isn't cut to "Avon…".
-            Text(title, style = MaterialTheme.typography.titleMedium, color = titleColor, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            // N3: the meal name stops growing at very large font, so "Avondeten" stays one whole word.
+            Text(title, style = capped(MaterialTheme.typography.titleMedium), color = titleColor, maxLines = 1, softWrap = false)
             if (items != null) {
                 Text(
                     items, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,

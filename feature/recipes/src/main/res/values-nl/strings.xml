@@ -14,8 +14,8 @@
     <string name="recipes_pinned_section">Mijn favorieten</string>
     <string name="recipes_all_section">Alle recepten</string>
     <string name="recipes_empty">Nog geen recepten. Sla er één keer een op, dan voeg je hem de volgende keer met twee tikken toe.</string>
-    <string name="recipes_recipe_detail">%1$d kcal in %2$s g</string>
-    <string name="recipes_usual_portion">Meestal %1$s g, %2$d kcal</string>
+    <string name="recipes_recipe_detail">%1$,d kcal in %2$s g</string>
+    <string name="recipes_usual_portion">Meestal %1$s g, %2$,d kcal</string>
     <string name="recipes_edit">Wijzigen</string>
     <string name="recipes_not_found">Dit is er niet meer. Misschien is het verwijderd.</string>
 
@@ -37,7 +37,7 @@
     <string name="recipes_grams_unit">g</string>
     <string name="recipes_weigh">Wegen</string>
     <string name="recipes_remove">Weghalen</string>
-    <string name="recipes_kcal">%1$d kcal</string>
+    <string name="recipes_kcal">%1$,d kcal</string>
     <string name="recipes_macros">Eiwit %1$d g · Koolhydraten %2$d g · Vet %3$d g</string>
     <string name="recipes_for_day">Voor %1$s</string>
     <string name="recipes_meal_breakfast">Ontbijt</string>
@@ -72,12 +72,12 @@
     <!-- Grote pan -->
     <string name="recipes_batch_step_in">Ingrediënten</string>
     <string name="recipes_batch_step_in_hint">Weeg elk ingrediënt voordat het erin gaat.</string>
-    <string name="recipes_batch_raw_total">Alles samen: %1$d kcal</string>
+    <string name="recipes_batch_raw_total">Alles samen: %1$,d kcal</string>
     <string name="recipes_batch_step_cooked">Gewicht van het gerecht</string>
     <string name="recipes_batch_step_cooked_hint">Weeg het hele gerecht, zonder de kookpan.</string>
     <string name="recipes_batch_cooked_weight">Gekookt eten</string>
     <string name="recipes_batch_save">Gerecht opslaan</string>
-    <string name="recipes_batch_summary">Gekookt %1$s · %2$s g in totaal, %3$d kcal</string>
+    <string name="recipes_batch_summary">Gekookt %1$s · %2$s g in totaal, %3$,d kcal</string>
     <string name="recipes_batch_step_portion_hint">Zet je bord op de weegschaal op nul en schep op.</string>
     <string name="recipes_log_my_portion">Mijn portie toevoegen</string>
     <string name="recipes_batch_left">Nog ongeveer %1$s g over</string>
@@ -172,20 +172,21 @@
     </plurals>
     <string name="recipes_note_scan_more">Terug naar de camera</string>
     <!-- Ronde 4, Guido 12 okt: deel van de pan, een eigen pan -->
-    <string name="recipes_batch_share">Dat is %1$d%% van het gerecht (%2$s g): %3$d kcal</string>
+    <string name="recipes_batch_share">Dat is %1$d%% van het gerecht (%2$s g): %3$,d kcal</string>
     <string name="recipes_batch_name">Naam van het gerecht</string>
     <string name="recipes_cook_batch_hint">Wat erin gaat, borden voor jullie en bakjes voor de koelkast.</string>
     <!-- Round 6, Guido 17 Oct: dish up for everyone, the fridge -->
     <string name="recipes_dish_step">2. Opscheppen</string>
     <string name="recipes_dish_up">Opscheppen</string>
     <string name="recipes_dish_zero_hint">Zet elk leeg bord of bakje op nul, vul het en weeg.</string>
-    <string name="recipes_dish_share">%1$d%% · ≈ %2$d kcal</string>
+    <string name="recipes_dish_share">%1$d%% · ≈ %2$,d kcal</string>
     <string name="recipes_dish_add_plate">+ Bord</string>
     <string name="recipes_dish_add_box">+ Bakje</string>
     <string name="recipes_dish_rest">Rest in de kookpan (schatten mag)</string>
-    <string name="recipes_dish_my_meal">Jouw bord gaat bij</string>
-    <string name="recipes_dish_done">Klaar met opscheppen</string>
-    <string name="recipes_dish_my_plate">Jouw bord</string>
+    <string name="recipes_dish_my_meal">Mijn bord gaat bij</string>
+    <string name="recipes_dish_add_to">Toevoegen aan %1$s</string>
+    <string name="recipes_dish_done">Opslaan</string>
+    <string name="recipes_dish_my_plate">Mijn bord</string>
     <string name="recipes_dish_their_plate">Bord van %1$s</string>
     <string name="recipes_dish_partner">partner</string>
     <string name="recipes_dish_guest_plate">Bord van een gast</string>
@@ -203,8 +204,8 @@
     <string name="recipes_fridge_button">In de koelkast: %1$d bakjes</string>
     <string name="recipes_box_name">%1$s · Bakje %2$d</string>
     <string name="recipes_box_cooked">Gekookt %1$s</string>
-    <string name="recipes_box_left">Nog %1$s g · ≈ %2$d kcal</string>
-    <string name="recipes_box_left_of">Nog %1$s g van %2$s g · ≈ %3$d kcal</string>
+    <string name="recipes_box_left">Nog %1$s g · ≈ %2$,d kcal</string>
+    <string name="recipes_box_left_of">Nog %1$s g van %2$s g · ≈ %3$,d kcal</string>
     <string name="recipes_box_weigh">Wegen</string>
     <string name="recipes_box_in_box">Bakje %1$d: %2$s g in het bakje</string>
     <string name="recipes_box_weigh_hint">Zet je bord op nul, schep je portie op en weeg.</string>
@@ -212,7 +213,7 @@
     <string name="recipes_box_left_after">Daarna nog in het bakje: %1$s g</string>
     <string name="recipes_waiting_from">%1$s heeft voor je opgeschept</string>
     <string name="recipes_waiting_from_someone">Voor je opgeschept</string>
-    <string name="recipes_waiting_detail">%1$s g · ≈ %2$d kcal</string>
+    <string name="recipes_waiting_detail">%1$s g · ≈ %2$,d kcal</string>
     <string name="recipes_waiting_add">In mijn dagboek</string>
     <string name="recipes_waiting_not_mine">Niet van mij</string>
     <!-- Round 16: cooking in one screen -->
@@ -236,17 +237,17 @@
     <string name="recipes_done_theirs">Bord voor %1$s · staat klaar op Vandaag</string>
     <string name="recipes_done_fridge">Bakje %1$d · in de koelkast</string>
     <string name="recipes_done_freezer">Bakje %1$d · in de vriezer</string>
-    <string name="recipes_done_amount">%1$s g · %2$d kcal</string>
+    <string name="recipes_done_amount">%1$s g · %2$,d kcal</string>
     <string name="recipes_done_save_recipe">Bewaar als recept</string>
     <string name="recipes_done_saved_recipe">Bewaard als recept.</string>
-    <string name="recipes_done_close">Klaar</string>
+    <string name="recipes_done_close">Sluiten</string>
     <string name="recipes_locale" translatable="false">nl</string>
     <string name="recipes_more_options">Meer opties</string>
     <string name="recipes_dish_plates_instead">Toch opscheppen in borden en bakjes</string>
     <string name="recipes_dish_weigh_whole">Liever het hele gerecht in één keer wegen</string>
-    <string name="recipes_dish_total_kcal">Samen: %1$s g · %2$d kcal</string>
+    <string name="recipes_dish_total_kcal">Samen: %1$s g · %2$,d kcal</string>
     <plurals name="recipes_pick_detail">
-        <item quantity="one">%1$d ingrediënt · %2$s g · %3$d kcal</item>
-        <item quantity="other">%1$d ingrediënten · %2$s g · %3$d kcal</item>
+        <item quantity="one">%1$d ingrediënt · %2$s g · %3$,d kcal</item>
+        <item quantity="other">%1$d ingrediënten · %2$s g · %3$,d kcal</item>
     </plurals>
 </resources>

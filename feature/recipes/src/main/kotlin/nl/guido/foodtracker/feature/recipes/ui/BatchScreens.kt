@@ -2,11 +2,14 @@ package nl.guido.foodtracker.feature.recipes.ui
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -38,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
@@ -359,14 +363,15 @@ private fun scaleLabel(scale: Double): String = if (scale == 0.5) "½" else form
 
 
 /** Cooked today, yesterday, or another earlier day picked from a calendar. */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun CookDateChips(selected: LocalDate, onSelect: (LocalDate) -> Unit) {
     val today = LocalDate.now()
     val yesterday = today.minusDays(1)
     var choosing by rememberSaveable { mutableStateOf(false) }
     Text(stringResource(R.string.recipes_batch_cooked_on), style = MaterialTheme.typography.titleSmall)
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    // Round 17 check: chips wrap to a new line at large font instead of running off the screen.
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         FilterChip(selected = selected == today, onClick = { onSelect(today) }, label = { Text(stringResource(R.string.recipes_today)) })
         FilterChip(selected = selected == yesterday, onClick = { onSelect(yesterday) }, label = { Text(stringResource(R.string.recipes_yesterday)) })
         val other = selected != today && selected != yesterday
@@ -556,13 +561,19 @@ private fun DishUpContent(
             modifier = Modifier.fillMaxWidth(),
         )
         SectionTitle(stringResource(R.string.recipes_dish_total_kcal, formatGrams(total), raw.kcal.roundToInt()))
-        if (state.dishRows.any { it.kind == DishKind.PLATE && (it.forUserId == null || it.forUserId == state.myUserId) && it.grams != null }) {
+        val myPlate = state.dishRows.any { it.kind == DishKind.PLATE && (it.forUserId == null || it.forUserId == state.myUserId) && it.grams != null }
+        if (myPlate) {
             Text(stringResource(R.string.recipes_dish_my_meal), style = MaterialTheme.typography.titleSmall)
             ForDay(state.cookedOn)
             MealChips(state.meal, vm::setMeal)
         }
-        Button(onClick = vm::finishDishUp, enabled = state.canFinishDishUp, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-            Text(stringResource(R.string.recipes_dish_done))
+        // Round 17 check: my plate goes in the diary, so the button says where ("Toevoegen aan avondeten").
+        Button(onClick = vm::finishDishUp, enabled = state.canFinishDishUp, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+            Text(
+                if (myPlate) stringResource(R.string.recipes_dish_add_to, mealName(state.meal).lowercase())
+                else stringResource(R.string.recipes_dish_done),
+                textAlign = TextAlign.Center,
+            )
         }
         // P2: the other way to finish, as a choice inside this step.
         TextButton(onClick = onWeighWhole, modifier = Modifier.fillMaxWidth()) {

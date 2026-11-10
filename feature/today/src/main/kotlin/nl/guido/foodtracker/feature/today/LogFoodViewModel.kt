@@ -302,6 +302,8 @@ internal class LogFoodViewModel @Inject constructor(
 
     /** One tap: log a recent item again with the same amount. */
     fun quickAdd(entry: LogEntry) {
+        // A weight is waiting (the "Gewogen" chip): use it, so open the amount step with it instead.
+        if (weighedGrams != null && pickFromEntry(entry) != null) return choose(entry)
         viewModelScope.launch {
             val line = repeatEntry(
                 entry, user.value.userId, day(),
