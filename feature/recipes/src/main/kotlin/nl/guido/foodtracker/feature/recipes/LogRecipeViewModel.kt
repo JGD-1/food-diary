@@ -24,7 +24,6 @@ import nl.guido.foodtracker.feature.recipes.logic.Dish
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
 import nl.guido.foodtracker.feature.recipes.logic.filledIn
 import nl.guido.foodtracker.feature.recipes.logic.formatGrams
-import nl.guido.foodtracker.feature.recipes.logic.mealAt
 import nl.guido.foodtracker.feature.recipes.logic.parseGrams
 import nl.guido.foodtracker.feature.recipes.logic.toIngredients
 import java.time.Instant
