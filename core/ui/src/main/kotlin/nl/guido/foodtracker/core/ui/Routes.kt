@@ -51,6 +51,7 @@ object Routes {
     const val BATCH_EDIT = "batch-edit/{$ARG_BATCH_ID}" // Q2 (feature/recipes)
     const val FRIDGE = "recipes/fridge"      // round 6 (feature/recipes): "In the fridge", opened from Today
     const val UPDATE = "update"              // round 13 (feature/update): Profile > Updates
+    const val COOK = "recipes/batch"         // round 17 (feature/recipes): Koken, opened from Log food (P1)
 
     fun recipeLog(recipeId: Id, meal: Meal? = null, date: LocalDate? = null) =
         withArgs("recipe-log/$recipeId", ARG_MEAL to meal?.name, ARG_DATE to date?.toString())
@@ -60,6 +61,13 @@ object Routes {
 
     fun eatOut(date: LocalDate? = null, dish: String? = null) =
         withArgs(EAT_OUT, ARG_DATE to date?.toString(), ARG_DISH to dish?.takeIf { it.isNotBlank() })
+
+    /**
+     * The camera (round 17, P5): [mode] "scale" (Wegen) or null (Scannen); [drink] from Drinks; [meal] is where the
+     * opener will add the food, so the camera's button can say "Toevoegen aan lunch".
+     */
+    fun camera(mode: String? = null, drink: Boolean = false, meal: Meal? = null) =
+        withArgs(CAMERA, "mode" to mode, "drink" to drink.takeIf { it }?.toString(), ARG_MEAL to meal?.name)
 
     fun logFood(meal: Meal? = null, date: LocalDate? = null) =
         withArgs(LOG_FOOD, ARG_MEAL to meal?.name, ARG_DATE to date?.toString())
