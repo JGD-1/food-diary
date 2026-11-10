@@ -51,6 +51,7 @@ import nl.guido.foodtracker.feature.recipes.NewBatchViewModel
 import nl.guido.foodtracker.feature.recipes.NewBatchViewModel.Weighing
 import nl.guido.foodtracker.feature.recipes.R
 import nl.guido.foodtracker.feature.recipes.RecipesRoutes
+import nl.guido.foodtracker.feature.recipes.logic.CookStep
 import nl.guido.foodtracker.feature.recipes.logic.BATCH_SCALES
 import nl.guido.foodtracker.feature.recipes.logic.DishKind
 import nl.guido.foodtracker.feature.recipes.logic.DishRow
@@ -77,14 +78,14 @@ internal fun NewBatchScreen(
     onSaved: (Id, LocalDate) -> Unit,
     /** A changed batch was saved ([deleted] = false) or deleted. */
     onClosed: (deleted: Boolean) -> Unit = {},
-    /** Everything was dished up (round 6): the batch, my plate, other plates and boxes are saved. */
+    /** Everything was dished up (round 6) and the Done step closed: the batch, my plate, other plates and boxes are saved. */
     onDishedUp: () -> Unit = {},
     vm: NewBatchViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     var weighPot by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(state.dishedUp) { if (state.dishedUp) onDishedUp() }
+    var adding by rememberSaveable { mutableStateOf(false) }
     var deleting by rememberSaveable { mutableStateOf(false) }
     CameraGrams(savedState, vm::onWeighed, onFood = vm::addScanned)
     PickedFoods(savedState) { vm.add(it) }
@@ -93,14 +94,26 @@ internal fun NewBatchScreen(
     LaunchedEffect(state.closed) { if (state.closed) onClosed(deleting) }
     val editing = state.editing != null
     // Round 12 (G1): Back while dishing up shows the ingredients (the plates weighed so far stay).
-    BackHandler(enabled = state.dishingUp) { vm.backToCooking() }
+    BackHandler(enabled = state.dishingUp && !state.dishedUp) { vm.backToCooking() }
+    // Round 16: everything is saved on the Done step, so Back there just closes.
+    BackHandler(enabled = state.dishedUp) { onDishedUp() }
 
     Scaffold(
         topBar = {
-            RecipesTopBar(
-                stringResource(if (editing) R.string.recipes_batch_change else R.string.recipes_cook_batch),
-                onBack = { if (state.dishingUp) vm.backToCooking() else navController.popBackStack() },
-            )
+            Column {
+                RecipesTopBar(
+                    stringResource(if (editing) R.string.recipes_batch_change else R.string.recipes_cook_batch),
+                    onBack = {
+                        when {
+                            state.dishedUp -> onDishedUp()
+                            state.dishingUp -> vm.backToCooking()
+                            else -> navController.popBackStack()
+                        }
+                    },
+                )
+                // Round 16: one cooking screen in three steps.
+                if (!editing && !state.loading) CookStepBar(state.step, state.canDishUp, onIn = vm::backToCooking, onDishUp = vm::startDishUp)
+            }
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
@@ -110,6 +123,10 @@ internal fun NewBatchScreen(
         }
         if (savedState.contains(RecipesRoutes.ARG_BATCH_ID) && !editing) {
             Hint(stringResource(R.string.recipes_not_found), Modifier.padding(padding).padding(16.dp))
+            return@Scaffold
+        }
+        if (state.step == CookStep.DONE) {
+            CookDoneContent(state, onSaveAsRecipe = vm::saveAsRecipe, onClose = onDishedUp, modifier = Modifier.padding(padding))
             return@Scaffold
         }
         if (state.dishingUp) {
@@ -158,17 +175,8 @@ internal fun NewBatchScreen(
                     onChoice = { vm.chooseAmount(line.key, it) },
                 )
             }
-            OutlinedButton(onClick = { openFoodPick(navController, FoodPickPurpose.BATCH_INGREDIENT) }, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.recipes_add_ingredient))
-            }
-            cameraScan(navController)?.let { scan ->
-                OutlinedButton(onClick = scan, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.recipes_scan_product))
-                }
-            }
-            OutlinedButton(onClick = { openNoteScan(navController, FoodPickPurpose.BATCH_INGREDIENT) }, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.recipes_note_scan))
-            }
+            // Round 16: one "+ Toevoegen" for scanning, searching, a note or a whole recipe.
+            AddToPotButton(onClick = { adding = true })
             if (state.lines.isNotEmpty()) {
                 Hint(stringResource(R.string.recipes_batch_raw_total, state.rawTotal.kcal.roundToInt()))
             }
@@ -185,10 +193,9 @@ internal fun NewBatchScreen(
 
             if (!editing) {
                 // Round 6 (D1): weigh the plates and boxes, not the hot pot.
-                SectionTitle(stringResource(R.string.recipes_dish_step))
-                Hint(stringResource(R.string.recipes_dish_step_hint))
+                Hint(stringResource(if (state.canDishUp) R.string.recipes_dish_step_hint else R.string.recipes_dish_not_yet))
                 Button(onClick = vm::startDishUp, enabled = state.canDishUp, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                    Text(stringResource(R.string.recipes_dish_up))
+                    Text(stringResource(R.string.recipes_dish_up_next))
                 }
                 TextButton(onClick = { weighPot = !weighPot }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(if (weighPot) R.string.recipes_dish_hide_pot else R.string.recipes_dish_weigh_pot_instead))
@@ -253,6 +260,17 @@ internal fun NewBatchScreen(
                 }
             }
         }
+    }
+
+    if (adding) {
+        AddToPotSheet(
+            onScan = cameraScan(navController),
+            onSearch = { openFoodPick(navController, FoodPickPurpose.BATCH_INGREDIENT) },
+            onNote = { openNoteScan(navController, FoodPickPurpose.BATCH_INGREDIENT) },
+            recipes = state.allRecipes,
+            onRecipe = vm::addRecipe,
+            onDismiss = { adding = false },
+        )
     }
 
     if (confirmDelete) {
@@ -480,6 +498,7 @@ private fun DishUpContent(state: NewBatchViewModel.State, vm: NewBatchViewModel,
                 onRemove = { vm.removeDishRow(row.key) },
             )
         }
+        Hint(stringResource(R.string.recipes_dish_add_more))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick = { vm.addDishRow(DishKind.PLATE) }, modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.recipes_dish_add_plate))
