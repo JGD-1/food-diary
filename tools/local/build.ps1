@@ -36,7 +36,7 @@ New-Item -ItemType Directory -Force $Releases | Out-Null
 $counterFile = Join-Path $Releases "build-number.txt"
 $last = if (Test-Path $counterFile) { [int](Get-Content $counterFile -Raw).Trim() } else { 299 }
 $number = $last + 1
-$env:GITHUB_RUN_NUMBER = "$number"   # app/build.gradle.kts reads this name for versionCode/versionName
+$env:BUILD_NUMBER = "$number"   # app/build.gradle.kts reads this for versionCode/versionName (GitHub builds use their run number + 200)
 
 if (-not $NoTests) {
     Write-Host "== Tests"

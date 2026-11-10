@@ -9,7 +9,11 @@ android {
         // The app's permanent id on the phone. Never change it, or updates stop installing.
         applicationId = "nl.guido.foodtracker"
         // Every automatic build gets a higher number, so each new APK installs over the old one.
-        val buildNumber = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
+        // Local builds (tools/local/build.ps1) pass BUILD_NUMBER; GitHub builds add 200 to their run number,
+        // so they stay above the local builds 0.1.300+ made while GitHub was away (Nov 2026).
+        val buildNumber = System.getenv("BUILD_NUMBER")?.toInt()
+            ?: System.getenv("GITHUB_RUN_NUMBER")?.toInt()?.plus(200)
+            ?: 1
         versionCode = buildNumber
         versionName = "0.1.$buildNumber"
     }

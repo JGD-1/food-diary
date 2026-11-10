@@ -60,12 +60,12 @@ jobs:
       - name: Name the APK
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/release/app-release.apk "out/food-diary-0.1.${GITHUB_RUN_NUMBER}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "out/food-diary-0.1.$((GITHUB_RUN_NUMBER + 200)).apk"
 
       - name: Keep the APK with this build
         uses: actions/upload-artifact@v4
         with:
-          name: food-diary-0.1.${{ github.run_number }}
+          name: food-diary-build-${{ github.run_number }}
           path: out/*.apk
 
       - name: Keep test reports when tests fail
@@ -81,7 +81,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: Food diary 0.1.${{ github.run_number }}
+          name: Food diary build ${{ github.run_number }} (version = run + 200)
           body: Automatic build of ${{ github.sha }}. Download the .apk file below on your phone to install.
           files: out/*.apk
           make_latest: true
