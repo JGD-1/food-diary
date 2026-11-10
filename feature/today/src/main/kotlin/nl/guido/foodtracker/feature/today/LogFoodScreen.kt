@@ -1,6 +1,18 @@
 package nl.guido.foodtracker.feature.today
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -133,9 +145,11 @@ internal fun LogFoodRoute(
                 onMeal = viewModel::setMeal,
                 onQuery = viewModel::setQuery,
                 onSearchOnline = viewModel::searchOnline,
-                onScan = { open(if (ui.meal == Meal.DRINKS) Routes.CAMERA_DRINK else Routes.CAMERA, Routes.CAMERA) },
-                // Weigh first, then pick the food: the grams wait for the next food chosen.
-                onWeigh = { open(Routes.CAMERA_SCALE, Routes.CAMERA) },
+                onScan = { open(Routes.camera(drink = ui.meal == Meal.DRINKS, meal = ui.meal), Routes.CAMERA) },
+                // Weigh first, then pick the food: the grams wait for the next food chosen, shown as a chip (P4).
+                onWeigh = { open(Routes.camera(mode = "scale", meal = ui.meal), Routes.CAMERA) },
+                onCook = { open(Routes.COOK, Routes.RECIPES) },
+                onClearWeighed = viewModel::clearWeighed,
                 onChooseEntry = viewModel::choose,
                 onQuickAdd = viewModel::quickAdd,
                 onChooseFood = viewModel::choose,
@@ -153,7 +167,7 @@ internal fun LogFoodRoute(
                     pin = ui.amountPin,
                     readable = step.pick.food?.let(viewModel::readableName),
                     onDismiss = viewModel::closeAmount,
-                    onWeigh = { open(Routes.CAMERA_SCALE, Routes.CAMERA) },
+                    onWeigh = { open(Routes.camera(mode = "scale", meal = ui.meal), Routes.CAMERA) },
                     onAdd = viewModel::add,
                     onWeighAfter = viewModel::weighAfter,
                     onPin = viewModel::pin,
@@ -175,6 +189,8 @@ private fun LogFoodContent(
     onSearchOnline: () -> Unit,
     onScan: () -> Unit,
     onWeigh: () -> Unit,
+    onCook: () -> Unit,
+    onClearWeighed: () -> Unit,
     onChooseEntry: (LogEntry) -> Unit,
     onQuickAdd: (LogEntry) -> Unit,
     onChooseFood: (Food) -> Unit,
@@ -186,13 +202,12 @@ private fun LogFoodContent(
     readableName: (Food) -> String?,
 ) {
     Column(Modifier.fillMaxSize()) {
+        // P13: one way out, the back arrow.
         ScreenHeader(
             title = stringResource(R.string.today_log_food_title),
             onBack = onBack,
             modifier = Modifier.padding(top = 8.dp),
-        ) {
-            TextButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.today_done)) }
-        }
+        )
         ui.date?.let { date ->
             // Logging for an earlier day: say which, so nothing lands on the wrong day by surprise.
             val locale = Locale.forLanguageTag(stringResource(R.string.today_locale))
@@ -239,13 +254,27 @@ private fun LogFoodContent(
                 modifier = Modifier.weight(1f).shadow(CardShadow, CircleShape),
             )
         }
-        // Scan and Weigh live here since Today has only the Log food button (Nov 2026).
+        // Scan, Weigh and Cook live here since Today has only the Log food button (Nov 2026; Koken added in round 17, P1).
         Row(
             Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             CameraButton(TodayIcons.Scan, stringResource(R.string.today_scan), onScan, Modifier.weight(1f))
             CameraButton(TodayIcons.Weigh, stringResource(R.string.today_weigh), onWeigh, Modifier.weight(1f))
+            CameraButton(TodayIcons.Cook, stringResource(R.string.today_cook), onCook, Modifier.weight(1f))
+        }
+        // P4: a weight read before choosing the food stays visible until a food is picked, with ✕ to drop it.
+        ui.weighedGrams?.let { grams ->
+            val gramsText = formatAmount(grams)
+            InputChip(
+                selected = true,
+                onClick = onClearWeighed,
+                label = { Text(stringResource(R.string.today_weighed_chip, gramsText)) },
+                trailingIcon = {
+                    Icon(TodayIcons.Close, contentDescription = stringResource(R.string.today_weighed_clear), modifier = Modifier.size(18.dp))
+                },
+                modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 8.dp).heightIn(min = 40.dp),
+            )
         }
         LazyColumn(
             Modifier.weight(1f).fillMaxWidth(),
@@ -448,8 +477,12 @@ private fun PotRow(item: PotItem, onBatch: (Batch) -> Unit) {
 private fun piecesText(pieces: Double): String =
     LocalContext.current.resources.getQuantityString(R.plurals.today_pieces, if (pieces == 1.0) 1 else 2, formatPieces(pieces))
 
-/** How much? Type it, tap a usual amount, or read the scale. */
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * How much? Round 17 (P6 + N2): only the name, the amount, this food's chips, the total and one big
+ * "Toevoegen aan …" button that stays visible above the gesture bar, even at the largest font.
+ * Favourites and editing the product sit in the ⋮ menu; "Weeg na" is a quiet text link.
+ */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun AmountSheet(
     step: AmountStep,
@@ -472,108 +505,147 @@ private fun AmountSheet(
     val label = chosen?.takeIf { it.second == grams }?.first
     val add = { g: Double -> onAdd(g, label) }
     val unit = stringResource(if (pick.isDrink) R.string.today_unit_ml else R.string.today_unit_g)
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
-            Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Column {
-                val shown = shownName(pick.name, readable)
-                Text(shown.title, style = MaterialTheme.typography.titleLarge)
-                // The original NEVO name, unchanged, under the app's readable name (S1).
-                shown.original?.let {
-                    Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            Text(
-                stringResource(if (pick.isDrink) R.string.today_per_100ml else R.string.today_per_100g, formatKcal(pick.per100g.kcal)),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                label = { Text(stringResource(R.string.today_amount_label)) },
-                suffix = { Text(unit) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { grams?.let(add) }),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Row(
-                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+    // N2: open fully, so the main button is never half under the gesture bar.
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().imePadding()) {
+            // Everything but the button scrolls, so at the largest font the button still fits.
+            Column(
+                Modifier
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                pick.chips.forEach { chip ->
-                    val name = when (chip.kind) {
-                        AmountChip.Kind.SERVING -> stringResource(R.string.today_chip_serving)
-                        AmountChip.Kind.PACK -> stringResource(R.string.today_chip_pack)
-                        AmountChip.Kind.PIECE -> chip.label.orEmpty()
+                Row(verticalAlignment = Alignment.Top) {
+                    Column(Modifier.weight(1f)) {
+                        val shown = shownName(pick.name, readable)
+                        Text(shown.title, style = MaterialTheme.typography.titleLarge)
+                        // The original NEVO name (S1) and the kcal per 100 g on one quiet line.
+                        val per100 = stringResource(
+                            if (pick.isDrink) R.string.today_per_100ml else R.string.today_per_100g,
+                            formatKcal(pick.per100g.kcal),
+                        )
+                        Text(
+                            listOfNotNull(shown.original, per100).joinToString(" · "),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
-                    SuggestionChip(
-                        onClick = {
-                            text = formatAmount(chip.grams)
-                            chosen = parseGrams(text)?.let { name to it }
-                        },
-                        label = { Text(amountText(name, chip.grams, pick.isDrink)) },
+                    val foodId = pick.foodId
+                    if (foodId != null) {
+                        AmountMenu(
+                            pinned = pin != null,
+                            canPin = grams != null,
+                            canEdit = canEdit(pick.food),
+                            onPin = { grams?.let(onPin) },
+                            onUnpin = onUnpin,
+                            onEdit = { onEditFood(foodId) },
+                        )
+                    }
+                }
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text(stringResource(R.string.today_amount_label)) },
+                    suffix = { Text(unit) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { grams?.let(add) }),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    // Wegen is one of the ways to fill in the amount, so it sits with the amounts.
+                    AssistChip(
+                        onClick = onWeigh,
+                        label = { Text(stringResource(R.string.today_weigh)) },
+                        leadingIcon = { Icon(TodayIcons.Weigh, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                    )
+                    pick.chips.forEach { chip ->
+                        val name = when (chip.kind) {
+                            AmountChip.Kind.SERVING -> stringResource(R.string.today_chip_serving)
+                            AmountChip.Kind.PACK -> stringResource(R.string.today_chip_pack)
+                            AmountChip.Kind.PIECE -> chip.label.orEmpty()
+                        }
+                        SuggestionChip(
+                            onClick = {
+                                text = formatAmount(chip.grams)
+                                chosen = parseGrams(text)?.let { name to it }
+                            },
+                            label = { Text(amountText(name, chip.grams, pick.isDrink)) },
+                        )
+                    }
+                    // Fixed gram amounts only for a food without its own portion sizes.
+                    if (pick.chips.isEmpty()) {
+                        quickAmounts(pick.isDrink).forEach { amount ->
+                            SuggestionChip(onClick = { text = formatAmount(amount) }, label = { Text(amountText(null, amount, pick.isDrink)) })
+                        }
+                    }
+                }
+                if (grams != null) {
+                    Text(
+                        stringResource(R.string.today_amount_total, formatKcal(pick.per100g.forGrams(grams).kcal)),
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
-                quickAmounts(pick.isDrink).forEach { amount ->
-                    SuggestionChip(onClick = { text = formatAmount(amount) }, label = { Text(amountText(null, amount, pick.isDrink)) })
-                }
             }
-            OutlinedButton(onClick = onWeigh, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                Icon(TodayIcons.Weigh, contentDescription = null, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.today_weigh_on_scale))
-            }
-            val foodId = pick.foodId
-            if (foodId != null) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (pin == null) {
-                        TextButton(onClick = { grams?.let(onPin) }, enabled = grams != null) {
-                            Text(stringResource(R.string.today_pin))
-                        }
-                    } else {
-                        TextButton(onClick = onUnpin) { Text(stringResource(R.string.today_unpin)) }
-                    }
-                    if (canEdit(pick.food)) {
-                        TextButton(onClick = { onEditFood(foodId) }) { Text(stringResource(R.string.today_edit_food)) }
-                    }
-                }
-            }
-            if (grams != null) {
-                Text(
-                    stringResource(R.string.today_amount_total, formatKcal(pick.per100g.forGrams(grams).kcal)),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            // The one main button, fixed at the bottom of the sheet.
+            Column(
+                Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
                 Button(
                     onClick = { grams?.let(add) },
                     enabled = grams != null,
                     shape = RoundedCornerShape(50),
-                    modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 ) {
-                    Text(stringResource(addToMeal(meal)), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(addToMeal(meal)), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
                 }
-                // Round 7: weigh it now, eat, weigh what's left; only the difference goes in the diary.
+                // Round 7, now a quiet link (P6): weigh it now, eat, weigh what's left; only the difference is logged.
                 if (pick.foodId != null && !pick.isDrink) {
-                    OutlinedButton(
+                    TextButton(
                         onClick = { grams?.let(onWeighAfter) },
                         enabled = grams != null,
-                        shape = RoundedCornerShape(50),
-                        modifier = Modifier.heightIn(min = 56.dp),
+                        modifier = Modifier.heightIn(min = 48.dp),
                     ) {
-                        Text(stringResource(R.string.today_weigh_after), style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.today_weigh_after))
                     }
                 }
             }
-            if (pick.foodId != null && !pick.isDrink) {
-                Text(
-                    stringResource(R.string.today_weigh_after_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+        }
+    }
+}
+
+/** ⋮ in the amount sheet: favourite and edit product, out of the way of the main task. */
+@Composable
+private fun AmountMenu(
+    pinned: Boolean,
+    canPin: Boolean,
+    canEdit: Boolean,
+    onPin: () -> Unit,
+    onUnpin: () -> Unit,
+    onEdit: () -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { open = true }, modifier = Modifier.size(48.dp)) {
+            Icon(TodayIcons.More, contentDescription = stringResource(R.string.today_amount_more))
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            if (pinned) {
+                DropdownMenuItem(text = { Text(stringResource(R.string.today_unpin)) }, onClick = { open = false; onUnpin() })
+            } else {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.today_pin)) },
+                    enabled = canPin,
+                    onClick = { open = false; onPin() },
                 )
+            }
+            if (canEdit) {
+                DropdownMenuItem(text = { Text(stringResource(R.string.today_edit_food)) }, onClick = { open = false; onEdit() })
             }
         }
     }

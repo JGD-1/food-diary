@@ -45,6 +45,11 @@ internal object TodayIcons {
     val Snacks = lineIcon("Snacks", "M12 7c-4-2-8 1-7 6s4 8 7 7c3 1 6-2 7-7s-3-8-7-6zM12 7c0-2 1-3 3-4")
     val Drinks = lineIcon("Drinks", "M6 4h12l-1.5 16h-9zM6.5 9h11")
     val Forward = lineIcon("Forward", "M9 5l7 7-7 7")
+    /** A cooking pot with a lid handle (round 17, P1: Koken in Log food). */
+    val Cook = lineIcon("Cook", "M4 10h16v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4zM2 10h2M20 10h2M8 7h8M12 4v3")
+    val Close = lineIcon("Close", "M6 6l12 12M18 6L6 18")
+    /** Three dots: the ⋮ menu in the amount sheet (favourites, edit product). */
+    val More = lineIcon("More", "M12 5v.01M12 12v.01M12 19v.01", width = 3.2f)
     // Cooking for two or more (round 6): the fridge button and a plate dished up for me.
     val Fridge = lineIcon("Fridge", "M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z", "M6 10h12M9 5v2M9 13v3")
     val Plate = lineIcon("Plate", "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z", "M12 7a5 5 0 1 0 0 10a5 5 0 1 0 0-10z")
