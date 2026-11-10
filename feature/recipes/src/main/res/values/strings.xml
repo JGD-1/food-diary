@@ -5,12 +5,12 @@
     <string name="recipes_back">Back</string>
     <string name="recipes_new_recipe">New recipe</string>
     <string name="recipes_cook_batch">Cook</string>
-    <string name="recipes_batches_section">In the pot</string>
+    <string name="recipes_batches_section">Cooked dishes</string>
     <string name="recipes_batch_cooked_left">Cooked %1$s · about %2$s g left</string>
     <string name="recipes_batch_finished">Finished</string>
     <string name="recipes_batch_finished_done">Taken off the list</string>
     <string name="recipes_undo">Undo</string>
-    <string name="recipes_weigh_my_portion">Weigh my portion</string>
+    <string name="recipes_weigh_my_portion">My portion</string>
     <string name="recipes_pinned_section">My favourites</string>
     <string name="recipes_all_section">All recipes</string>
     <string name="recipes_empty">No recipes yet. Save one once, and next time it takes two taps to log.</string>
@@ -70,19 +70,18 @@
     <string name="recipes_dish_up_everyone">Dish up for everyone</string>
 
     <!-- Batch meals -->
-    <string name="recipes_batch_step_in">1. Weigh what goes in</string>
-    <string name="recipes_batch_step_in_hint">Weigh each ingredient as it goes into the pot.</string>
+    <string name="recipes_batch_step_in">Ingredients</string>
+    <string name="recipes_batch_step_in_hint">Weigh each ingredient before it goes in.</string>
     <string name="recipes_batch_raw_total">Everything in the pot: %1$d kcal</string>
-    <string name="recipes_batch_step_cooked">2. Weigh the cooked batch</string>
-    <string name="recipes_batch_step_cooked_hint">When it\'s done, weigh all of the food, without the pan.</string>
+    <string name="recipes_batch_step_cooked">Weight of the dish</string>
+    <string name="recipes_batch_step_cooked_hint">Weigh the whole dish, without the pot.</string>
     <string name="recipes_batch_cooked_weight">Cooked batch</string>
-    <string name="recipes_batch_save">Save batch, then weigh my portion</string>
+    <string name="recipes_batch_save">Save dish</string>
     <string name="recipes_batch_summary">Cooked %1$s · %2$s g in total, %3$d kcal</string>
-    <string name="recipes_batch_step_portion">3. Weigh my portion</string>
-    <string name="recipes_batch_step_portion_hint">Put your plate on the scale, set it to zero, then add your portion.</string>
+    <string name="recipes_batch_step_portion_hint">Put your plate on the scale, set it to zero and serve.</string>
     <string name="recipes_log_my_portion">Log my portion</string>
-    <string name="recipes_batch_left">About %1$s g left in the pot</string>
-    <string name="recipes_batch_last_portion">That was the last of it: take it off the list</string>
+    <string name="recipes_batch_left">About %1$s g left</string>
+    <string name="recipes_batch_last_portion">That was the last of it: take the dish off the list</string>
     <string name="recipes_batch_cooked_on">Cooked on</string>
     <string name="recipes_today">Today</string>
     <string name="recipes_yesterday">Yesterday</string>
@@ -100,25 +99,25 @@
         <item quantity="other">%1$d pieces</item>
     </plurals>
     <string name="recipes_after_cooking">After cooking or baking</string>
-    <string name="recipes_after_cooking_hint">Cooking changes the weight. Weigh the whole dish when it\'s done, without the pan, and portions count as grams of the finished dish.</string>
+    <string name="recipes_after_cooking_hint">Weigh the whole dish when it is ready, without the pot.</string>
     <string name="recipes_cooked_weight_optional">Weight of the finished dish (optional)</string>
-    <string name="recipes_cooked_weight_none_hint">Without it, portions count as grams of the raw ingredients. For a pot you share out over days, use Cook a batch.</string>
+    <string name="recipes_cooked_weight_none_hint">Without this weight, portions count in grams of the raw ingredients.</string>
     <string name="recipes_makes_pieces">Makes … pieces (optional)</string>
     <string name="recipes_makes_pieces_hint">For example 12 muffins. You can then log ½, 1 or 2 pieces.</string>
-    <string name="recipes_batch_change">Change batch</string>
+    <string name="recipes_batch_change">Change dish</string>
     <string name="recipes_batch_step_cooked_pan_hint">Put the pan with the food on the scale. Its empty weight comes off.</string>
     <string name="recipes_batch_reading_with_pan">Scale reading, pan included</string>
     <string name="recipes_batch_minus_pan">Minus %1$s (%2$s g): %3$s g of food</string>
     <string name="recipes_batch_in_freezer">In the freezer</string>
-    <string name="recipes_batch_delete">Delete batch</string>
+    <string name="recipes_batch_delete">Delete dish</string>
     <string name="recipes_batch_delete_logged">A portion of this batch is already logged, so it stays. Tap Finished on the list when it\'s gone.</string>
-    <string name="recipes_batch_delete_question">Delete this batch for everyone?</string>
-    <string name="recipes_batch_left_pieces">About %1$s g left in the pot (%2$s pieces)</string>
+    <string name="recipes_batch_delete_question">Delete this dish for everyone?</string>
+    <string name="recipes_batch_left_pieces">About %1$s g left (%2$s pieces)</string>
     <string name="recipes_pan_none">No pan</string>
     <string name="recipes_pan_chip">%1$s · %2$s g</string>
     <string name="recipes_pans_manage">Pans…</string>
     <string name="recipes_pans_title">Pans</string>
-    <string name="recipes_pans_hint">Weigh each pan empty once. Then weigh the cooked food in its pan and the app takes the pan off.</string>
+    <string name="recipes_pans_hint">Weigh each pot empty once.</string>
     <string name="recipes_pan_name">Name, e.g. Big pot</string>
     <string name="recipes_pan_empty_weight">Empty weight</string>
     <string name="recipes_pan_add">Add pan</string>
@@ -126,18 +125,17 @@
     <string name="recipes_freezer_take_out">Take out</string>
     <string name="recipes_freezer_put_in">Freeze</string>
     <!-- Round 4: a batch kept while cooking (B1), the pot staying on the scale (B2) -->
-    <string name="recipes_batch_resumed">Carrying on with the batch you started earlier.</string>
+    <string name="recipes_batch_resumed">You are carrying on with the dish you started earlier.</string>
     <string name="recipes_batch_start_over">Start over</string>
-    <string name="recipes_batch_step_in_pot_hint">Weigh the whole pot after each ingredient. The app works out how much went in.</string>
+    <string name="recipes_batch_step_in_pot_hint">Weigh the whole pot after each ingredient.</string>
     <string name="recipes_batch_pot_on_scale">The pot stays on the scale</string>
     <string name="recipes_batch_empty_pot">Empty pot</string>
-    <string name="recipes_batch_empty_pot_hint">Leave this empty if you set the scale to zero with the empty pot on it.</string>
     <string name="recipes_batch_pot_now">The scale should now show about %1$s g.</string>
     <string name="recipes_batch_pot_too_low">That reading isn\'t more than what\'s already in the pot, so nothing was filled in. Type the grams instead.</string>
     <string name="recipes_batch_step_cooked_pot_hint">Put the pot with the food on the scale. The empty pot (%1$s g) comes off.</string>
     <string name="recipes_batch_minus_pot">Minus the empty pot (%1$s g): %2$s g of food</string>
     <string name="recipes_still_cooking">Still cooking: %1$s</string>
-    <string name="recipes_still_cooking_unnamed">a batch</string>
+    <string name="recipes_still_cooking_unnamed">a dish</string>
     <plurals name="recipes_still_cooking_lines">
         <item quantity="one">%d ingredient so far</item>
         <item quantity="other">%d ingredients so far</item>
@@ -174,27 +172,19 @@
     </plurals>
     <string name="recipes_note_scan_more">Back to the camera</string>
     <!-- Round 4, Guido 12 Oct: share of the pot, a batch of your own -->
-    <string name="recipes_batch_share">That\'s %1$d%% of the pot (%2$s g): %3$d kcal</string>
+    <string name="recipes_batch_share">That is %1$d%% of the dish (%2$s g): %3$d kcal</string>
     <string name="recipes_batch_name">Name of the meal</string>
     <string name="recipes_cook_batch_hint">One screen: what goes in, plates for each of you, boxes for the fridge.</string>
     <!-- Round 6, Guido 17 Oct: dish up for everyone, the fridge -->
     <string name="recipes_dish_step">2. Dish up</string>
-    <string name="recipes_dish_step_hint">No need to weigh the hot pot: weigh each plate and box as you fill it.</string>
     <string name="recipes_dish_up">Dish up</string>
-    <string name="recipes_dish_weigh_pot_instead">Weigh the pot instead</string>
-    <string name="recipes_dish_hide_pot">Dish up instead of weighing the pot</string>
-    <string name="recipes_dish_went_in">%1$d kcal went in</string>
-    <string name="recipes_dish_zero_hint">Put the empty plate or box on the scale, set it to zero, fill it, then weigh.</string>
+    <string name="recipes_dish_zero_hint">Set each empty plate or box to zero, fill it and weigh.</string>
     <string name="recipes_dish_share">%1$d%% · ≈ %2$d kcal</string>
     <string name="recipes_dish_add_plate">+ Plate</string>
     <string name="recipes_dish_add_box">+ Box</string>
-    <string name="recipes_dish_rest">Rest still in the pot (a guess is fine)</string>
-    <string name="recipes_dish_rest_hint">It goes in the fridge as one more box.</string>
-    <string name="recipes_dish_total">Dished out: %1$s g</string>
-    <string name="recipes_dish_total_hint">Everything you weigh here is the whole pot. Each plate or box gets its share of the %1$d kcal by weight.</string>
+    <string name="recipes_dish_rest">Left in the pot (a guess is fine)</string>
     <string name="recipes_dish_my_meal">Your plate goes in</string>
     <string name="recipes_dish_done">Done dishing up</string>
-    <string name="recipes_dish_back">Back to the ingredients</string>
     <string name="recipes_dish_my_plate">Your plate</string>
     <string name="recipes_dish_their_plate">%1$s\'s plate</string>
     <string name="recipes_dish_partner">Partner</string>
@@ -215,9 +205,9 @@
     <string name="recipes_box_cooked">Cooked %1$s</string>
     <string name="recipes_box_left">%1$s g left · ≈ %2$d kcal</string>
     <string name="recipes_box_left_of">%1$s g left of %2$s g · ≈ %3$d kcal</string>
-    <string name="recipes_box_weigh">Weigh a portion</string>
+    <string name="recipes_box_weigh">Weigh</string>
     <string name="recipes_box_in_box">Box %1$d: %2$s g in the box</string>
-    <string name="recipes_box_weigh_hint">Put your plate on the scale, set it to zero, scoop your portion, then weigh.</string>
+    <string name="recipes_box_weigh_hint">Set your plate to zero, serve your portion and weigh.</string>
     <string name="recipes_box_whole">Whole box</string>
     <string name="recipes_box_left_after">Left in the box after this: %1$s g</string>
     <string name="recipes_waiting_from">%1$s dished up for you</string>
@@ -238,10 +228,9 @@
     <string name="recipes_add_recipe">From a recipe</string>
     <string name="recipes_add_recipe_hint">Everything from a saved recipe</string>
     <string name="recipes_add_recipe_none">No recipes saved yet.</string>
-    <string name="recipes_add_grams_hint">After scanning, type the grams or read the scale with the camera.</string>
+    <string name="recipes_add_grams_hint">Then type the grams, or tap Weigh.</string>
     <string name="recipes_dish_not_yet">Give it a name and fill in the grams for every ingredient, then dish up.</string>
     <string name="recipes_dish_up_next">Next: dish up</string>
-    <string name="recipes_dish_add_more">Another plate or box?</string>
     <string name="recipes_done_title">%1$s is dished up</string>
     <string name="recipes_done_mine">My plate · in my diary (%1$s)</string>
     <string name="recipes_done_theirs">Plate for %1$s · waiting on Today</string>
@@ -251,4 +240,13 @@
     <string name="recipes_done_save_recipe">Save as recipe</string>
     <string name="recipes_done_saved_recipe">Saved as a recipe.</string>
     <string name="recipes_done_close">Done</string>
+    <string name="recipes_locale" translatable="false">en</string>
+    <string name="recipes_more_options">More options</string>
+    <string name="recipes_dish_plates_instead">Dish up in plates and boxes after all</string>
+    <string name="recipes_dish_weigh_whole">Weigh the whole dish at once instead</string>
+    <string name="recipes_dish_total_kcal">Together: %1$s g · %2$d kcal</string>
+    <plurals name="recipes_pick_detail">
+        <item quantity="one">%1$d ingredient · %2$s g · %3$d kcal</item>
+        <item quantity="other">%1$d ingredients · %2$s g · %3$d kcal</item>
+    </plurals>
 </resources>

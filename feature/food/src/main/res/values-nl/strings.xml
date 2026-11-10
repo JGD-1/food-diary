@@ -25,11 +25,11 @@
     <!-- Shared food picker (S21) -->
     <string name="food_pick_title_ingredient">Ingrediënt toevoegen</string>
     <string name="food_pick_title_extra">Extra toevoegen</string>
-    <string name="food_pick_search_label">Zoek een voedingsmiddel</string>
+    <string name="food_pick_search_label">Zoek eten en drinken</string>
     <string name="food_pick_search_hint">Bijvoorbeeld: havermout, ei, melk</string>
     <string name="food_pick_start">Typ een paar letters om iets te zoeken. Ingrediënten die je eerder gebruikte, staan hier.</string>
-    <string name="food_pick_recent">Laatst gebruikt</string>
-    <string name="food_pick_on_phone">Op je telefoon</string>
+    <string name="food_pick_recent">Recent</string>
+    <string name="food_pick_on_phone">Producten</string>
     <string name="food_pick_search_online">Online zoeken naar “%1$s”</string>
     <string name="food_pick_searching_online">Zoeken in Open Food Facts…</string>
     <string name="food_pick_online">Online</string>
