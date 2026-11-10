@@ -61,6 +61,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import nl.guido.foodtracker.core.model.Food
+import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.ui.FoodRow
 import nl.guido.foodtracker.core.ui.ScreenHeader
 import nl.guido.foodtracker.core.ui.foodDetail
@@ -176,7 +177,7 @@ internal fun CameraScreen(
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         ScreenHeader(
-            title = stringResource(R.string.camera_camera_title),
+            title = stringResource(screenTitle(step, vm.mode)),
             onBack = { if (!vm.back()) onLeave() },
         ) {
             if (use != null) {
@@ -227,7 +228,7 @@ internal fun CameraScreen(
                     is CameraStep.PhotoLabel -> LabelPanel(onTake = takeLabelPhoto, vm, enabled = hasPermission)
                     is CameraStep.ReadingLabel -> Body(stringResource(R.string.camera_label_reading))
                     is CameraStep.EditFood -> EditFoodPanel(s, vm)
-                    is CameraStep.HowMuch -> HowMuchPanel(s, vm)
+                    is CameraStep.HowMuch -> HowMuchPanel(s, vm, canName)
                     is CameraStep.ReadScale -> ScalePanel(s, scale, naming.takeIf { canName && s.food == null }, vm)
                 }
             }
@@ -348,7 +349,7 @@ private fun EditFoodPanel(s: CameraStep.EditFood, vm: CameraViewModel) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun HowMuchPanel(s: CameraStep.HowMuch, vm: CameraViewModel) {
+private fun HowMuchPanel(s: CameraStep.HowMuch, vm: CameraViewModel, logsFood: Boolean) {
     val food = s.food
     Title(stringResource(R.string.camera_amount_title))
     Text(listOfNotNull(food.name, food.brand).joinToString(" · "), style = MaterialTheme.typography.titleMedium)
@@ -379,7 +380,13 @@ private fun HowMuchPanel(s: CameraStep.HowMuch, vm: CameraViewModel) {
     parseAmount(s.grams)?.takeIf { it > 0 }?.let { grams ->
         Body(stringResource(R.string.camera_amount_total, food.per100g.forGrams(grams).kcal.roundToInt()))
     }
-    MainButton(stringResource(R.string.camera_amount_done), enabled = (parseAmount(s.grams) ?: 0.0) > 0, onClick = vm::finishWithFood)
+    // Round 17 (P5): say where the food goes, like Log food does; recipes only want the amount.
+    val addText = if (logsFood) {
+        stringResource(R.string.camera_amount_add_to, stringResource(mealWord(vm.mealFor(food))))
+    } else {
+        stringResource(R.string.camera_amount_add)
+    }
+    MainButton(addText, enabled = (parseAmount(s.grams) ?: 0.0) > 0, onClick = vm::finishWithFood)
     OtherButton(stringResource(R.string.camera_amount_read_scale)) { vm.readScaleFor(food) }
 }
 
@@ -479,3 +486,24 @@ private fun NumberField(value: String, onChange: (String) -> Unit, label: String
         keyboardOptions = KeyboardOptions(keyboardType = type),
         modifier = Modifier.fillMaxWidth(),
     )
+
+/** The screen title follows the task (round 17, N6): Scannen for barcodes, Etiket for labels, Wegen for the scale. */
+private fun screenTitle(step: CameraStep, mode: CameraMode): Int = when (step) {
+    is CameraStep.PhotoLabel, is CameraStep.ReadingLabel, is CameraStep.EditFood -> R.string.camera_title_label
+    is CameraStep.ReadScale -> R.string.camera_title_weigh
+    is CameraStep.ScanBarcode, is CameraStep.TypeBarcode, is CameraStep.LookingUp, is CameraStep.NotFound -> R.string.camera_camera_title
+    else -> when (mode) {
+        CameraMode.LABEL -> R.string.camera_title_label
+        CameraMode.SCALE -> R.string.camera_title_weigh
+        CameraMode.BARCODE -> R.string.camera_camera_title
+    }
+}
+
+/** The meal in "Toevoegen aan lunch". */
+private fun mealWord(meal: Meal): Int = when (meal) {
+    Meal.BREAKFAST -> R.string.camera_meal_breakfast
+    Meal.LUNCH -> R.string.camera_meal_lunch
+    Meal.DINNER -> R.string.camera_meal_dinner
+    Meal.SNACKS -> R.string.camera_meal_snacks
+    Meal.DRINKS -> R.string.camera_meal_drinks
+}

@@ -29,11 +29,14 @@ fun NavGraphBuilder.cameraScreens(navController: NavController) {
     composable(
         route = "${Routes.CAMERA}?${CameraViewModel.ARG_MODE}={${CameraViewModel.ARG_MODE}}" +
             "&${CameraViewModel.ARG_DRINK}={${CameraViewModel.ARG_DRINK}}" +
-            "&${CameraViewModel.ARG_REPLACE}={${CameraViewModel.ARG_REPLACE}}",
+            "&${CameraViewModel.ARG_REPLACE}={${CameraViewModel.ARG_REPLACE}}" +
+            "&${Routes.ARG_MEAL}={${Routes.ARG_MEAL}}",
         arguments = listOf(
             navArgument(CameraViewModel.ARG_MODE) { type = NavType.StringType; nullable = true; defaultValue = null },
             navArgument(CameraViewModel.ARG_DRINK) { type = NavType.BoolType; defaultValue = false },
             navArgument(CameraViewModel.ARG_REPLACE) { type = NavType.StringType; nullable = true; defaultValue = null },
+            // Round 17 (P5): the meal the opener adds the food to, so "How much?" can say "Add to lunch".
+            navArgument(Routes.ARG_MEAL) { type = NavType.StringType; nullable = true; defaultValue = null },
         ),
     ) { entry ->
         val replacing = entry.arguments?.getString(CameraViewModel.ARG_REPLACE) != null
