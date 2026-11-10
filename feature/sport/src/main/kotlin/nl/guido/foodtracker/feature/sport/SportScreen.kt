@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -69,6 +72,8 @@ internal fun SportRoute(onProfile: () -> Unit, viewModel: SportViewModel = hiltV
     val deleted = stringResource(R.string.sport_deleted)
     val undo = stringResource(R.string.sport_undo)
     val link by viewModel.link.collectAsStateWithLifecycle()
+    val weightKg by viewModel.weightKg.collectAsStateWithLifecycle()
+    val askActivity by viewModel.askActivity.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val allow = rememberLauncherForActivityResult(viewModel.permissionContract) { viewModel.refreshLink() }
     // Each time the tab shows (also after installing Health Connect), check the link and fetch new sport.
@@ -79,7 +84,6 @@ internal fun SportRoute(onProfile: () -> Unit, viewModel: SportViewModel = hiltV
             days = state,
             onAdd = { editing = Editing.New },
             onOpen = { editing = Editing.Existing(it) },
-            onProfile = onProfile,
             link = link,
             onLink = { allow.launch(viewModel.permissions) },
             onInstall = { runCatching { context.startActivity(viewModel.installIntent()) } },
@@ -92,6 +96,9 @@ internal fun SportRoute(onProfile: () -> Unit, viewModel: SportViewModel = hiltV
         val entry = (open as? Editing.Existing)?.entry
         SportDialog(
             entry = entry,
+            weightKg = weightKg,
+            // The activity-level question once, in the first new sport (P11), instead of a card that never goes.
+            onProfile = if (entry == null && askActivity) ({ editing = null; viewModel.activityAsked(); onProfile() }) else null,
             onDismiss = { editing = null },
             onSave = { form ->
                 viewModel.save(form, entry)
@@ -116,7 +123,6 @@ internal fun SportScreen(
     days: SportDays?,
     onAdd: () -> Unit,
     onOpen: (SportEntry) -> Unit,
-    onProfile: () -> Unit,
     link: SportViewModel.Link = SportViewModel.Link(),
     onLink: () -> Unit = {},
     onInstall: () -> Unit = {},
@@ -155,13 +161,6 @@ internal fun SportScreen(
                 }
             }
             LinkCard(link, onLink, onInstall, onFetch)
-            // Sport is typed in separately, so the activity level in the profile shouldn't count it again.
-            Card {
-                Note(stringResource(R.string.sport_activity_note))
-                TextButton(onClick = onProfile, modifier = Modifier.heightIn(min = 48.dp)) {
-                    Text(stringResource(R.string.sport_activity_button))
-                }
-            }
         }
         Button(onClick = onAdd, modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(R.string.sport_add), style = MaterialTheme.typography.titleMedium)
@@ -260,22 +259,56 @@ private fun durationText(minutes: Int): String {
 
 private fun kcal(value: Int): String = NumberFormat.getIntegerInstance().format(value)
 
+/**
+ * Add or change sport. Round 17: tap a kind and type the minutes, and the kcal are estimated (P11, still
+ * editable); Opslaan says what is missing instead of doing nothing (N7). [onProfile] shows the
+ * activity-level question, only the first time.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SportDialog(entry: SportEntry?, onDismiss: () -> Unit, onSave: (SportForm) -> Unit, onDelete: (() -> Unit)?) {
+private fun SportDialog(
+    entry: SportEntry?,
+    weightKg: Double?,
+    onProfile: (() -> Unit)?,
+    onDismiss: () -> Unit,
+    onSave: (SportForm) -> Unit,
+    onDelete: (() -> Unit)?,
+) {
     var name by rememberSaveable { mutableStateOf(entry?.name.orEmpty()) }
     var minutes by rememberSaveable { mutableStateOf(entry?.minutes?.toString().orEmpty()) }
     var kcalText by rememberSaveable { mutableStateOf(entry?.kcal?.toString().orEmpty()) }
-    val form = SportForm(name, minutes, kcalText)
+    /** True once the kcal were typed by hand (or come from a saved line): no more estimating over them. */
+    var kcalByHand by rememberSaveable { mutableStateOf(entry != null) }
+    var tried by rememberSaveable { mutableStateOf(false) }
+    val kindNames = SportKind.entries.associateWith { stringResource(it.label) }
+    val kind = kindNames.entries.firstOrNull { it.value.equals(name.trim(), ignoreCase = true) }?.key
+    val estimate = SportEstimate.kcal(kind?.met ?: SportEstimate.DEFAULT_MET, minutes.trim().toIntOrNull(), weightKg)
+    // Until typed by hand, the kcal field shows the estimate.
+    val kcalShown = if (kcalByHand) kcalText else estimate?.toString().orEmpty()
+    val form = SportForm(name, minutes, kcalShown)
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(if (entry == null) R.string.sport_add else R.string.sport_change_title)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SportKind.entries.forEach { k ->
+                        FilterChip(
+                            selected = kind == k,
+                            onClick = { name = kindNames.getValue(k) },
+                            label = { Text(kindNames.getValue(k)) },
+                        )
+                    }
+                }
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it.take(60) },
                     label = { Text(stringResource(R.string.sport_field_name)) },
                     placeholder = { Text(stringResource(R.string.sport_field_name_hint)) },
+                    supportingText = if (tried && form.cleanName.isEmpty()) {
+                        { Text(stringResource(R.string.sport_field_name_missing)) }
+                    } else null,
+                    isError = tried && form.cleanName.isEmpty(),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
                     modifier = Modifier.fillMaxWidth(),
@@ -289,17 +322,32 @@ private fun SportDialog(entry: SportEntry?, onDismiss: () -> Unit, onSave: (Spor
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
                     modifier = Modifier.fillMaxWidth(),
                 )
+                val kcalMissing = tried && !form.kcalTyped
                 OutlinedTextField(
-                    value = kcalText,
-                    onValueChange = { kcalText = it.filter(Char::isDigit).take(4) },
+                    value = kcalShown,
+                    onValueChange = { kcalText = it.filter(Char::isDigit).take(4); kcalByHand = true },
                     label = { Text(stringResource(R.string.sport_field_kcal)) },
-                    supportingText = if (form.kcalTyped && form.kcalValue == null) {
-                        { Text(stringResource(R.string.sport_field_kcal_range, SportEntry.MAX_KCAL)) }
-                    } else null,
+                    supportingText = when {
+                        kcalMissing -> ({ Text(stringResource(R.string.sport_field_kcal_missing)) })
+                        form.kcalTyped && form.kcalValue == null -> ({ Text(stringResource(R.string.sport_field_kcal_range, SportEntry.MAX_KCAL)) })
+                        !kcalByHand && estimate != null -> ({ Text(stringResource(R.string.sport_field_kcal_estimated)) })
+                        else -> null
+                    },
+                    isError = kcalMissing || (form.kcalTyped && form.kcalValue == null),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                     modifier = Modifier.fillMaxWidth(),
                 )
+                if (onProfile != null) {
+                    Text(
+                        stringResource(R.string.sport_activity_note),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    TextButton(onClick = onProfile, modifier = Modifier.heightIn(min = 48.dp)) {
+                        Text(stringResource(R.string.sport_activity_button))
+                    }
+                }
                 if (onDelete != null) {
                     TextButton(onClick = onDelete, modifier = Modifier.heightIn(min = 48.dp)) {
                         Text(stringResource(R.string.sport_delete))
@@ -308,7 +356,7 @@ private fun SportDialog(entry: SportEntry?, onDismiss: () -> Unit, onSave: (Spor
             }
         },
         confirmButton = {
-            TextButton(onClick = { onSave(form) }, enabled = form.canSave) { Text(stringResource(R.string.sport_save)) }
+            TextButton(onClick = { if (form.canSave) onSave(form) else tried = true }) { Text(stringResource(R.string.sport_save)) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.sport_cancel)) }

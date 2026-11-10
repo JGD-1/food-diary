@@ -168,24 +168,25 @@ private fun ThisWeekCard(
             week.days.forEach { day ->
                 val isToday = day.kind == DayKind.TODAY
                 val canOpen = day.kind != DayKind.FUTURE
+                // N3: every day by its short name, so nothing is cut at large font ("Vanda"); today is bold.
+                val shortName = day.date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                val todayWord = stringResource(R.string.progress_stats_today)
                 Text(
-                    if (isToday) {
-                        stringResource(R.string.progress_stats_today)
-                    } else {
-                        day.date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-                    },
+                    shortName,
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 48.dp)
                         .clickable(enabled = canOpen, role = Role.Button, onClickLabel = stringResource(R.string.progress_stats_open_day)) {
                             onOpenDay(day.date)
                         }
-                        .padding(top = 4.dp),
+                        .padding(top = 4.dp)
+                        .semantics { if (isToday) contentDescription = todayWord },
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
                     color = if (isToday) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
+                    softWrap = false,
                 )
             }
         }
@@ -249,7 +250,7 @@ private fun ProteinCard(week: WeekStats, proteinGoalG: Int?, isThisWeek: Boolean
 private fun dayName(date: LocalDate): String = date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
 
 /**
- * A bar per day, Monday to Sunday: finished days filled, today outlined (it fills up as you log),
+ * A bar per day, Monday to Sunday: finished days filled, today softly filled with an outline (it fills up as you log),
  * days still to come and days with nothing logged as a thin stub. The dashed [line] is the target or goal.
  */
 @Composable
@@ -297,6 +298,14 @@ private fun WeekBars(
                     cornerRadius = CornerRadius(2.dp.toPx()),
                 )
                 day.kind == DayKind.TODAY -> {
+                    // N4: today is filled softly (it was only an outline and read as empty) and outlined,
+                    // so it still shows that the day isn't finished.
+                    drawRoundRect(
+                        color = accent.copy(alpha = 0.45f),
+                        topLeft = Offset(left, size.height - h),
+                        size = Size(barWidth, h),
+                        cornerRadius = corner,
+                    )
                     val stroke = 2.dp.toPx()
                     drawRoundRect(
                         color = accent,
