@@ -48,7 +48,6 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
 
-private val cookedDay = DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefault())
 
 /**
  * "In the fridge" (round 6, D3): every box not eaten yet, with what is left in it. "Weigh a portion"
@@ -117,7 +116,7 @@ private fun BoxCard(box: StoredBox, onWeigh: () -> Unit, moveLabel: String, onMo
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f),
                 )
-                Hint(stringResource(R.string.recipes_box_cooked, box.batch.cookedOn.format(cookedDay)))
+                Hint(stringResource(R.string.recipes_box_cooked, box.batch.cookedOn.format(appDates("EEE d MMM"))))
             }
             Hint(
                 if (box.gramsLeft < box.container.grams) {

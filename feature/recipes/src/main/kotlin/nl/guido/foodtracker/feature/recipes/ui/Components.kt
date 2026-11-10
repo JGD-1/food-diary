@@ -27,6 +27,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -121,13 +122,18 @@ internal fun NutrientsSummary(nutrients: Nutrients, modifier: Modifier = Modifie
     }
 }
 
-private val dayFormat = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.getDefault())
+/** A date pattern in the app's own language (round 17, P15), not the phone's. */
+@Composable
+internal fun appDates(pattern: String): DateTimeFormatter {
+    val tag = stringResource(R.string.recipes_locale)
+    return remember(pattern, tag) { DateTimeFormatter.ofPattern(pattern, Locale.forLanguageTag(tag)) }
+}
 
 /** "For Friday 9 October", shown only when logging to a day other than today. */
 @Composable
 internal fun ForDay(date: LocalDate) {
     if (date != LocalDate.now()) {
-        Text(stringResource(R.string.recipes_for_day, date.format(dayFormat)), style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.recipes_for_day, date.format(appDates("EEEE d MMMM"))), style = MaterialTheme.typography.titleSmall)
     }
 }
 

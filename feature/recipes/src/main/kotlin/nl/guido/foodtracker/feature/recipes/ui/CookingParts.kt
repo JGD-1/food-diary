@@ -1,5 +1,6 @@
 package nl.guido.foodtracker.feature.recipes.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,6 +34,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -41,6 +43,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.feature.recipes.NewBatchViewModel
 import nl.guido.foodtracker.feature.recipes.R
@@ -148,9 +151,27 @@ internal fun AddToPotSheet(
                     Hint(stringResource(R.string.recipes_add_recipe_none))
                 } else {
                     Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
+                        // P16: each recipe with what it adds, so the right one is easy to pick.
                         recipes.forEach { recipe ->
-                            TextButton(onClick = { pickingRecipe = false; onDismiss(); onRecipe(recipe) }, modifier = Modifier.fillMaxWidth()) {
-                                Text(recipe.name, modifier = Modifier.fillMaxWidth())
+                            Column(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 56.dp)
+                                    .clickable(role = Role.Button) { pickingRecipe = false; onDismiss(); onRecipe(recipe) }
+                                    .padding(vertical = 8.dp),
+                            ) {
+                                Text(recipe.name, style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    pluralStringResource(
+                                        R.plurals.recipes_pick_detail,
+                                        recipe.ingredients.size,
+                                        recipe.ingredients.size,
+                                        formatGrams(recipe.totalGrams),
+                                        recipe.total.kcal.roundToInt(),
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
                         }
                     }

@@ -232,7 +232,6 @@ private fun RecipeCard(name: String, detail: String, onOpen: () -> Unit, onEdit:
     }
 }
 
-private val cookedDate = DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefault())
 
 /** A batch in the freezer: one short line, with "Take out" to put it back in the pot list. */
 @Composable
@@ -244,7 +243,7 @@ private fun FrozenRow(open: OpenBatch, onTakeOut: () -> Unit, onEdit: () -> Unit
                 Hint(
                     stringResource(
                         R.string.recipes_batch_cooked_left,
-                        open.batch.cookedOn.format(cookedDate),
+                        open.batch.cookedOn.format(appDates("EEE d MMM")),
                         formatGrams(open.gramsLeft),
                     ),
                 )
@@ -264,7 +263,7 @@ private fun BatchCard(open: OpenBatch, onWeigh: () -> Unit, onEdit: () -> Unit, 
             Hint(
                 stringResource(
                     R.string.recipes_batch_cooked_left,
-                    batch.cookedOn.format(cookedDate),
+                    batch.cookedOn.format(appDates("EEE d MMM")),
                     formatGrams(open.gramsLeft),
                 ),
             )
