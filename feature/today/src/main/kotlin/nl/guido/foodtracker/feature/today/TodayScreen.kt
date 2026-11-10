@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -263,7 +264,7 @@ private fun TodayContent(
                                 items = entriesText(meal.entries, ui.readable),
                                 kcal = kcalText(meal.kcal, meal.hasEstimate),
                                 onClick = { openMeal = meal.meal },
-                            ) { AgainButton { onAgain(meal.meal) } }
+                            ) { AgainButton(entriesText(meal.entries, ui.readable)) { onAgain(meal.meal) } }
                         }
                     }
                     summary.nextEmptyMeal?.let { meal ->
@@ -278,7 +279,7 @@ private fun TodayContent(
                                 kcal = null,
                                 onClick = { onAddTo(meal) },
                             ) {
-                                if (lastTime.isNotEmpty()) AgainButton { onAgain(meal) }
+                                if (lastTime.isNotEmpty()) AgainButton(entriesText(lastTime, ui.readable)) { onAgain(meal) }
                                 else AddButton(stringResource(addMeal(meal))) { onAddTo(meal) }
                             }
                         }
@@ -291,7 +292,8 @@ private fun TodayContent(
                             title = stringResource(R.string.today_meal_drinks),
                             items = if (none) stringResource(R.string.today_drinks_none) else entriesText(summary.drinks.entries, ui.readable),
                             kcal = if (none) null else kcalText(summary.drinks.kcal, summary.drinks.hasEstimate),
-                            onClick = { if (none) onAddTo(Meal.DRINKS) else openMeal = Meal.DRINKS },
+                            // P8: tapping a meal row always opens that meal, Drinks too.
+                            onClick = { openMeal = Meal.DRINKS },
                         ) { AddButton(stringResource(R.string.today_add_drink)) { onAddTo(Meal.DRINKS) } }
                     }
                 }
@@ -555,7 +557,7 @@ private fun RingSection(summary: TodaySummary, partner: PartnerDay?, proteinGoal
             Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 18.dp, bottom = 6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            KcalMeter(summary, partner)
+            KcalMeter(summary)
             Spacer(Modifier.size(4.dp))
             if (partner != null) PartnerLine(partner)
             val target = summary.targetKcal
@@ -574,7 +576,8 @@ private fun RingSection(summary: TodaySummary, partner: PartnerDay?, proteinGoal
                 contentPadding = PaddingValues(horizontal = 12.dp),
                 modifier = Modifier.heightIn(min = 36.dp).semantics { contentDescription = "$sumText. $openLabel" },
             ) {
-                Text(sumText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // P9: darker text and a › so it reads as something to tap.
+                Text("$sumText ›", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
             }
             val eaten = summary.eaten
             val macrosText = if (proteinGoalG != null) {
@@ -586,37 +589,27 @@ private fun RingSection(summary: TodaySummary, partner: PartnerDay?, proteinGoal
                 stringResource(R.string.today_macros, formatKcal(eaten.protein), formatKcal(eaten.carbs), formatKcal(eaten.fat))
             }
             TextButton(onClick = onMacros, contentPadding = PaddingValues(horizontal = 12.dp), modifier = Modifier.heightIn(min = 32.dp)) {
-                Text(macrosText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(macrosText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
             }
         }
     }
 }
 
 /**
- * One small line under the meter with the partner's kcal (round 10), in the same lilac as their
- * striped arc. Screen readers read it as a normal line.
+ * One small line under the meter with the partner's kcal (round 10). Round 17 (P10): the partner is no
+ * longer drawn on your own meter, so this line is the only place their day shows.
  */
 @Composable
 private fun PartnerLine(partner: PartnerDay) {
     val kcal = formatKcal(partner.kcal)
     val text = if (partner.name != null) stringResource(R.string.today_partner_kcal, partner.name, kcal)
     else stringResource(R.string.today_partner_kcal_no_name, kcal)
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        val ink = FoodTheme.colors.tints.lilac.ink
-        Canvas(Modifier.size(width = 14.dp, height = 6.dp)) {
-            drawLine(ink, Offset(0f, size.height / 2), Offset(size.width, size.height / 2), strokeWidth = size.height,
-                pathEffect = PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 2.dp.toPx())))
-        }
-        Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
+    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
-/**
- * The Garden half-circle meter: it fills from left to right as the day's kcal are eaten.
- * With [partner], a thin striped lilac arc on top shows how far they are towards their own target.
- */
+/** The Garden half-circle meter: it fills from left to right as the day's kcal are eaten. Only your own day. */
 @Composable
-private fun KcalMeter(summary: TodaySummary, partner: PartnerDay? = null) {
+private fun KcalMeter(summary: TodaySummary) {
     val left = summary.kcalLeft
     val (number, label, description) = when {
         left == null -> Triple(summary.eatenKcal, R.string.today_kcal_eaten, R.string.today_ring_description_eaten)
@@ -625,7 +618,6 @@ private fun KcalMeter(summary: TodaySummary, partner: PartnerDay? = null) {
     }
     val accent = MaterialTheme.colorScheme.primary
     val track = FoodTheme.colors.meterTrack
-    val partnerInk = FoodTheme.colors.tints.lilac.ink
     val sportColour = FoodTheme.colors.sportBonus
     val spoken = stringResource(description, formatKcal(number))
     // With big text the number and label may need more room than the arc: the box then grows downwards.
@@ -647,16 +639,6 @@ private fun KcalMeter(summary: TodaySummary, partner: PartnerDay? = null) {
                 drawArc(
                     accent, 180f, 180f * summary.ringFraction, useCenter = false, topLeft = topLeft, size = arc,
                     style = Stroke(line, cap = StrokeCap.Round),
-                )
-            }
-            val partnerFraction = partner?.fraction?.coerceIn(0f, 1f)
-            if (partnerFraction != null && partnerFraction > 0f) {
-                drawArc(
-                    partnerInk.copy(alpha = 0.75f), 180f, 180f * partnerFraction, useCenter = false, topLeft = topLeft, size = arc,
-                    style = Stroke(
-                        line / 3,
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 3.dp.toPx())),
-                    ),
                 )
             }
         }
@@ -755,7 +737,8 @@ private fun MealRow(
     ) {
         IconTile(mealIcon(meal), mealTint(meal), size = 40.dp, iconSize = 20.dp)
         Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleMedium, color = titleColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // N3: two lines at large font, so "Avondeten" isn't cut to "Avon…".
+            Text(title, style = MaterialTheme.typography.titleMedium, color = titleColor, maxLines = 2, overflow = TextOverflow.Ellipsis)
             if (items != null) {
                 Text(
                     items, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -768,14 +751,19 @@ private fun MealRow(
     }
 }
 
+/** "Nog eens" with what it adds under it (P8), so a tap never logs a meal by surprise. */
 @Composable
-private fun AgainButton(onClick: () -> Unit) {
+private fun AgainButton(what: String, onClick: () -> Unit) {
+    val spoken = stringResource(R.string.today_again_what, what)
     FilledTonalButton(
         onClick = onClick,
-        contentPadding = PaddingValues(horizontal = 12.dp),
-        modifier = Modifier.heightIn(min = 40.dp),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+        modifier = Modifier.heightIn(min = 48.dp).widthIn(max = 140.dp).semantics { contentDescription = spoken },
     ) {
-        Text(stringResource(R.string.today_again), style = MaterialTheme.typography.labelLarge)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(stringResource(R.string.today_again), style = MaterialTheme.typography.labelLarge, maxLines = 1)
+            Text(what, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 

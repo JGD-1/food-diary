@@ -99,9 +99,9 @@
     <string name="today_macros_note">Leuk om te weten. Het belangrijkste getal is de kcal die over is.</string>
 
     <!-- Terugblik op maandag -->
-    <string name="today_review_title">Je week in het kort</string>
+    <string name="today_review_title">Vorige week in het kort</string>
     <string name="today_review_average_target">Gemiddeld %1$s kcal per dag (doel %2$s)</string>
-    <string name="today_review_days">Ingevuld op %1$d van de 7 dagen</string>
+    <string name="today_review_days">Vorige week: ingevuld op %1$d van de 7 dagen</string>
     <string name="today_review_weight_change">Weging: %1$s kg (%2$s kg sinds de vorige)</string>
     <string name="today_review_weight">Weging: %1$s kg</string>
     <string name="today_review_no_weight">Vorige week geen weging</string>
@@ -114,7 +114,6 @@
     <string name="today_review_dismiss">Begrepen</string>
 
     <!-- Eten toevoegen -->
-    <string name="today_done">Klaar</string>
     <string name="today_log_for_day">Voor %1$s</string>
     <string name="today_search_hint">Zoek eten en drinken</string>
     <string name="today_search_online">Online zoeken naar “%1$s”</string>
@@ -122,7 +121,7 @@
     <string name="today_online_nothing">Online niets gevonden. Probeer andere woorden, of scan de barcode.</string>
     <string name="today_online_unreachable">Open Food Facts is niet bereikbaar. Controleer je internet, of scan de barcode.</string>
     <string name="today_all_recipes">Recepten ›</string>
-    <string name="today_all_recipes_detail">Je recepten en pannen met eten</string>
+    <string name="today_all_recipes_detail">Je recepten en gekookte gerechten</string>
     <string name="today_eat_out_detail">Restaurant, afhaal of eten bij vrienden</string>
     <string name="today_section_favourites">Favorieten</string>
     <string name="today_section_pot">Uit de pan</string>
@@ -134,7 +133,7 @@
     <string name="today_quick_add_description">%1$s nog eens toevoegen</string>
     <string name="today_per_100g">%1$s kcal per 100 g</string>
     <string name="today_per_100ml">%1$s kcal per 100 ml</string>
-    <string name="today_weigh_on_scale">Op de weegschaal wegen</string>
+    <string name="today_weigh_on_scale">Wegen</string>
     <string name="today_unit_g">g</string>
     <string name="today_unit_ml">ml</string>
     <string name="today_amount_total">= %1$s kcal</string>
@@ -163,8 +162,7 @@
         <item quantity="other">In de koelkast, %1$d bakjes</item>
     </plurals>
     <!-- Round 7: weigh after eating -->
-    <string name="today_weigh_after">Weeg na</string>
-    <string name="today_weigh_after_hint">Weeg na: eet ervan en weeg daarna wat over is. Alleen wat je at komt in je dagboek.</string>
+    <string name="today_weigh_after">Eerst wegen, restje later</string>
     <string name="today_weigh_after_added">%1$s staat klaar op Vandaag: weeg na het eten wat over is</string>
     <string name="today_weigh_after_label">Gewogen voor het eten</string>
     <string name="today_weigh_after_detail">%1$s g aan het begin · %2$s</string>
@@ -183,4 +181,9 @@
     <string name="today_partner_kcal_no_name">Partner: %1$s kcal</string>
     <string name="today_sum_sport">%1$s doel + %2$s sport − %3$s gegeten</string>
     <string name="today_sum_sport_estimate">%1$s doel + %2$s sport − ≈ %3$s gegeten</string>
+    <string name="today_cook">Koken</string>
+    <string name="today_weighed_chip">Gewogen: %1$s g. Kies wat het is</string>
+    <string name="today_weighed_clear">Gewicht vergeten</string>
+    <string name="today_amount_more">Meer</string>
+    <string name="today_again_what">Nog eens: %1$s</string>
 </resources>

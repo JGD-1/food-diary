@@ -74,6 +74,8 @@ internal data class LogFoodUiState(
     val amount: AmountStep?,
     /** The app's readable names (S1) for foods in [recent], by food id. */
     val recentReadable: Map<Id, String> = emptyMap(),
+    /** Grams read from the scale before a food was chosen (P4): shown as a chip until a food is picked. */
+    val weighedGrams: Double? = null,
 ) {
     /** My pin for the food in the amount sheet, if I pinned it. */
     val amountPin: PinnedFood? get() = amount?.pick?.foodId?.let { id -> pinnedFoods.firstOrNull { it.food.id == id } }
@@ -114,8 +116,11 @@ internal class LogFoodViewModel @Inject constructor(
     private val online = MutableStateFlow<OnlineSearch>(OnlineSearch.Idle)
     private val amount = MutableStateFlow<AmountStep?>(null)
 
-    /** A weight that came from the scale before a food was chosen ("Weigh" first, then pick). */
-    private var weighedGrams: Double? = savedState.get<String>(TodayRoutes.ARG_GRAMS)?.toDoubleOrNull()
+    /** A weight that came from the scale before a food was chosen ("Weigh" first, then pick); shown as a chip (P4). */
+    private val weighed = MutableStateFlow(savedState.get<String>(TodayRoutes.ARG_GRAMS)?.toDoubleOrNull())
+    private var weighedGrams: Double?
+        get() = weighed.value
+        set(value) { weighed.value = value }
 
     private val events = Channel<LogFoodEvent>(Channel.BUFFERED)
     val eventFlow: Flow<LogFoodEvent> = events.receiveAsFlow()
@@ -171,7 +176,10 @@ internal class LogFoodViewModel @Inject constructor(
         Lists(r.first, r.second, p, pf, b, f)
     }
 
-    val state: StateFlow<LogFoodUiState?> = combine(meal, query, lists, online, amount) { meal, query, lists, online, amount ->
+    private val amountAndWeighed = combine(amount, weighed) { a, w -> a to w }
+
+    val state: StateFlow<LogFoodUiState?> = combine(meal, query, lists, online, amountAndWeighed) { meal, query, lists, online, aw ->
+        val (amount, weighedNow) = aw
         val recent = recentItems(lists.recent, meal).filter { entry ->
             query.isBlank() || entry.displayName.contains(query.trim(), true) ||
                 entry.foodId?.let { lists.recentReadable[it] }?.contains(query.trim(), true) == true
@@ -191,6 +199,7 @@ internal class LogFoodViewModel @Inject constructor(
             online = online,
             amount = amount,
             recentReadable = lists.recentReadable,
+            weighedGrams = weighedNow,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -199,6 +208,11 @@ internal class LogFoodViewModel @Inject constructor(
     }
 
     fun setMeal(value: Meal) = meal.update { value }
+
+    /** The ✕ on the "Gewogen: 240 g" chip: forget the weight, so the next food gets its usual amount. */
+    fun clearWeighed() {
+        weighedGrams = null
+    }
 
     fun setQuery(text: String) {
         query.value = text
