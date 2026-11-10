@@ -129,7 +129,7 @@
     <string name="today_section_foods">Producten</string>
     <string name="today_section_online">Online</string>
     <string name="today_empty_hint">Zoek een product of scan de barcode. Wat je invult, staat hier de volgende keer klaar.</string>
-    <string name="today_quick_add">Toevoegen</string>
+    <string name="today_quick_add">Nog eens</string>
     <string name="today_quick_add_description">%1$s nog eens toevoegen</string>
     <string name="today_per_100g">%1$s kcal per 100 g</string>
     <string name="today_per_100ml">%1$s kcal per 100 ml</string>

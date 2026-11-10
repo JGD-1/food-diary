@@ -14,8 +14,8 @@
     <string name="recipes_pinned_section">My favourites</string>
     <string name="recipes_all_section">All recipes</string>
     <string name="recipes_empty">No recipes yet. Save one once, and next time it takes two taps to log.</string>
-    <string name="recipes_recipe_detail">%1$d kcal in %2$s g</string>
-    <string name="recipes_usual_portion">Usually %1$s g, %2$d kcal</string>
+    <string name="recipes_recipe_detail">%1$,d kcal in %2$s g</string>
+    <string name="recipes_usual_portion">Usually %1$s g, %2$,d kcal</string>
     <string name="recipes_edit">Edit</string>
     <string name="recipes_not_found">This is no longer here. It may have been deleted.</string>
 
@@ -37,7 +37,7 @@
     <string name="recipes_grams_unit">g</string>
     <string name="recipes_weigh">Weigh</string>
     <string name="recipes_remove">Remove</string>
-    <string name="recipes_kcal">%1$d kcal</string>
+    <string name="recipes_kcal">%1$,d kcal</string>
     <string name="recipes_macros">Protein %1$d g · Carbs %2$d g · Fat %3$d g</string>
     <string name="recipes_for_day">For %1$s</string>
     <string name="recipes_meal_breakfast">Breakfast</string>
@@ -72,12 +72,12 @@
     <!-- Batch meals -->
     <string name="recipes_batch_step_in">Ingredients</string>
     <string name="recipes_batch_step_in_hint">Weigh each ingredient before it goes in.</string>
-    <string name="recipes_batch_raw_total">Everything in the pot: %1$d kcal</string>
+    <string name="recipes_batch_raw_total">Everything in the pot: %1$,d kcal</string>
     <string name="recipes_batch_step_cooked">Weight of the dish</string>
     <string name="recipes_batch_step_cooked_hint">Weigh the whole dish, without the pot.</string>
     <string name="recipes_batch_cooked_weight">Cooked batch</string>
     <string name="recipes_batch_save">Save dish</string>
-    <string name="recipes_batch_summary">Cooked %1$s · %2$s g in total, %3$d kcal</string>
+    <string name="recipes_batch_summary">Cooked %1$s · %2$s g in total, %3$,d kcal</string>
     <string name="recipes_batch_step_portion_hint">Put your plate on the scale, set it to zero and serve.</string>
     <string name="recipes_log_my_portion">Log my portion</string>
     <string name="recipes_batch_left">About %1$s g left</string>
@@ -172,19 +172,20 @@
     </plurals>
     <string name="recipes_note_scan_more">Back to the camera</string>
     <!-- Round 4, Guido 12 Oct: share of the pot, a batch of your own -->
-    <string name="recipes_batch_share">That is %1$d%% of the dish (%2$s g): %3$d kcal</string>
+    <string name="recipes_batch_share">That is %1$d%% of the dish (%2$s g): %3$,d kcal</string>
     <string name="recipes_batch_name">Name of the meal</string>
     <string name="recipes_cook_batch_hint">One screen: what goes in, plates for each of you, boxes for the fridge.</string>
     <!-- Round 6, Guido 17 Oct: dish up for everyone, the fridge -->
     <string name="recipes_dish_step">2. Dish up</string>
     <string name="recipes_dish_up">Dish up</string>
     <string name="recipes_dish_zero_hint">Set each empty plate or box to zero, fill it and weigh.</string>
-    <string name="recipes_dish_share">%1$d%% · ≈ %2$d kcal</string>
+    <string name="recipes_dish_share">%1$d%% · ≈ %2$,d kcal</string>
     <string name="recipes_dish_add_plate">+ Plate</string>
     <string name="recipes_dish_add_box">+ Box</string>
     <string name="recipes_dish_rest">Left in the pot (a guess is fine)</string>
     <string name="recipes_dish_my_meal">Your plate goes in</string>
-    <string name="recipes_dish_done">Done dishing up</string>
+    <string name="recipes_dish_add_to">Add to %1$s</string>
+    <string name="recipes_dish_done">Save</string>
     <string name="recipes_dish_my_plate">Your plate</string>
     <string name="recipes_dish_their_plate">%1$s\'s plate</string>
     <string name="recipes_dish_partner">Partner</string>
@@ -203,8 +204,8 @@
     <string name="recipes_fridge_button">In the fridge: %1$d boxes</string>
     <string name="recipes_box_name">%1$s · Box %2$d</string>
     <string name="recipes_box_cooked">Cooked %1$s</string>
-    <string name="recipes_box_left">%1$s g left · ≈ %2$d kcal</string>
-    <string name="recipes_box_left_of">%1$s g left of %2$s g · ≈ %3$d kcal</string>
+    <string name="recipes_box_left">%1$s g left · ≈ %2$,d kcal</string>
+    <string name="recipes_box_left_of">%1$s g left of %2$s g · ≈ %3$,d kcal</string>
     <string name="recipes_box_weigh">Weigh</string>
     <string name="recipes_box_in_box">Box %1$d: %2$s g in the box</string>
     <string name="recipes_box_weigh_hint">Set your plate to zero, serve your portion and weigh.</string>
@@ -212,7 +213,7 @@
     <string name="recipes_box_left_after">Left in the box after this: %1$s g</string>
     <string name="recipes_waiting_from">%1$s dished up for you</string>
     <string name="recipes_waiting_from_someone">Dished up for you</string>
-    <string name="recipes_waiting_detail">%1$s g · ≈ %2$d kcal</string>
+    <string name="recipes_waiting_detail">%1$s g · ≈ %2$,d kcal</string>
     <string name="recipes_waiting_add">Add to my diary</string>
     <string name="recipes_waiting_not_mine">Not mine</string>
     <!-- Round 16: cooking in one screen -->
@@ -236,17 +237,17 @@
     <string name="recipes_done_theirs">Plate for %1$s · waiting on Today</string>
     <string name="recipes_done_fridge">Box %1$d · in the fridge</string>
     <string name="recipes_done_freezer">Box %1$d · in the freezer</string>
-    <string name="recipes_done_amount">%1$s g · %2$d kcal</string>
+    <string name="recipes_done_amount">%1$s g · %2$,d kcal</string>
     <string name="recipes_done_save_recipe">Save as recipe</string>
     <string name="recipes_done_saved_recipe">Saved as a recipe.</string>
-    <string name="recipes_done_close">Done</string>
+    <string name="recipes_done_close">Close</string>
     <string name="recipes_locale" translatable="false">en</string>
     <string name="recipes_more_options">More options</string>
     <string name="recipes_dish_plates_instead">Dish up in plates and boxes after all</string>
     <string name="recipes_dish_weigh_whole">Weigh the whole dish at once instead</string>
-    <string name="recipes_dish_total_kcal">Together: %1$s g · %2$d kcal</string>
+    <string name="recipes_dish_total_kcal">Together: %1$s g · %2$,d kcal</string>
     <plurals name="recipes_pick_detail">
-        <item quantity="one">%1$d ingredient · %2$s g · %3$d kcal</item>
-        <item quantity="other">%1$d ingredients · %2$s g · %3$d kcal</item>
+        <item quantity="one">%1$d ingredient · %2$s g · %3$,d kcal</item>
+        <item quantity="other">%1$d ingredients · %2$s g · %3$,d kcal</item>
     </plurals>
 </resources>

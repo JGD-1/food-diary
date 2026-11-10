@@ -105,6 +105,8 @@ internal fun lastTimeByMeal(history: List<LogEntry>): Map<Meal, List<LogEntry>> 
  */
 internal fun againSource(summary: TodaySummary, meal: Meal): List<LogEntry> =
     mealEntries(summary, meal).ifEmpty { summary.lastTime[meal].orEmpty() }
+        // Round 17 check: a meal that was already repeated holds each item twice; "Again" adds each once.
+        .distinctBy { Triple(it.what, it.portion.grams, it.portion.label) }
 
 /** The lines logged in [meal] on the day shown. */
 internal fun mealEntries(summary: TodaySummary, meal: Meal): List<LogEntry> =

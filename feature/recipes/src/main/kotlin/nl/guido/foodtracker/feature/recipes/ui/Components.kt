@@ -3,6 +3,8 @@ package nl.guido.foodtracker.feature.recipes.ui
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -137,9 +139,11 @@ internal fun ForDay(date: LocalDate) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun MealChips(selected: Meal, onSelect: (Meal) -> Unit) {
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    // Round 17 check: wraps instead of scrolling, so "Tussendoortjes" is never cut off.
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         listOf(Meal.BREAKFAST, Meal.LUNCH, Meal.DINNER, Meal.SNACKS).forEach { meal ->
             FilterChip(selected = meal == selected, onClick = { onSelect(meal) }, label = { Text(mealName(meal)) })
         }
@@ -422,4 +426,11 @@ private fun PansDialog(pans: List<Pan>, onAdd: (String, Double) -> Unit, onDelet
         },
         confirmButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.recipes_close)) } },
     )
+}
+
+/** At very large font this text stops growing (round 17 check, N3), so short labels stay on one line. */
+@Composable
+internal fun capped(style: androidx.compose.ui.text.TextStyle, max: Float = 1.3f): androidx.compose.ui.text.TextStyle {
+    val scale = androidx.compose.ui.platform.LocalDensity.current.fontScale
+    return if (scale > max) style.copy(fontSize = style.fontSize * (max / scale)) else style
 }

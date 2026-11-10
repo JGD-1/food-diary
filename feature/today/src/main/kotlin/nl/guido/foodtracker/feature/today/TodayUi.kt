@@ -175,3 +175,17 @@ internal fun CameraResults(entry: NavBackStackEntry, onResult: (foodId: String?,
         }
     }
 }
+
+/** At very large font this text stops growing (round 17 check, N3), so single words are never broken or cut. */
+@Composable
+internal fun capped(style: androidx.compose.ui.text.TextStyle, max: Float = 1.3f): androidx.compose.ui.text.TextStyle {
+    val scale = androidx.compose.ui.platform.LocalDensity.current.fontScale
+    return if (scale > max) style.copy(fontSize = style.fontSize * (max / scale)) else style
+}
+
+/** "yoghurt, muesli" under "Nog eens": the names only, at most three. */
+@Composable
+internal fun againLabel(entries: List<LogEntry>): String {
+    val (names, more) = againNames(entries)
+    return names.joinToString(", ") + if (more > 0) " +$more" else ""
+}
