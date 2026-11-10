@@ -19,6 +19,7 @@ import nl.guido.foodtracker.core.model.PickedFood
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.RecipeVariant
+import nl.guido.foodtracker.core.model.mealForTime
 import nl.guido.foodtracker.feature.recipes.logic.Dish
 import nl.guido.foodtracker.feature.recipes.logic.EditableIngredient
 import nl.guido.foodtracker.feature.recipes.logic.filledIn
@@ -77,7 +78,7 @@ internal class LogRecipeViewModel @Inject constructor(
     private val recipeId: String = checkNotNull(savedState[RecipesRoutes.ARG_RECIPE_ID])
     private val _state = MutableStateFlow(
         State(
-            meal = RecipesRoutes.mealArg(savedState[RecipesRoutes.ARG_MEAL]) ?: mealAt(LocalTime.now()),
+            meal = RecipesRoutes.mealArg(savedState[RecipesRoutes.ARG_MEAL]) ?: mealForTime(LocalTime.now()),
             date = RecipesRoutes.dateArg(savedState[RecipesRoutes.ARG_DATE], LocalDate.now()),
         ),
     )

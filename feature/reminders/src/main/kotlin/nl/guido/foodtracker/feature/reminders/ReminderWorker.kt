@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.first
 import nl.guido.foodtracker.core.data.repo.DiaryRepository
 import nl.guido.foodtracker.core.data.repo.SessionRepository
 import java.time.LocalDate
+import nl.guido.foodtracker.core.model.mealForTime
 
 /** The daily job for one reminder time: shows "Log lunch?" unless that meal is already logged, then plans tomorrow's job. */
 class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {

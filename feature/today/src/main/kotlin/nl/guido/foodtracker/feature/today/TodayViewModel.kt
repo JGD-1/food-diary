@@ -36,6 +36,7 @@ import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Logged
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.WeeklyReview
+import nl.guido.foodtracker.core.model.mealForTime
 import nl.guido.foodtracker.core.ui.Routes
 import java.time.Instant
 import java.time.LocalDate

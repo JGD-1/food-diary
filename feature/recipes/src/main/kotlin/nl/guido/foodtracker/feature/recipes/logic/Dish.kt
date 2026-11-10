@@ -108,15 +108,6 @@ fun Batch.logEntry(
     createdAt = now,
 )
 
-/** The meal that fits the time of day, used as the first choice on the log screens. */
-fun mealAt(time: LocalTime): Meal = when {
-    time < LocalTime.of(10, 30) -> Meal.BREAKFAST
-    time < LocalTime.of(14, 30) -> Meal.LUNCH
-    time < LocalTime.of(17, 0) -> Meal.SNACKS
-    time < LocalTime.of(21, 0) -> Meal.DINNER
-    else -> Meal.SNACKS
-}
-
 /** Reads grams typed by a person: accepts "250", "250.5" and the Dutch "250,5". Null if not a positive number. */
 fun parseGrams(text: String): Double? =
     text.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 && it.isFinite() }

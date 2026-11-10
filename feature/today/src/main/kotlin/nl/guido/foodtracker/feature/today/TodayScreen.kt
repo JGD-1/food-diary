@@ -79,6 +79,7 @@ import nl.guido.foodtracker.core.model.LogEntry
 import nl.guido.foodtracker.core.model.Meal
 import nl.guido.foodtracker.core.model.ReviewSuggestion
 import nl.guido.foodtracker.core.model.WeeklyReview
+import nl.guido.foodtracker.core.model.mealForTime
 import nl.guido.foodtracker.core.ui.CardShadow
 import nl.guido.foodtracker.core.ui.FoodTheme
 import nl.guido.foodtracker.core.ui.IconTile

@@ -9,6 +9,7 @@ import nl.guido.foodtracker.core.model.Nutrients
 import nl.guido.foodtracker.core.model.Portion
 import nl.guido.foodtracker.core.model.Recipe
 import nl.guido.foodtracker.core.model.RecipeVariant
+import nl.guido.foodtracker.core.model.mealForTime
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -109,11 +110,11 @@ class DishTest {
 
     @Test
     fun mealFollowsTheTimeOfDay() {
-        assertEquals(Meal.BREAKFAST, mealAt(LocalTime.of(7, 30)))
-        assertEquals(Meal.LUNCH, mealAt(LocalTime.of(12, 45)))
-        assertEquals(Meal.SNACKS, mealAt(LocalTime.of(15, 30)))
-        assertEquals(Meal.DINNER, mealAt(LocalTime.of(18, 30)))
-        assertEquals(Meal.SNACKS, mealAt(LocalTime.of(22, 0)))
+        assertEquals(Meal.BREAKFAST, mealForTime(LocalTime.of(7, 30)))
+        assertEquals(Meal.LUNCH, mealForTime(LocalTime.of(12, 45)))
+        assertEquals(Meal.DINNER, mealForTime(LocalTime.of(15, 30)))
+        assertEquals(Meal.DINNER, mealForTime(LocalTime.of(18, 30)))
+        assertEquals(Meal.SNACKS, mealForTime(LocalTime.of(22, 0)))
     }
 
     @Test
